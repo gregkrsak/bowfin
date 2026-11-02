@@ -783,6 +783,15 @@ production candidate through R2–R5**. The initial candidate, its exact predece
 reconciliation, independent recommendation, Greg's separate production acceptance,
 human staging-to-production merge and fresh production verification are unchanged.
 
+An accepted, properly gated deferred alignment plan may coexist with the initial
+R2/R3 disposition. Completion of the later post-rename alignment follow-up is not
+a prerequisite to the original R5 production transition. The follow-up remains
+separately gated after R5, the authorized and executed rename, verification of
+applicable new canonical destinations, assessment of every applicable old-name
+destination and Greg's separate preparation order. This sequencing distinction
+waives no post-rename verification, mandatory compatibility, recovery, R8 or
+external-authorization obligation.
+
 If and only if this amendment is adopted, it creates one narrow exception to
 Section 3: **one additional staging-to-production PR solely for post-cutover
 content alignment**, within Sections 16.2–16.5 below. It does not turn an M0–M7
@@ -807,9 +816,22 @@ are established and recorded:
    R5 at its actual production commit/tree.
 2. Greg separately authorized the repository rename under R6, a human executed it,
    and readback confirms the same repository identity, history and issue/PR state.
-3. Relevant old/new repository, raw, workflow/badge and routing checks pass for the
-   exact consumers the follow-up will change. A verified Git redirect alone is not
-   proof for another surface.
+3. Individually verify each applicable new canonical repository, raw-content,
+   workflow, badge and routing destination for the exact consumers the follow-up
+   will change. A verified Git redirect alone is not proof for another surface.
+   Test every applicable old-name destination and individually record its result
+   as working compatibility or redirect behavior; failed or unavailable behavior;
+   or indeterminate behavior with the limitation stated. Old-name assessment need
+   not be successful to satisfy this preparation gate: an old-name failure must
+   not, by itself, prohibit preparing the narrowly authorized canonical-link
+   correction when its corresponding new canonical destination is verified and
+   the accepted content still requires correction. Never represent a failed,
+   unavailable or indeterminate old route as successful. Every other Section 16
+   prerequisite must still be satisfied. Any separately mandatory legacy-
+   compatibility obligation remains binding and, if unsatisfied, blocks its
+   applicable completion claim. Retain old-route failures/limitations in the
+   compatibility and recovery assessment; neither preparation nor the follow-up
+   converts them into a passing R8 result or erases them.
 4. Any domain or migration-state wording proposed for change is supported by the
    corresponding actual routing/state evidence. An unverified destination remains
    deferred; this exception cannot make an unavailable surface true by editing prose.
@@ -818,16 +840,21 @@ are established and recorded:
 
 ### 16.3 Exclusive permitted content boundary
 
-The follow-up's complete tracked diff is limited to these six files and fields:
+The follow-up's complete tracked diff is limited to these six files and exact
+existing passages/field roles. The selectors below identify the current passages
+at reviewed M7 head `047e80748b45f5bf54408189b5c99780c9f80fae`; headings and field
+prefixes define scope, not the whole surrounding section. Movement or line wrapping
+does not enlarge a field. If a selector is missing, ambiguous or requires a wider
+edit in then-verified production, stop for a separately reviewed scope decision.
 
 | File | Sole permitted changes |
 | --- | --- |
-| `README.md` | The eight workflow-page and badge-image URLs for `build.yml`, `tests.yml`, `verify.yml` and `docs.yml`: the old repository slug becomes the verified new slug. No layout, copy, command, alt text or other README change. |
-| `scripts/verify-repo-scaffold.py` | The coupled `repo_slug` constant only; the verifier algorithm, required checks and rejection behavior remain unchanged. |
-| `REPO_STRUCTURE.md` | Live repository, domain and migration-state metadata only. |
-| `docs/ai/BOWFIN_CONTEXT.md` | Live repository, domain and migration-state metadata only. |
-| `docs/ai/LANGUAGE_DECISIONS.md` | Live repository, domain and migration-state metadata in BD-001 only; no decision status, number, semantics or history change. |
-| `docs/ai/BOWFIN_AI_CONTEXT_BUNDLE.md` | Regeneration from the canonical inputs through the unchanged ordered generator; no hand edit. |
+| `README.md` | Only the repository-slug component of the eight existing URL attributes in the top workflow-badge paragraph: the four `a[href]` workflow-page URLs and their four associated `img[src]` badge URLs for exactly `build.yml`, `tests.yml`, `verify.yml` and `docs.yml` under `https://github.com/gregkrsak/klyxr/actions/workflows/`. Replace that slug with the verified canonical slug; preserve every other URL component, attribute, image reference, layout, copy, command and alt text. |
+| `scripts/verify-repo-scaffold.py` | Only the value of the existing module-level `repo_slug = "gregkrsak/klyxr"` assignment, coupled to those eight README fields. Its name, verifier algorithm, required checks and rejection behavior remain unchanged. |
+| `REPO_STRUCTURE.md` | Only the live metadata in the opening paragraph under `# Bowfin Repository Structure`, before its first fenced tree: `Current operational GitHub home: gregkrsak/klyxr` and `The adopted destination is gregkrsak/bowfin; no repository cutover has occurred.` Update only their repository values and corresponding verified cutover-state wording. No domain field currently exists here and none is introduced by this exception. The prototype-description sentence, future-organization-transfer sentence, fenced tree (including its root label), and all later prose are outside scope. |
+| `docs/ai/BOWFIN_CONTEXT.md` | Under `## Project identity`, only the existing `Adopted primary domain:` and `Operational legacy public sites:` lines and their verified operational/cutover-state qualifiers; retain the adopted domain identities and legacy-endpoint retention commitment. Under `## Brand system`, only the single bullet beginning `- adopted repository destination:` that also contains `operational repository:` and `until authorized cutover`. No other field, bullet or passage is eligible; CLI/source-extension promises, branding/artwork/hash fields and historical implementation passages remain unchanged. |
+| `docs/ai/LANGUAGE_DECISIONS.md` | Under `## BD-001 — Public project name`, only the existing `**Adopted primary domain:** bowfin-lang.com (external cutover deferred)` field's verified operational/cutover-state wording. The domain identity is retained. The heading, `Status`, `Decision`, CLI, source-extension and `Operational legacy endpoints` fields, decision history and every other decision are outside scope. |
+| `docs/ai/BOWFIN_AI_CONTEXT_BUNDLE.md` | Regenerate only with the unchanged canonical generator from the unchanged ordered input set, incorporating solely the specifically permitted input-field changes above. Every output difference must derive from those input changes; no hand edit or independent bundle cleanup. |
 
 The generator and its prescribed order remain unchanged:
 `BOWFIN_CONTEXT.md`, `DESIGN_PRINCIPLES.md`, `LANGUAGE_DECISIONS.md`,

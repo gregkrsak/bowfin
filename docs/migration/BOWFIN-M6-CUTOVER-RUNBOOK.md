@@ -160,7 +160,7 @@ site or change DNS merely to manufacture preview evidence.
 | M6-OP04 | Exact domain FQDNs, controlled registrar/DNS/hosting accounts, renewal/lock status, existing zone/routing exports, restore capability and operator access | Any DNS/hosting/domain operation |
 | M6-OP05 | Existing provider's actual forwarding/TLS capabilities, preview if available, certificate names/expiry/renewal, complete before/after record/rule tuples and approved route policy | Any domain activation or truthful secure-domain claim |
 | M6-OP06 | Existing non-root paths, query handling, mail/subdomain consumers and their exact retention/mapping; explicit decision for `www` and optional secondary routes | Silent loss of existing URL/service behavior |
-| M6-OP07 | Proposed Amendment 4 (contract §16) is pending: independent review, Greg's explicit acceptance, human staging integration/readback, then its separate post-rename preparation/merge gates and exact content/CI evidence | Still unresolved; no current URL/metadata edit, extra production PR, R2/R3 disposition or future merge authority |
+| M6-OP07 | Revised proposed Amendment 4 (contract §16) is pending: independent review, Greg's explicit acceptance and human staging integration/readback, then its separate post-R5/rename canonical-verification, old-route-assessment, preparation/merge and exact-content/CI gates | Still unresolved; no current URL/metadata edit, extra production PR or future merge authority. After adoption, a properly gated deferred plan may coexist with initial R2/R3; completing the later follow-up is not a prerequisite to original R5. Compatibility/recovery/R8 obligations remain binding. |
 | M6-OP08 | Named announcement channels, exact approved copy, timing and publication operator; any separately authorized release/package plan | Publication or new distribution claims |
 
 These are operational requirements, not language questions or instructions to
@@ -339,8 +339,9 @@ read fallback is not proof that the restricted connection is healthy.
 
 **Operator/access/gate (future, not yet authorized):** Greg must separately
 authorize the bounded URL-only repository-content change after A01 and the
-relevant A02 checks. It needs ordinary review, required
-CI and a human merge against the then-authorized target. This M6 candidate
+canonical-verification and old-route-assessment requirements of contract
+§16.2(3), with every other §16 prerequisite satisfied. It needs ordinary review,
+required CI and a human merge against the then-authorized target. This M6 candidate
 authorizes none of those edits or merges.
 
 This cannot be implemented by retargeting an M0–M7 phase PR to `prod`. Contract
@@ -353,12 +354,30 @@ resolve M6-OP07. This preparation does not close M6-OP07 or establish final R2/R
 
 If adopted, the follow-up still cannot be prepared until the actual fixed
 production candidate has passed acceptance/human merge/R5 verification, the
-repository rename is separately authorized and executed, relevant old/new routing
-checks pass, and Greg separately authorizes preparation. The then-verified
-production ancestry must enter staging through ordinary reviewed human integration.
+repository rename is separately authorized and executed, each applicable new
+canonical repository/raw-content/workflow/badge/routing destination is individually
+verified, every applicable old-name destination is tested and its outcome recorded,
+and Greg separately authorizes preparation. Record each old outcome as working
+compatibility/redirect behavior, failed or unavailable behavior, or indeterminate
+behavior with its limitation stated. An old-route failure does not, by itself,
+prevent the bounded canonical-link correction when the corresponding new canonical
+destination is verified and the accepted content still requires correction. Never report an
+old failed/unavailable/indeterminate route as successful. Any separately mandatory
+legacy-compatibility obligation still blocks its applicable completion claim if
+unsatisfied; failures and limitations remain in compatibility/recovery assessment
+and cannot become a passing R8 result through the follow-up. All other §16 gates
+remain required. The then-verified production ancestry must enter staging through
+ordinary reviewed human integration.
 Exact diff, predecessor reconciliation, CI, independent review and Greg's separate
 acceptance precede the one additional human production merge. No second feature
 candidate, verifier algorithm change or wider exception is implied.
+
+An accepted and properly gated deferred alignment plan may coexist with the
+initial R2/R3 disposition. Completion of this post-rename follow-up is not a
+prerequisite to the original R5 transition; preparation remains separately gated
+after R5, the authorized rename, verified canonical destinations, recorded old-route
+assessments and Greg's separate order. This does not waive post-rename checks,
+mandatory compatibility, recovery, R8 or external-authorization obligations.
 
 Any resulting production commit/tree requires fresh post-merge verification and
 reconciled or renewed dependent external authorization/checks before more external
@@ -383,20 +402,27 @@ in that content candidate. Keep workflow filenames, image/alt/layout attributes,
 branch defaults and the existing verifier's rejection behavior. Do not change
 those files during M6.
 
-**Verification:** Old and new URLs are each tested, then the new content candidate
-runs the ordinary README/scaffold checks (including a missing mobile `srcset`
-negative control) and applicable CI. Badges default to the default branch unless
+**Verification:** Individually verify the applicable new canonical URLs and test
+and classify every applicable old-name URL under the rule above; preserve all
+failed/unavailable/indeterminate outcomes and their compatibility/recovery and
+completion consequences. The new content candidate then runs the ordinary
+README/scaffold checks (including a missing mobile `srcset` negative control) and
+applicable CI. Badges default to the default branch unless
 qualified [S3]; because `prod` remains default, a staging badge or inherited
 green image cannot stand for final production validation.
 
-**Additional truthful metadata alignment, separately scoped:** After the
-corresponding routing actually works, review live passages at
-`REPO_STRUCTURE.md`'s opening paragraph,
-`docs/ai/BOWFIN_CONTEXT.md`'s project-domain and operational-repository passages,
-and `docs/ai/LANGUAGE_DECISIONS.md`'s BD-001 deferred-domain field.
-Update only then-truthful live operational/deferred wording; regenerate the
-single bundle from its five ordered inputs if an input changes. The existing
-bundle mirrors these passages. Historical Issue #70/#72 links in
+**Additional truthful metadata alignment, precisely scoped by §16.3:** Only the
+opening `REPO_STRUCTURE.md` operational-home/adopted-destination/cutover-state
+sentences before its first fenced tree; `BOWFIN_CONTEXT.md`'s two domain/legacy-site
+lines under `Project identity` and its one adopted/operational-repository bullet
+under `Brand system`; and BD-001's `Adopted primary domain` field are eligible.
+The exact selectors and exclusions in §16.3 control, not the surrounding sections.
+Do not alter the repository tree diagram, prototype/organization-transfer prose,
+CLI/source-extension or legacy-retention promises, decision/status/history fields,
+artwork/hash fields or unrelated migration prose. Use only verified current facts;
+regenerate the single bundle solely from the permitted input changes with the
+unchanged generator and five-input order. The existing bundle mirrors these
+passages. Historical Issue #70/#72 links in
 `LANGUAGE_DECISIONS.md`, their bundle copies, frozen reports, recorded commands
 and hashes retain their evidence roles. They are not a bulk replacement list.
 
@@ -404,8 +430,14 @@ The separate governance repository and installed ChatGPT instructions need their
 own owner-scoped decisions if live links need alignment. A compiler-content PR
 cannot change accepted charters, installed instructions or their authority.
 
-**Failure/recovery:** Stop on a coupled-verifier failure, unsupported redirect or
-historical rewrite. Abandon an unmerged content candidate, or obtain a separately
+**Failure/recovery:** Stop preparation on an unverified applicable canonical
+destination, a coupled-verifier failure, a historical rewrite or any other
+unsatisfied §16 prerequisite. Assess an old-route failure under §16.2(3); it does
+not by itself stop the bounded follow-up when the corresponding canonical
+destination is verified and accepted content still requires correction. An
+unsatisfied mandatory legacy obligation still blocks its applicable compatibility
+or R8 completion claim; retain its failure and recovery assessment. Abandon an
+unmerged content candidate, or obtain a separately
 authorized ordinary revert/forward fix of its exact commit. This does not undo
 A01 or any cached URL. No wildcard historical exemption is created.
 
@@ -680,6 +712,11 @@ R8. This dependency order does not authorize optional writes or override missing
 prerequisites. Amendment 4 remains proposed/pending in this candidate; the current
 §3 rule still controls, M6-OP07 remains open and final R2/R3 disposition awaits
 acceptance and verification of the resulting staging integration.
+After adoption, the properly gated deferred alignment plan can coexist with the
+initial R2/R3 disposition: finishing the later follow-up is not required for the
+original R5 transition. Post-rename route assessment, mandatory compatibility,
+recovery, R8 and reconciliation/renewal of dependent external authority remain
+required; an old-route failure is never converted into a successful result.
 
 Greg and the independent checker record actual time/result/evidence/recovery
 status for every applicable item:
