@@ -1,4 +1,4 @@
-use klyxr_compiler::{compile_source, hir::Program, mir, FrontendError};
+use bowfin_compiler::{compile_source, hir::Program, mir, FrontendError};
 const DECL: &str = "type Percent = range 0..100; record Ticket { value: Percent }";
 fn good(functions: &str) -> Program {
     let p = compile_source(&format!("{DECL} {functions}")).unwrap();

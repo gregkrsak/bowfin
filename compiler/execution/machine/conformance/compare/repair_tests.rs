@@ -108,7 +108,7 @@ fn i01_verified_between_caller_callee_and_failing_harness_stay_isolated() {
     // Public ordinary preparation/execution must not evaluate the harness.
     let source = format!(
         "{}\nfn demo()->bool{{return true;}}",
-        include_str!("../../../../../examples/battery_fail.klx")
+        include_str!("../../../../../examples/battery_fail.bow")
     );
     assert!(
         !crate::verify::verify_report(&crate::compile_source(&source).unwrap())

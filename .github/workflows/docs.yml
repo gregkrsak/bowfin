@@ -14,13 +14,52 @@ jobs:
           python-version: '3.x'
       - name: Validate README and local documentation assets
         run: python scripts/verify-readme.py
+      - name: Reject a missing mobile-only srcset asset
+        run: |
+          python - <<'PY'
+          import hashlib
+          import os
+          from pathlib import Path
+          import shutil
+          import subprocess
+          import sys
+          import tempfile
+
+          root = Path.cwd().resolve()
+          readme = root / "README.md"
+          before = hashlib.sha256(readme.read_bytes()).hexdigest()
+          selected = './assets/readme-banner-mobile.png'
+          missing = './assets/m5-min-01-nonexistent-mobile-source.png'
+          original = f'srcset="{selected}"'
+          replacement = f'srcset="{missing}"'
+          assert (root / selected).is_file(), selected
+          assert not (root / missing).exists(), missing
+          with tempfile.TemporaryDirectory(dir=os.environ["RUNNER_TEMP"]) as directory:
+              temporary = Path(directory) / "README.md"
+              assert root not in temporary.resolve().parents
+              shutil.copyfile(readme, temporary)
+              text = temporary.read_text(encoding="utf-8")
+              assert text.count(original) == 1, "expected one existing mobile srcset"
+              temporary.write_text(text.replace(original, replacement, 1), encoding="utf-8")
+              result = subprocess.run(
+                  [sys.executable, "scripts/verify-readme.py", "--readme", str(temporary)],
+                  capture_output=True, text=True,
+              )
+              output = result.stdout + result.stderr
+              print(output, end="")
+              assert result.returncode != 0, "missing srcset asset was accepted"
+              assert missing in output, "missing-path diagnostic was not reached"
+              print("Missing mobile-only srcset asset rejected with its exact path")
+          assert hashlib.sha256(readme.read_bytes()).hexdigest() == before
+          subprocess.run(["git", "diff", "--exit-code"], check=True)
+          PY
       - name: Validate repository scaffold
         run: python scripts/verify-repo-scaffold.py
-      - name: Verify KED-035 ledger and evidence map
-        run: python scripts/verify-ked035-contract.py
+      - name: Verify BED-035 ledger and evidence map
+        run: python scripts/verify-bed035-contract.py
       - name: Check generated context byte-for-byte reproducibility
         run: |
-          cp docs/ai/KLYXR_AI_CONTEXT_BUNDLE.md "$RUNNER_TEMP/klyxr-context-before.md"
+          cp docs/ai/BOWFIN_AI_CONTEXT_BUNDLE.md "$RUNNER_TEMP/bowfin-context-before.md"
           python scripts/build-ai-context.py
-          cmp "$RUNNER_TEMP/klyxr-context-before.md" docs/ai/KLYXR_AI_CONTEXT_BUNDLE.md
+          cmp "$RUNNER_TEMP/bowfin-context-before.md" docs/ai/BOWFIN_AI_CONTEXT_BUNDLE.md
           git diff --exit-code

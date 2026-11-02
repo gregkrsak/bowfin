@@ -1,4 +1,4 @@
-use klyxr_compiler::{ast, compile_source, hir, mir, parse_source, resolve, types, FrontendError};
+use bowfin_compiler::{ast, compile_source, hir, mir, parse_source, resolve, types, FrontendError};
 const DECL: &str = "type Percent = range 0..100; type OtherRange = range 0..100; record Ticket { value: Percent } record Different { value: Percent } fn fresh() -> Ticket { return fresh(); } fn take(ticket: Ticket) -> Ticket { return ticket; } fn consume(ticket: Ticket) -> bool { return true; } fn inspect(view: &Ticket) -> bool { return true; } fn holding(view: &Ticket, ticket: Ticket) -> Ticket { return ticket; } fn holding_mut(view: &mut Ticket, ticket: Ticket) -> Ticket { return ticket; } fn after(observed: bool, ticket: Ticket) -> Ticket { return ticket; } fn pair(first: Ticket, second: Ticket) -> Ticket { return first; } fn combine(first: Ticket, view: &bool, second: Ticket) -> Ticket { return second; } fn sink(access: &mut bool) -> bool { return true; } fn sink_ticket(access: &mut Ticket) -> bool { return true; } fn read(view: &bool) -> bool { return *view; }";
 fn good(body: &str) -> hir::Program {
     let p = compile_source(&format!("{DECL} {body}")).unwrap();
@@ -261,7 +261,7 @@ fn public_ast_all_return_completeness_matches_source() {
     };
     ordinary_mut(&mut manual).body = f.body.clone();
     let typed = types::check(resolve::resolve(&manual).unwrap()).unwrap();
-    klyxr_compiler::ownership::check(&typed).unwrap();
+    bowfin_compiler::ownership::check(&typed).unwrap();
     let direct = compile_source(
         "fn f(flag: bool) -> bool { if flag { return true; } else { return false; } }",
     )
@@ -542,13 +542,13 @@ fn mir_direct_return_needs_no_synthetic_final_return() {
 }
 #[test]
 fn verified_return_boundary_and_proof_counts_are_unchanged() {
-    let text = format!("{} fn ordinary(flag: bool) -> bool {{ if flag {{ return true; }} else {{ return false; }} }}", include_str!("../../examples/battery_ok.klx"));
+    let text = format!("{} fn ordinary(flag: bool) -> bool {{ if flag {{ return true; }} else {{ return false; }} }}", include_str!("../../examples/battery_ok.bow"));
     let p = compile_source(&text).unwrap();
-    let report = klyxr_compiler::verify::verify_report(&p);
+    let report = bowfin_compiler::verify::verify_report(&p);
     assert!(report.diagnostics.is_empty());
     assert_eq!(report.functions_proven, 1);
     assert_eq!(mir::lower(&p).functions().len(), 1);
-    let bad = include_str!("../../examples/battery_ok.klx")
+    let bad = include_str!("../../examples/battery_ok.bow")
         .replace("battery.charge -= amount;", "return amount;");
     assert!(matches!(compile_source(&bad), Err(FrontendError::Parse(_))));
 }

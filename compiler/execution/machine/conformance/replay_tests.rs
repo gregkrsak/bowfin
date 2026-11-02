@@ -54,7 +54,7 @@ fn selected() -> CheckedExecutable {
     )
     .unwrap();
     prepare_execution_with_profile(
-        include_str!("../../../../examples/sensor_finish.klx"),
+        include_str!("../../../../examples/sensor_finish.bow"),
         AdmissionLimits::default(),
         &selection,
     )

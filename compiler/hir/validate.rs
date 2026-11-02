@@ -1415,7 +1415,7 @@ mod multiple_fields {
                 .contains("inclusive range bounds"));
         }
         let mut verified =
-            crate::compile_source(include_str!("../../examples/battery_ok.klx")).unwrap();
+            crate::compile_source(include_str!("../../examples/battery_ok.bow")).unwrap();
         let Function::Verified(v) = &mut verified.functions[0] else {
             panic!()
         };

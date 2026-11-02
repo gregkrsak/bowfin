@@ -217,7 +217,7 @@ fn value_function(
     if return_type.is_some() && falls_through(&f.body) {
         return Err(Diagnostic::semantic(
             f.span,
-            "function may reach its closing brace without returning; value-returning Klyxr functions require `return expression;`",
+            "function may reach its closing brace without returning; value-returning Bowfin functions require `return expression;`",
             "every structural function-completing path requires an explicit correctly typed return; while retains its false exit even for constant conditions; implicit block-tail returns are not supported",
         )
         .into());
@@ -654,7 +654,7 @@ fn check_value(
         let payload = if matches!(payload.kind, ResolvedExprKind::ResultConstruct { .. }) {
             check_value(program, functions, payload, payload_type, boundary)?
         } else {
-            // KD-037 does not form a named-range literal at a Result boundary.
+            // BD-037 does not form a named-range literal at a Result boundary.
             let value = self::expression(program, functions, payload)?;
             exact_value(program, &value, payload_type, boundary)?;
             value
@@ -880,7 +880,7 @@ fn expression(
             for value in [&then_value, &else_value] {
                 match value.ty {
                     ExprType::Resource(_) => return Err(Diagnostic::semantic(value.span, "conditional initializer cannot produce an opaque Resource", "Sensor conditional initialization is excluded").into()),
-                    ExprType::Result(_) => return Err(Diagnostic::semantic(value.span, "conditional initializer cannot produce a Result value", "KD-025 permits only bool, named-range, and record conditional results").into()),
+                    ExprType::Result(_) => return Err(Diagnostic::semantic(value.span, "conditional initializer cannot produce a Result value", "BD-025 permits only bool, named-range, and record conditional results").into()),
                     ExprType::SharedRef(_) | ExprType::MutableRef(_) => {
                         return Err(Diagnostic::semantic(
                             value.span,
@@ -1166,7 +1166,7 @@ mod tests {
 
     #[test]
     fn expression_typing_uses_ids_when_diagnostic_names_change() {
-        let ast = parse_source(include_str!("../../examples/battery_ok.klx")).unwrap();
+        let ast = parse_source(include_str!("../../examples/battery_ok.bow")).unwrap();
         let mut resolved = resolve::resolve(&ast).unwrap();
         let range = resolved.declarations.ranges[0].id;
         for declaration in &mut resolved.declarations.ranges {
@@ -1194,7 +1194,7 @@ mod tests {
         ] {
             let text = format!(
                 "type Other = range 0..100;\n{}",
-                include_str!("../../examples/battery.klx")
+                include_str!("../../examples/battery.bow")
             )
             .replace("amount: Percent", "amount: Other")
             .replace(

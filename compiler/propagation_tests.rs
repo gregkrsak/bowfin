@@ -1,4 +1,4 @@
-//! KED-032 public syntax and independent typing controls.
+//! BED-032 public syntax and independent typing controls.
 use crate::*;
 const DECL: &str = "fn produce()->Result<success:bool,failure:bool>{return Ok(true);}";
 fn typed(source: &str) -> Result<hir::Program, Vec<diagnostics::Diagnostic>> {

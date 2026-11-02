@@ -1,4 +1,4 @@
-use klyxr_compiler::{compile_source, hir, mir, verify, FrontendError};
+use bowfin_compiler::{compile_source, hir, mir, verify, FrontendError};
 const DECL: &str = "type P = range 0..100; type Q = range 0..100; record Ticket { value: P } record Triple { a: P, b: Q, c: P } fn id(p: P) -> P { return p; } fn other(q: Q) -> Q { return q; } fn take(a: P,b: P,c: P) {} fn sum(a: P,b: P,c: P) -> P { return a; } fn consume(t: Ticket) -> P { return t.value; } fn sink(r: &mut P) {} fn inspect(r: &P) -> P { return *r; } fn predicate(t: Triple) -> bool { return true; }";
 fn good(body: &str) -> hir::Program {
     let p = compile_source(&format!("{DECL}\n{body}")).unwrap();
@@ -7,7 +7,7 @@ fn good(body: &str) -> hir::Program {
     }
     p
 }
-fn bad(body: &str, phase: &str, message: &str) -> (String, klyxr_compiler::lexer::Span) {
+fn bad(body: &str, phase: &str, message: &str) -> (String, bowfin_compiler::lexer::Span) {
     let s = format!("{DECL}\n{body}");
     let (actual, text, span) = match compile_source(&s).unwrap_err() {
         FrontendError::Type(e) => (
@@ -254,14 +254,14 @@ fn loans_holds_recurrence_and_moved_handles_still_reject() {
 fn verified_harness_literals_remain_isolated() {
     let source = format!(
         "{}\nfn ordinary() -> Percent {{ return 80; }}",
-        include_str!("../../examples/battery_ok.klx")
+        include_str!("../../examples/battery_ok.bow")
     );
     let p = compile_source(&source).unwrap();
     let report = verify::verify_report(&p);
     assert_eq!(report.functions_proven, 1);
     assert_eq!(report.calls_checked, 1);
     assert!(!p.bindings().is_empty());
-    let fail = compile_source(include_str!("../../examples/battery_fail.klx")).unwrap();
+    let fail = compile_source(include_str!("../../examples/battery_fail.bow")).unwrap();
     assert!(!verify::verify_report(&fail).diagnostics.is_empty());
 }
 
@@ -285,7 +285,7 @@ fn negative_singleton_bounds_reject_neighbors_with_type_phase_and_signed_span() 
 #[test]
 fn verified_call_literals_preserve_specialized_eligibility_bounds_and_proof_counts() {
     for amount in [0, 100, -1, 101] {
-        let s = include_str!("../../examples/battery_ok.klx")
+        let s = include_str!("../../examples/battery_ok.bow")
             .replace("charge: 80", "charge: 100")
             .replace(", 50)", &format!(", {amount})"));
         let p = compile_source(&s).unwrap();
@@ -303,7 +303,7 @@ fn verified_call_literals_preserve_specialized_eligibility_bounds_and_proof_coun
         };
         assert_eq!(call.amount, amount); // Scalar harness path, never ordinary formed HIR.
     }
-    let p = compile_source(include_str!("../../examples/battery_ok.klx")).unwrap();
+    let p = compile_source(include_str!("../../examples/battery_ok.bow")).unwrap();
     let hir::Function::Verified(v) = &p.functions()[0] else {
         panic!()
     };

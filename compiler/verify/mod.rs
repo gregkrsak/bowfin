@@ -443,7 +443,7 @@ mod tests {
     #[test]
     fn affine_proofs_match_exhaustive_execution_on_small_domains() {
         let prototype =
-            crate::compile_source(include_str!("../../examples/battery_ok.klx")).unwrap();
+            crate::compile_source(include_str!("../../examples/battery_ok.bow")).unwrap();
         let template = prototype.functions[0].as_verified().unwrap();
         let mut combinations = 0;
         let bodies: &[&[Option<i64>]] = &[
@@ -528,7 +528,7 @@ mod tests {
 
     #[test]
     fn numerical_kernel_preserves_extreme_and_empty_domain_coverage() {
-        let program = crate::compile_source(include_str!("../../examples/battery_ok.klx")).unwrap();
+        let program = crate::compile_source(include_str!("../../examples/battery_ok.bow")).unwrap();
         let function = program.functions[0].as_verified().unwrap();
         let body = proof_body(&program, function).unwrap();
         let full = RangeType {
@@ -566,7 +566,7 @@ mod tests {
     }
     #[test]
     fn unsupported_multi_field_verified_and_harness_state_is_gated_before_scalar_selection() {
-        let p = crate::compile_source(include_str!("../../examples/battery_ok.klx")).unwrap();
+        let p = crate::compile_source(include_str!("../../examples/battery_ok.bow")).unwrap();
         let original = verify_report(&p);
         assert_eq!((original.functions_proven, original.calls_checked), (1, 1));
         let mut multiple = p.clone();

@@ -9,11 +9,15 @@ use crate::{
     hir::{self, RangeTypeId},
 };
 
-pub const CATALOG: &str = "klyxr.sensor-demo.catalog.v1";
-pub const PROFILE: &str = "klyxr.sensor-demo.profile.v1";
-pub const TARGET: &str = "klyxr.ordinary-mir.v1";
-pub const COMPILER: &str = concat!("klyxr-compiler/", env!("CARGO_PKG_VERSION"));
-pub const ASSUMPTIONS: &str = "klyxr.sensor-demo.assumptions.v1";
+// Current machine/evidence spellings, not aliases or authority constructors.
+// Historical audit text is not imported into an opaque approval. Keep shape
+// validation exact: a spelling change must never substitute for the retained
+// approval, grants, catalog origins, custody, or replay identity.
+pub const CATALOG: &str = "bowfin.sensor-demo.catalog.v1";
+pub const PROFILE: &str = "bowfin.sensor-demo.profile.v1";
+pub const TARGET: &str = "bowfin.ordinary-mir.v1";
+pub const COMPILER: &str = concat!("bowfin-compiler/", env!("CARGO_PKG_VERSION"));
+pub const ASSUMPTIONS: &str = "bowfin.sensor-demo.assumptions.v1";
 
 /// Indices from distinct collections never authenticate one another. A checked,
 /// process-local serial is packed with the small row index without enlarging

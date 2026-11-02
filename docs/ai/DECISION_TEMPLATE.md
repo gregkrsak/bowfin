@@ -1,7 +1,7 @@
-# Klyxr Decision Template
+# Bowfin Decision Template
 
 ```markdown
-## KD-XXX — Decision title
+## BD-XXX — Decision title
 
 **Status:** Proposed | Accepted | Direction Accepted | Provisional | Superseded
 
@@ -10,12 +10,12 @@ State the decision in precise, testable terms.
 
 **Example:**
 
-```klyxr
+```bowfin
 // minimal example if useful
 ```
 
 **Rationale:**  
-Why this choice fits Klyxr's design principles.
+Why this choice fits Bowfin's design principles.
 
 **Alternatives considered:**
 

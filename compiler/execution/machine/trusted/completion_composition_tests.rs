@@ -32,7 +32,7 @@ fn composition(source: &str, scenario: Scenario, output: &str, finishes: usize, 
 
 #[test]
 fn defining_sample_runs_through_read_finish_release_and_record_delivery() {
-    let source = include_str!("../../../../examples/sensor_finish.klx");
+    let source = include_str!("../../../../examples/sensor_finish.bow");
     let e = artifact(source, "sample", Scenario::Sample);
     let mut s =
         ExecutionSession::new(&e, e.entry("sample").unwrap(), ExecutionLimits::default()).unwrap();
@@ -55,7 +55,7 @@ fn final_shared_use_can_precede_finish_but_a_still_live_handle_rejects() {
     composition("fn demo()->Result<success:FinishReceipt,failure:SensorError>effects io{let sensor=sensor_open()or return;let alias=&sensor;let reading=sensor_read(alias)or return;return sensor_finish(sensor);}", Scenario::Sample, "Ok(FinishReceipt(1))",1,1);
     let selected = Selection::sensor_demo(Scenario::Sample, Grants::ALL, &["sample"]).unwrap();
     assert!(prepare_execution_with_profile(
-        include_str!("../../../../examples/sensor_finish_live_loan_fail.klx"),
+        include_str!("../../../../examples/sensor_finish_live_loan_fail.bow"),
         AdmissionLimits::default(),
         &selected
     )

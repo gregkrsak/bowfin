@@ -1,18 +1,18 @@
-# Klyxr AI Handoff Package
+# Bowfin AI Handoff Package
 
-This directory is the **canonical AI-facing project context** for Klyxr.
+This directory is the **canonical AI-facing project context** for Bowfin.
 
 Its purpose is to let a fresh model, workspace, or human contributor become productive without relying on hidden conversational history.
 
 ## Read order
 
-1. `KLYXR_CONTEXT.md`
+1. `BOWFIN_CONTEXT.md`
 2. `DESIGN_PRINCIPLES.md`
 3. `LANGUAGE_DECISIONS.md`
 4. `ARCHITECTURE.md`
 5. `OPEN_QUESTIONS.md`
 
-For a single-file handoff, use `KLYXR_AI_CONTEXT_BUNDLE.md`.
+For a single-file handoff, use `BOWFIN_AI_CONTEXT_BUNDLE.md`.
 
 ## Working rule
 

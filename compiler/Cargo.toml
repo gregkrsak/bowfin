@@ -1,14 +1,19 @@
 [package]
-name = "klyxr-compiler"
+name = "bowfin-compiler"
 version = "0.0.1"
 edition.workspace = true
 rust-version.workspace = true
 publish = false
+default-run = "bowfin"
 
 [lib]
-name = "klyxr_compiler"
+name = "bowfin_compiler"
 path = "lib.rs"
 
 [[bin]]
-name = "klyxr"
+name = "bowfin"
 path = "main.rs"
+
+[[bin]]
+name = "klyxr"
+path = "compat_main.rs"

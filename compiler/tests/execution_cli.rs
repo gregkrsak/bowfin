@@ -1,13 +1,13 @@
 use std::{fs, process::Command};
 fn run(args: &[&str]) -> std::process::Output {
-    Command::new(env!("CARGO_BIN_EXE_klyxr"))
+    Command::new(env!("CARGO_BIN_EXE_bowfin"))
         .args(args)
         .output()
         .unwrap()
 }
 fn example() -> String {
     format!(
-        "{}/../examples/ordinary_run.klx",
+        "{}/../examples/ordinary_run.bow",
         env!("CARGO_MANIFEST_DIR")
     )
 }
@@ -56,7 +56,7 @@ fn cli_invalid_limits_and_entry_selection() {
 #[test]
 fn cli_detected_input_failure_is_host_failure() {
     assert_eq!(
-        run(&["run", "/a/nonexistent/klyxr-input", "--function", "demo"])
+        run(&["run", "/a/nonexistent/bowfin-input", "--function", "demo"])
             .status
             .code(),
         Some(2)
@@ -77,10 +77,10 @@ fn cli_bounded_input_and_output() {
 }
 #[test]
 fn run_does_not_evaluate_failing_specialized_harness() {
-    let p = std::env::temp_dir().join(format!("klyxr-execution-cli-{}.klx", std::process::id()));
+    let p = std::env::temp_dir().join(format!("bowfin-execution-cli-{}.bow", std::process::id()));
     let s = format!(
         "{}\nfn demo()->Percent{{return 80;}}",
-        include_str!("../../examples/battery_fail.klx")
+        include_str!("../../examples/battery_fail.bow")
     );
     fs::write(&p, s).unwrap();
     let path = p.to_str().unwrap();
@@ -98,7 +98,7 @@ fn run_does_not_evaluate_failing_specialized_harness() {
 #[test]
 fn owned_replacement_example_runs_without_claiming_contract_proof() {
     let path = format!(
-        "{}/../examples/owned_replacement.klx",
+        "{}/../examples/owned_replacement.bow",
         env!("CARGO_MANIFEST_DIR")
     );
     let output = run(&["run", &path, "--function", "demo"]);
@@ -120,7 +120,7 @@ fn owned_replacement_example_runs_without_claiming_contract_proof() {
 #[test]
 fn propagation_cli_examples_select_success_and_failure() {
     let path = format!(
-        "{}/../examples/result_propagation.klx",
+        "{}/../examples/result_propagation.bow",
         env!("CARGO_MANIFEST_DIR")
     );
     for (entry, expected) in [
@@ -139,7 +139,7 @@ fn propagation_cli_examples_select_success_and_failure() {
 #[test]
 fn propagation_cli_nominal_failure_mismatch_is_frontend_class_one() {
     let path = format!(
-        "{}/../examples/result_propagation_mismatch.klx",
+        "{}/../examples/result_propagation_mismatch.bow",
         env!("CARGO_MANIFEST_DIR")
     );
     let output = run(&["run", &path, "--function", "demo"]);

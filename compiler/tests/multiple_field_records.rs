@@ -1,4 +1,4 @@
-use klyxr_compiler::{ast, compile_source, hir, mir, parse_source, verify, FrontendError};
+use bowfin_compiler::{ast, compile_source, hir, mir, parse_source, verify, FrontendError};
 const DECL: &str = "type Percent = range 0..100; type OtherPercent = range 0..100; type Voltage = range 0..5000; record Ticket { value: Percent } record Pair { first: Percent, second: Voltage, } record Same { first: Percent, second: Voltage } record Triple { first: Percent, middle: Percent, last: Percent } fn measure(t: Ticket) -> Percent { return t.value; } fn read(view: &Percent) -> Percent { return *view; } fn identity(p: Percent) -> Percent { return p; } fn volts(v: Voltage) -> Voltage { return v; } fn accept(p: Pair) {} fn accept_triple(p: Triple) {} fn receive(p: Triple,t: Ticket) {} fn inspect(p: &Pair) -> Percent { return inspect(p); } fn inspect_mut(p: &mut Pair) -> Percent { return inspect_mut(p); } fn held(p: &mut Pair,other: Pair) {} fn test_record(p: Pair) -> bool { return true; } fn test_triple(p: Triple) -> bool { return true; }";
 fn source(body: &str) -> String {
     format!("{DECL}\n{body}")
@@ -12,7 +12,7 @@ fn good(body: &str) -> hir::Program {
     assert_eq!(m, mir::lower(&p));
     p
 }
-fn bad(body: &str, phase: &str, message: &str) -> (String, klyxr_compiler::lexer::Span) {
+fn bad(body: &str, phase: &str, message: &str) -> (String, bowfin_compiler::lexer::Span) {
     let s = source(body);
     let e = compile_source(&s).unwrap_err();
     let (actual, text, span) = match e {
@@ -168,8 +168,8 @@ fn exact_type_errors_follow_written_order_in_every_position() {
 fn bare_literal_is_parsed_then_formed_in_typing() {
     let s = source("fn f(v: Voltage) -> Pair { return Pair { first: 80, second: v }; }");
     let a = parse_source(&s).unwrap();
-    let r = klyxr_compiler::resolve::resolve(&a).unwrap();
-    klyxr_compiler::types::check(r).unwrap();
+    let r = bowfin_compiler::resolve::resolve(&a).unwrap();
+    bowfin_compiler::types::check(r).unwrap();
 }
 #[test]
 fn declarations_reject_unsupported_types_and_empty_shapes() {
@@ -314,7 +314,7 @@ fn multi_field_verified_and_harness_candidates_are_explicitly_ineligible() {
 }
 #[test]
 fn ordinary_multi_field_records_coexist_with_supported_verified_battery() {
-    let s=format!("{}\nrecord Multiple {{ first: Percent, second: Percent }} fn ordinary(p: Percent) -> Multiple {{ return Multiple {{ second: p, first: p }}; }}",include_str!("../../examples/battery_ok.klx"));
+    let s=format!("{}\nrecord Multiple {{ first: Percent, second: Percent }} fn ordinary(p: Percent) -> Multiple {{ return Multiple {{ second: p, first: p }}; }}",include_str!("../../examples/battery_ok.bow"));
     let p = compile_source(&s).unwrap();
     for f in mir::lower(&p).functions() {
         f.validate().unwrap();
@@ -374,8 +374,8 @@ fn public_ast_hidden_conditionals_are_rejected_in_every_initializer_position() {
             panic!()
         };
         fields[position].value = hidden;
-        let r = klyxr_compiler::resolve::resolve(&a).unwrap();
-        assert!(klyxr_compiler::types::check(r).unwrap_err()[0]
+        let r = bowfin_compiler::resolve::resolve(&a).unwrap();
+        assert!(bowfin_compiler::types::check(r).unwrap_err()[0]
             .message
             .contains("complete local initializers"));
     }

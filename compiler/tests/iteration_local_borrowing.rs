@@ -1,4 +1,4 @@
-use klyxr_compiler::{
+use bowfin_compiler::{
     compile_source,
     hir::{self, ExprKind, ValueStatement},
     mir, FrontendError,
@@ -15,9 +15,9 @@ fn bad(body: &str, phase: &str, wording: &str) {
     let text = format!("{DECLARATIONS} {body}");
     let e = compile_source(&text).unwrap_err();
     let (actual, diagnostic) = match &e {
-        FrontendError::Ownership(ds) => ("Ownership", ds[0].render("case.klx", &text)),
-        FrontendError::Type(ds) => ("Type", ds[0].render("case.klx", &text)),
-        FrontendError::Resolve(ds) => ("Resolve", ds[0].render("case.klx", &text)),
+        FrontendError::Ownership(ds) => ("Ownership", ds[0].render("case.bow", &text)),
+        FrontendError::Type(ds) => ("Type", ds[0].render("case.bow", &text)),
+        FrontendError::Resolve(ds) => ("Resolve", ds[0].render("case.bow", &text)),
         FrontendError::Parse(_) => ("Parse", e.to_string()),
         other => panic!("unexpected error: {other}"),
     };

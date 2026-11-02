@@ -3,5 +3,5 @@
 version = 3
 
 [[package]]
-name = "klyxr-compiler"
+name = "bowfin-compiler"
 version = "0.0.1"

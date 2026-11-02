@@ -1,4 +1,4 @@
-use klyxr_compiler::{
+use bowfin_compiler::{
     ast, compile_source, diagnostics::Diagnostic, hir::*, parse_source, verify::verify_report,
     FrontendError,
 };
@@ -334,7 +334,7 @@ fn nominal_call_and_return_mismatches_identify_both_types() {
     for text in ["fn bad(value: Other) -> Percent { return value; }", "fn take(value: Percent) -> Percent { return value; } fn bad(value: Other) -> Percent { return take(value); }"] {
         let error = type_error(text);
         assert!(error.message.contains("distinct named ranges"));
-        let rendered = error.render("nominal.klx", &format!("{RANGE}\n{text}"));
+        let rendered = error.render("nominal.bow", &format!("{RANGE}\n{text}"));
         assert!(rendered.contains("Percent") && rendered.contains("Other"));
         assert!(!rendered.contains("RangeTypeId"));
     }
@@ -386,7 +386,7 @@ fn ordinary_old_and_additional_operators_remain_rejected() {
 
 #[test]
 fn mixed_declarations_share_one_source_ordered_function_table_and_namespace() {
-    let battery = include_str!("../../examples/battery_ok.klx");
+    let battery = include_str!("../../examples/battery_ok.bow");
     let program = compile_source(&format!("fn before() -> bool {{ return true; }}\n{battery}\nfn after() -> bool {{ return before(); }}")).unwrap();
     assert_eq!(program.functions().len(), 3);
     assert_eq!(program.functions()[0].name(), "before");
@@ -413,7 +413,7 @@ fn mixed_declarations_share_one_source_ordered_function_table_and_namespace() {
 
 #[test]
 fn cross_kind_calls_are_rejected_before_verification() {
-    let battery = include_str!("../../examples/battery_ok.klx");
+    let battery = include_str!("../../examples/battery_ok.bow");
     let Err(FrontendError::Resolve(errors)) = compile_source(&format!(
         "{battery} fn bad(value: Percent) -> Percent {{ return consume(value); }}"
     )) else {
@@ -473,15 +473,15 @@ fn ordinary_range_results_are_typed_but_not_executed_or_proven() {
     );
     for (fixture, message) in [
         (
-            include_str!("../../examples/battery_fail.klx"),
+            include_str!("../../examples/battery_fail.bow"),
             "precondition cannot be established",
         ),
         (
-            include_str!("../../examples/battery_sequence_fail.klx"),
+            include_str!("../../examples/battery_sequence_fail.bow"),
             "precondition cannot be established",
         ),
         (
-            include_str!("../../examples/battery_body_fail.klx"),
+            include_str!("../../examples/battery_body_fail.bow"),
             "postcondition cannot be established",
         ),
     ] {

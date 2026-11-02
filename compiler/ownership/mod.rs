@@ -1176,7 +1176,7 @@ impl<'a> Checker<'a> {
         }
         Ok(())
     }
-    /// KED-025: snapshot after caller liveness/expiry, before target accounting.
+    /// BED-025: snapshot after caller liveness/expiry, before target accounting.
     /// Retain existing authority continuously; successful RHS effects stay committed.
     fn copy_reference_field_assign(
         &mut self,
@@ -4726,7 +4726,7 @@ mod tests {
         assert!(after[0].message.contains("display"));
     }
 
-    // Frozen KED-018 return-entry state: summaries/expiry are static inputs,
+    // Frozen BED-018 return-entry state: summaries/expiry are static inputs,
     // and the terminal operand is the only transactional operation.
     fn return_entry<'a>(c: &Checker<'a>, value: &TypedExpr) -> Checker<'a> {
         let mut entry = c.clone();
@@ -5175,7 +5175,7 @@ mod tests {
         );
     }
 
-    // K19-01 tests invoke the statement transaction directly. A surrounding
+    // B19-01 tests invoke the statement transaction directly. A surrounding
     // expression/statement-list/conditional rollback cannot mask a partial commit.
     const NO_VALUE_HELPERS: &str = "fn observe(view: &bool) {} fn consume(ticket: Ticket) {} fn receive(first: Ticket, held: &bool, last: Ticket) {} fn nested(first: Ticket, held: &bool, last: bool) {} fn touch(access: &mut bool) -> bool { return true; } fn read(view: &bool) -> bool { return *view; } fn shared_bool(view: &bool, last: bool) {} fn reset(access: &mut bool) {}";
     fn no_value_typed(source: &str) -> Program {

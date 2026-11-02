@@ -1,4 +1,4 @@
-# Klyxr Design Principles
+# Bowfin Design Principles
 
 These principles guide language and toolchain decisions.
 
@@ -36,19 +36,19 @@ Diagnostics should explain what failed, what is known, what assumption is missin
 
 ## DP-009 — Semantic honesty over marketing
 
-Never claim that verification proves unspecified global correctness, that Klyxr eliminates bugs, or that testing is unnecessary.
+Never claim that verification proves unspecified global correctness, that Bowfin eliminates bugs, or that testing is unnecessary.
 
 ## DP-010 — Explicitness without mandatory verbosity
 
-Klyxr may provide standardized compact and explicit spellings for selected high-frequency keywords. The spellings are semantically identical.
+Bowfin may provide standardized compact and explicit spellings for selected high-frequency keywords. The spellings are semantically identical.
 
 ## DP-011 — High assurance should feel like normal development
 
 ```bash
-klyxr build
-klyxr test
-klyxr verify
-klyxr audit
+bowfin build
+bowfin test
+bowfin verify
+bowfin audit
 ```
 
 ## DP-012 — Do not hide computational cost
@@ -61,7 +61,7 @@ Initially prove structural restrictions that the compiler can actually establish
 
 ## DP-014 — Project knowledge must be portable
 
-If Klyxr can only be understood because one conversation remembers its history, the project is under-documented. A fresh expert should be able to read the repository context and become productive quickly.
+If Bowfin can only be understood because one conversation remembers its history, the project is under-documented. A fresh expert should be able to read the repository context and become productive quickly.
 
 ## DP-015 — Humans execute repository merges
 
@@ -89,22 +89,22 @@ and non-guarantees in clear human language. A machine-readable type, contract,
 or effect does not make that explanation unnecessary; prose does not replace the
 machine-readable rule.
 
-Klyxr should eventually preserve structured documentation comments, generate
+Bowfin should eventually preserve structured documentation comments, generate
 reference material, compile documentation examples, and validate mechanically
 checkable claims against canonical compiler facts. Documentation metadata may
 never grant authority, change semantics, create proof evidence by assertion, or
 override canonical artifacts. Exact documentation-comment syntax and tooling
 require a focused future decision.
 
-Klyxr-owned public examples prefer implemented explicit aliases under KD-014.
+Bowfin-owned public examples prefer implemented explicit aliases under BD-014.
 See [the documentation policy](../DOCUMENTATION_POLICY.md).
 
-KD-041 applies the existing trust-boundary principles to bounded ordinary
+BD-041 applies the existing trust-boundary principles to bounded ordinary
 execution: an opaque successful-ownership artifact grants authority, MIR controls
 runtime flow, and explicit limits begin before source ingestion. A runtime trap
 or configured stop is a tool outcome; execution never implies contract proof.
 
-Frozen KED-033 applies DP-004/DP-007/DP-008/DP-010/DP-012 to the first selected
+Frozen BED-033 applies DP-004/DP-007/DP-008/DP-010/DP-012 to the first selected
 trusted resource slice. Concise ordinary source is supported by an explicit exact
 authority account, not hidden host lookup. Grants, complete effects, recoverable
 Result and terminal tool outcomes stay distinct. No-gap owned receipts and persistent
@@ -114,7 +114,7 @@ failure evidence expose this trust boundary. Implementation does not itself gran
 independent acceptance or verify the host/device; explicit fallible completion is
 deferred and human-only merge authority remains unchanged.
 
-Frozen KED-035 applies the existing trust, explicit-cost and audit principles to
+Frozen BED-035 applies the existing trust, explicit-cost and audit principles to
 engine equivalence. Approved semantics and independently derived evidence constrain
 an interpreter as well as a future engine. Complete validated observations can
 establish Equal or Different; missing or malformed evidence yields Inconclusive.

@@ -9,7 +9,7 @@ fn example(name: &str) -> String {
 }
 
 fn run(args: &[&str]) -> std::process::Output {
-    Command::new(env!("CARGO_BIN_EXE_klyxr"))
+    Command::new(env!("CARGO_BIN_EXE_bowfin"))
         .args(args)
         .output()
         .unwrap()
@@ -18,7 +18,7 @@ fn run(args: &[&str]) -> std::process::Output {
 #[test]
 fn explicit_effect_contracts_check_transitively_without_changing_proof_scope() {
     for command in ["check", "verify"] {
-        let good = run(&[command, &example("explicit_effects.klx")]);
+        let good = run(&[command, &example("explicit_effects.bow")]);
         assert!(good.status.success());
         assert!(good.stderr.is_empty());
         let text = String::from_utf8(good.stdout).unwrap();
@@ -28,7 +28,7 @@ fn explicit_effect_contracts_check_transitively_without_changing_proof_scope() {
         assert!(text.contains("not effects-aware verification"));
         assert!(text.contains("function bodies proven: 0"));
         assert!(text.contains("calls checked: 0"));
-        let bad = run(&[command, &example("explicit_effects_fail.klx")]);
+        let bad = run(&[command, &example("explicit_effects_fail.bow")]);
         assert_eq!(bad.status.code(), Some(1));
         assert!(bad.stdout.is_empty());
         let text = String::from_utf8(bad.stderr).unwrap();
@@ -37,7 +37,7 @@ fn explicit_effect_contracts_check_transitively_without_changing_proof_scope() {
     }
     let good = run(&[
         "run",
-        &example("explicit_effects.klx"),
+        &example("explicit_effects.bow"),
         "--function",
         "demo",
     ]);
@@ -46,7 +46,7 @@ fn explicit_effect_contracts_check_transitively_without_changing_proof_scope() {
     assert_eq!(String::from_utf8(good.stdout).unwrap().trim(), "Bool(true)");
     let bad = run(&[
         "run",
-        &example("explicit_effects_fail.klx"),
+        &example("explicit_effects_fail.bow"),
         "--function",
         "demo",
     ]);
@@ -60,7 +60,7 @@ fn explicit_effect_contracts_check_transitively_without_changing_proof_scope() {
 #[test]
 fn success_reports_only_supported_proofs() {
     for (command, status) in [("verify", "verified"), ("check", "checked")] {
-        let output = run(&[command, &example("battery_ok.klx")]);
+        let output = run(&[command, &example("battery_ok.bow")]);
         assert!(output.status.success());
         assert!(output.stderr.is_empty());
         let text = String::from_utf8(output.stdout).unwrap();
@@ -76,13 +76,13 @@ fn success_reports_only_supported_proofs() {
 #[test]
 fn rejected_programs_return_one_and_no_success_message() {
     for (name, message) in [
-        ("battery_fail.klx", "90 <= 80 is false"),
-        ("battery_sequence_fail.klx", "50 <= 30 is false"),
+        ("battery_fail.bow", "90 <= 80 is false"),
+        ("battery_sequence_fail.bow", "50 <= 30 is false"),
         (
-            "battery_body_fail.klx",
+            "battery_body_fail.bow",
             "postcondition cannot be established",
         ),
-        ("effects.klx", "supported grammar"),
+        ("effects.bow", "supported grammar"),
     ] {
         for command in ["verify", "check"] {
             let output = run(&[command, &example(name)]);
@@ -103,8 +103,8 @@ fn usage_and_io_errors_return_two() {
         vec!["build"],
         vec!["verify"],
         vec!["--version", "extra"],
-        vec!["verify", "one.klx", "two.klx"],
-        vec!["verify", "file-that-does-not-exist.klx"],
+        vec!["verify", "one.bow", "two.bow"],
+        vec!["verify", "file-that-does-not-exist.bow"],
     ] {
         let output = run(&args);
         assert_eq!(output.status.code(), Some(2), "{args:?}");
@@ -116,7 +116,7 @@ fn usage_and_io_errors_return_two() {
 #[test]
 fn ordinary_functions_report_typing_without_execution_or_proof() {
     for command in ["check", "verify"] {
-        let output = run(&[command, &example("value_flow.klx")]);
+        let output = run(&[command, &example("value_flow.bow")]);
         assert!(output.status.success());
         assert!(output.stderr.is_empty());
         let text = String::from_utf8(output.stdout).unwrap();
@@ -134,7 +134,7 @@ fn ordinary_functions_report_typing_without_execution_or_proof() {
 #[test]
 fn record_moves_are_checked_without_claiming_execution_or_verification() {
     for command in ["check", "verify"] {
-        let output = run(&[command, &example("move_values.klx")]);
+        let output = run(&[command, &example("move_values.bow")]);
         assert!(output.status.success());
         assert!(output.stderr.is_empty());
         let text = String::from_utf8(output.stdout).unwrap();
@@ -149,12 +149,12 @@ fn record_moves_are_checked_without_claiming_execution_or_verification() {
 #[test]
 fn ownership_failure_exits_one_and_reports_both_move_sites() {
     for command in ["check", "verify"] {
-        let output = run(&[command, &example("move_fail.klx")]);
+        let output = run(&[command, &example("move_fail.bow")]);
         assert_eq!(output.status.code(), Some(1));
         assert!(output.stdout.is_empty());
         let text = String::from_utf8(output.stderr).unwrap();
         assert!(text.contains("use of moved value `ticket`"));
-        assert!(text.contains("move_fail.klx:7:12"));
+        assert!(text.contains("move_fail.bow:7:12"));
         assert!(text.contains("into local `next` at line 6, column 16"));
         assert!(text.contains("ownership checking stopped"));
     }
@@ -163,7 +163,7 @@ fn ownership_failure_exits_one_and_reports_both_move_sites() {
 #[test]
 fn borrowing_success_reports_loans_without_execution_or_proof() {
     for command in ["check", "verify"] {
-        let output = run(&[command, &example("borrow_values.klx")]);
+        let output = run(&[command, &example("borrow_values.bow")]);
         assert!(output.status.success());
         assert!(output.stderr.is_empty());
         let text = String::from_utf8(output.stdout).unwrap();
@@ -178,12 +178,12 @@ fn borrowing_success_reports_loans_without_execution_or_proof() {
 #[test]
 fn borrowing_failure_reports_the_conflict_and_earlier_loan_location() {
     for command in ["check", "verify"] {
-        let output = run(&[command, &example("borrow_fail.klx")]);
+        let output = run(&[command, &example("borrow_fail.bow")]);
         assert_eq!(output.status.code(), Some(1));
         assert!(output.stdout.is_empty());
         let text = String::from_utf8(output.stderr).unwrap();
         assert!(text.contains("cannot move `ticket` while it is shared-borrowed"));
-        assert!(text.contains("borrow_fail.klx:11:17"));
+        assert!(text.contains("borrow_fail.bow:11:17"));
         assert!(text.contains("borrow began at line 10, column 16"));
         assert!(text.contains("ownership checking stopped"));
         assert!(!text.contains("LoanId"));
@@ -193,7 +193,7 @@ fn borrowing_failure_reports_the_conflict_and_earlier_loan_location() {
 #[test]
 fn copy_safe_mutation_reports_frontend_acceptance_without_runtime_claims() {
     for command in ["check", "verify"] {
-        let output = run(&[command, &example("deref_mutation.klx")]);
+        let output = run(&[command, &example("deref_mutation.bow")]);
         assert!(output.status.success());
         assert!(output.stderr.is_empty());
         let text = String::from_utf8(output.stdout).unwrap();
@@ -207,13 +207,13 @@ fn copy_safe_mutation_reports_frontend_acceptance_without_runtime_claims() {
 #[test]
 fn non_copy_mutation_failure_explains_the_replacement_boundary() {
     for command in ["check", "verify"] {
-        let output = run(&[command, &example("deref_mutation_fail.klx")]);
+        let output = run(&[command, &example("deref_mutation_fail.bow")]);
         assert_eq!(output.status.code(), Some(1));
         assert!(output.stdout.is_empty());
         let text = String::from_utf8(output.stderr).unwrap();
         assert!(text.contains("cannot replace non-Copy value `Ticket`"));
         assert!(text.contains("before destruction semantics are defined"));
-        assert!(text.contains("deref_mutation_fail.klx:6:5"));
+        assert!(text.contains("deref_mutation_fail.bow:6:5"));
         assert!(text.contains("ownership checking stopped"));
     }
 }
@@ -221,7 +221,7 @@ fn non_copy_mutation_failure_explains_the_replacement_boundary() {
 #[test]
 fn conditional_success_reports_mir_without_execution_or_ordinary_proof() {
     for command in ["check", "verify"] {
-        let output = run(&[command, &example("if_control_flow.klx")]);
+        let output = run(&[command, &example("if_control_flow.bow")]);
         assert!(output.status.success());
         assert!(output.stderr.is_empty());
         let text = String::from_utf8(output.stdout).unwrap();
@@ -233,7 +233,7 @@ fn conditional_success_reports_mir_without_execution_or_ordinary_proof() {
 #[test]
 fn conditional_move_failure_reports_prior_path_and_move_location() {
     for command in ["check", "verify"] {
-        let output = run(&[command, &example("if_move_fail.klx")]);
+        let output = run(&[command, &example("if_move_fail.bow")]);
         assert_eq!(output.status.code(), Some(1));
         assert!(output.stdout.is_empty());
         let text = String::from_utf8(output.stderr).unwrap();
@@ -246,7 +246,7 @@ fn conditional_move_failure_reports_prior_path_and_move_location() {
 #[test]
 fn path_sensitive_borrowing_reports_acceptance_and_valid_mir_without_runtime_claims() {
     for command in ["check", "verify"] {
-        let output = run(&[command, &example("path_sensitive_borrowing.klx")]);
+        let output = run(&[command, &example("path_sensitive_borrowing.bow")]);
         assert!(output.status.success());
         assert!(output.stderr.is_empty());
         let text = String::from_utf8(output.stdout).unwrap();
@@ -258,7 +258,7 @@ fn path_sensitive_borrowing_reports_acceptance_and_valid_mir_without_runtime_cla
 #[test]
 fn post_join_future_reference_reports_original_borrow_conflict() {
     for command in ["check", "verify"] {
-        let output = run(&[command, &example("path_sensitive_borrowing_fail.klx")]);
+        let output = run(&[command, &example("path_sensitive_borrowing_fail.bow")]);
         assert_eq!(output.status.code(), Some(1));
         assert!(output.stdout.is_empty());
         let text = String::from_utf8(output.stderr).unwrap();
@@ -272,37 +272,37 @@ fn post_join_future_reference_reports_original_borrow_conflict() {
 #[test]
 fn conditional_initializer_cli_parity() {
     for command in ["check", "verify"] {
-        let output = run(&[command, &example("conditional_value.klx")]);
+        let output = run(&[command, &example("conditional_value.bow")]);
         assert!(output.status.success());
         assert!(output.stderr.is_empty());
         let text = String::from_utf8(output.stdout).unwrap();
         assert!(text.contains("not executed or verified"));
         assert!(text.contains("function bodies proven: 0"));
-        let output = run(&[command, &example("conditional_value_move_fail.klx")]);
+        let output = run(&[command, &example("conditional_value_move_fail.bow")]);
         assert_eq!(output.status.code(), Some(1));
         assert!(output.stdout.is_empty());
         let text = String::from_utf8(output.stderr).unwrap();
         assert!(text.contains("may have been moved on a previous control-flow path"));
-        assert!(text.contains("conditional_value_move_fail.klx"));
+        assert!(text.contains("conditional_value_move_fail.bow"));
     }
 }
 
 #[test]
 fn local_reassignment_cli_reports_frontend_only_and_borrow_conflict() {
     for command in ["check", "verify"] {
-        let output = run(&[command, &example("local_reassignment.klx")]);
+        let output = run(&[command, &example("local_reassignment.bow")]);
         assert!(output.status.success());
         assert!(output.stderr.is_empty());
         let text = String::from_utf8(output.stdout).unwrap();
         assert!(text.contains("not executed or verified"));
         assert!(text.contains("function bodies proven: 0"));
-        let output = run(&[command, &example("local_reassignment_borrow_fail.klx")]);
+        let output = run(&[command, &example("local_reassignment_borrow_fail.bow")]);
         assert_eq!(output.status.code(), Some(1));
         assert!(output.stdout.is_empty());
         let text = String::from_utf8(output.stderr).unwrap();
         assert!(text.contains("cannot assign `current` while it is borrowed"));
         assert!(text.contains("conflicting borrow began at line 6"));
-        assert!(text.contains("local_reassignment_borrow_fail.klx:7:5"));
+        assert!(text.contains("local_reassignment_borrow_fail.bow:7:5"));
         assert!(text.contains("ownership checking stopped"));
     }
 }
@@ -310,7 +310,7 @@ fn local_reassignment_cli_reports_frontend_only_and_borrow_conflict() {
 #[test]
 fn while_cli_reports_frontend_only_and_cyclic_ownership_boundaries() {
     for command in ["check", "verify"] {
-        for file in ["while_copy.klx", "while_nested.klx"] {
+        for file in ["while_copy.bow", "while_nested.bow"] {
             let output = run(&[command, &example(file)]);
             assert!(output.status.success());
             assert!(output.stderr.is_empty());
@@ -321,11 +321,11 @@ fn while_cli_reports_frontend_only_and_cyclic_ownership_boundaries() {
         }
         for (file, message) in [
             (
-                "while_reference_fail.klx",
+                "while_reference_fail.bow",
                 "cannot move loop-carried mutable reference",
             ),
             (
-                "while_move_fail.klx",
+                "while_move_fail.bow",
                 "cannot move pre-existing non-Copy value",
             ),
         ] {
@@ -345,7 +345,7 @@ fn while_cli_reports_frontend_only_and_cyclic_ownership_boundaries() {
 #[test]
 fn iteration_local_move_cli_parity_and_nested_boundary_diagnostics() {
     for command in ["check", "verify"] {
-        let output = run(&[command, &example("while_iteration_move.klx")]);
+        let output = run(&[command, &example("while_iteration_move.bow")]);
         assert!(output.status.success());
         assert!(output.stderr.is_empty());
         let text = String::from_utf8(output.stdout).unwrap();
@@ -354,8 +354,8 @@ fn iteration_local_move_cli_parity_and_nested_boundary_diagnostics() {
         assert!(text.contains("function bodies proven: 0"));
         assert!(text.contains("iteration-local Move"));
         for (file, owner) in [
-            ("while_carried_move_fail.klx", "ticket"),
-            ("while_nested_carried_move_fail.klx", "outer"),
+            ("while_carried_move_fail.bow", "ticket"),
+            ("while_nested_carried_move_fail.bow", "outer"),
         ] {
             let output = run(&[command, &example(file)]);
             assert_eq!(output.status.code(), Some(1));
@@ -375,9 +375,9 @@ fn iteration_local_move_cli_parity_and_nested_boundary_diagnostics() {
 fn iteration_local_borrow_cli_parity_and_relative_reference_boundaries() {
     for command in ["check", "verify"] {
         for file in [
-            "while_iteration_borrow.klx",
-            "while_iteration_mut_borrow.klx",
-            "while_iteration_move_borrow.klx",
+            "while_iteration_borrow.bow",
+            "while_iteration_mut_borrow.bow",
+            "while_iteration_move_borrow.bow",
         ] {
             let output = run(&[command, &example(file)]);
             assert!(output.status.success());
@@ -389,8 +389,8 @@ fn iteration_local_borrow_cli_parity_and_relative_reference_boundaries() {
             assert!(text.contains("iteration-local Move/borrowing"));
         }
         for file in [
-            "while_carried_reference_fail.klx",
-            "while_nested_reference_fail.klx",
+            "while_carried_reference_fail.bow",
+            "while_nested_reference_fail.bow",
         ] {
             let output = run(&[command, &example(file)]);
             assert_eq!(output.status.code(), Some(1));
@@ -408,9 +408,9 @@ fn iteration_local_borrow_cli_parity_and_relative_reference_boundaries() {
 fn stable_carried_reference_cli_parity_and_recurrent_conflict() {
     for command in ["check", "verify"] {
         for file in [
-            "while_carried_shared.klx",
-            "while_carried_mutable.klx",
-            "while_carried_nested.klx",
+            "while_carried_shared.bow",
+            "while_carried_mutable.bow",
+            "while_carried_nested.bow",
         ] {
             let output = run(&[command, &example(file)]);
             assert!(output.status.success());
@@ -420,7 +420,7 @@ fn stable_carried_reference_cli_parity_and_recurrent_conflict() {
             assert!(text.contains("function bodies proven: 0"));
             assert!(text.contains("ordinary MIR control-flow lowering passed"));
         }
-        let output = run(&[command, &example("while_recurrent_borrow_fail.klx")]);
+        let output = run(&[command, &example("while_recurrent_borrow_fail.bow")]);
         assert_eq!(output.status.code(), Some(1));
         assert!(output.stdout.is_empty());
         let text = String::from_utf8(output.stderr).unwrap();
@@ -433,7 +433,7 @@ fn stable_carried_reference_cli_parity_and_recurrent_conflict() {
 #[test]
 fn no_value_functions_report_honest_completion_without_proof() {
     for command in ["check", "verify"] {
-        let output = run(&[command, &example("no_value_functions.klx")]);
+        let output = run(&[command, &example("no_value_functions.bow")]);
         assert!(output.status.success());
         assert!(output.stderr.is_empty());
         let text = String::from_utf8(output.stdout).unwrap();
@@ -446,8 +446,8 @@ fn no_value_functions_report_honest_completion_without_proof() {
         assert!(text.contains("function bodies proven: 0"));
         assert!(text.contains("calls checked: 0"));
         for (name, message) in [
-            ("no_value_call_fail.klx", "moved"),
-            ("no_value_recurrent_fail.klx", "borrow"),
+            ("no_value_call_fail.bow", "moved"),
+            ("no_value_recurrent_fail.bow", "borrow"),
         ] {
             let output = run(&[command, &example(name)]);
             assert_eq!(output.status.code(), Some(1));
@@ -462,7 +462,7 @@ fn no_value_functions_report_honest_completion_without_proof() {
 #[test]
 fn ordinary_record_cli_checks_preserve_the_proof_boundary() {
     for command in ["check", "verify"] {
-        let output = run(&[command, &example("ordinary_records.klx")]);
+        let output = run(&[command, &example("ordinary_records.bow")]);
         assert!(output.status.success());
         assert!(output.stderr.is_empty());
         let text = String::from_utf8(output.stdout).unwrap();
@@ -472,11 +472,11 @@ fn ordinary_record_cli_checks_preserve_the_proof_boundary() {
         assert!(text.contains("not executed or verified"));
         for (name, message) in [
             (
-                "ordinary_record_move_fail.klx",
+                "ordinary_record_move_fail.bow",
                 "use of moved value `battery`",
             ),
             (
-                "ordinary_record_condition_fail.klx",
+                "ordinary_record_condition_fail.bow",
                 "record construction is unsupported in recurring while conditions",
             ),
         ] {
@@ -493,14 +493,14 @@ fn ordinary_record_cli_checks_preserve_the_proof_boundary() {
 #[test]
 fn multi_field_record_cli_preserves_whole_record_and_proof_boundaries() {
     for command in ["check", "verify"] {
-        let output = run(&[command, &example("multiple_field_records.klx")]);
+        let output = run(&[command, &example("multiple_field_records.bow")]);
         assert!(output.status.success());
         let text = String::from_utf8(output.stdout).unwrap();
         assert!(text.contains("ordinary MIR control-flow lowering passed: 1 functions"));
         assert!(text.contains("function bodies proven: 0"));
         assert!(text.contains("calls checked: 0"));
         assert!(text.contains("not executed or verified"));
-        let output = run(&[command, &example("multiple_field_record_move_fail.klx")]);
+        let output = run(&[command, &example("multiple_field_record_move_fail.bow")]);
         assert_eq!(output.status.code(), Some(1));
         assert!(String::from_utf8(output.stderr)
             .unwrap()
@@ -511,14 +511,14 @@ fn multi_field_record_cli_preserves_whole_record_and_proof_boundaries() {
 #[test]
 fn copy_field_assignment_cli_checks_and_lowers_without_execution_or_proof() {
     for command in ["check", "verify"] {
-        let output = run(&[command, &example("copy_field_assignment.klx")]);
+        let output = run(&[command, &example("copy_field_assignment.bow")]);
         assert!(output.status.success());
         let text = String::from_utf8(output.stdout).unwrap();
         assert!(text.contains("ordinary MIR control-flow lowering passed: 1 functions"));
         assert!(text.contains("function bodies proven: 0"));
         assert!(text.contains("calls checked: 0"));
         assert!(text.contains("not executed or verified"));
-        let output = run(&[command, &example("copy_field_assignment_fail.klx")]);
+        let output = run(&[command, &example("copy_field_assignment_fail.bow")]);
         assert_eq!(output.status.code(), Some(1));
         assert!(output.stdout.is_empty());
         let text = String::from_utf8(output.stderr).unwrap();
@@ -530,7 +530,7 @@ fn copy_field_assignment_cli_checks_and_lowers_without_execution_or_proof() {
 #[test]
 fn reference_field_reads_cli_preserves_last_use_and_whole_record_proof_boundaries() {
     for command in ["check", "verify"] {
-        let output = run(&[command, &example("reference_field_reads.klx")]);
+        let output = run(&[command, &example("reference_field_reads.bow")]);
         assert!(output.status.success());
         assert!(output.stderr.is_empty());
         let text = String::from_utf8(output.stdout).unwrap();
@@ -538,7 +538,7 @@ fn reference_field_reads_cli_preserves_last_use_and_whole_record_proof_boundarie
         assert!(text.contains("function bodies proven: 0"));
         assert!(text.contains("calls checked: 0"));
         assert!(text.contains("not executed or verified"));
-        let output = run(&[command, &example("reference_field_reads_fail.klx")]);
+        let output = run(&[command, &example("reference_field_reads_fail.bow")]);
         assert_eq!(output.status.code(), Some(1));
         assert!(output.stdout.is_empty());
         let text = String::from_utf8(output.stderr).unwrap();
@@ -557,18 +557,18 @@ fn reference_field_reads_cli_preserves_last_use_and_whole_record_proof_boundarie
 #[test]
 fn exclusive_reference_field_write_cli_preserves_proof_scope_and_final_gate_diagnostic() {
     for command in ["check", "verify"] {
-        let output = run(&[command, &example("reference_field_assignment.klx")]);
+        let output = run(&[command, &example("reference_field_assignment.bow")]);
         assert!(output.status.success());
         assert!(output.stderr.is_empty());
         let text = String::from_utf8(output.stdout).unwrap();
         assert!(text.contains("ordinary MIR control-flow lowering passed: 3 functions"));
         assert!(text.contains("function bodies proven: 0"));
         assert!(text.contains("calls checked: 0"));
-        let output = run(&[command, &example("reference_field_assignment_fail.klx")]);
+        let output = run(&[command, &example("reference_field_assignment_fail.bow")]);
         assert_eq!(output.status.code(), Some(1));
         assert!(output.stdout.is_empty());
         let text = String::from_utf8(output.stderr).unwrap();
         assert!(text.contains("moved value `access`"));
-        assert!(text.contains("reference_field_assignment_fail.klx"));
+        assert!(text.contains("reference_field_assignment_fail.bow"));
     }
 }

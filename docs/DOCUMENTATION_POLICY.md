@@ -1,4 +1,4 @@
-# Klyxr Documentation Policy
+# Bowfin Documentation Policy
 
 **Status:** Accepted project policy.
 
@@ -8,7 +8,7 @@
 > documentation are reviewed together, and disagreement between them is a
 > defect.**
 
-Klyxr does not assume that source code is self-explanatory. Code is an exact
+Bowfin does not assume that source code is self-explanatory. Code is an exact
 machine artifact; it is not automatically an adequate explanation for a human
 reader. Comments and documentation exist to state purpose, policy, boundaries,
 and meaning in language people can read directly.
@@ -24,7 +24,7 @@ comments. It does not assign special documentation meaning to `///`, `//!`,
 `/** ... */`, Doxygen tags, or another structured comment spelling.
 
 Until a focused language and tooling decision accepts documentation-comment
-syntax, Klyxr source examples must use ordinary `//` comments. Repetition of a
+syntax, Bowfin source examples must use ordinary `//` comments. Repetition of a
 candidate spelling does not freeze it.
 
 Comments in public examples and production-oriented source should be
@@ -41,7 +41,7 @@ provide, as applicable:
 - limitations and facts the program does **not** establish.
 
 A comment may describe straightforward code when doing so gives the reader a
-clear plain-language account of the program. Klyxr does not adopt a rule that
+clear plain-language account of the program. Bowfin does not adopt a rule that
 comments are justified only by unusually difficult code.
 
 Documentation quality is not measured by comment count. Mechanical repetition,
@@ -71,7 +71,7 @@ proof obligation.
 
 ## Public example spelling
 
-Klyxr-owned public examples prefer the explicit spelling of an approved alias
+Bowfin-owned public examples prefer the explicit spelling of an approved alias
 whenever that spelling is implemented by the demonstrated grammar.
 
 For the current prototype this includes, where applicable:
@@ -83,13 +83,13 @@ For the current prototype this includes, where applicable:
 | `&mutable T` | `&mut T` |
 | `Error(...)` | `Err(...)` |
 
-Do not use an explicit spelling merely because KD-014 lists it if the grammar
+Do not use an explicit spelling merely because BD-014 lists it if the grammar
 being demonstrated does not yet implement it. Examples must not trade correctness
 for appearance.
 
 Compact aliases remain equal official language spellings. Tests may deliberately
 exercise either form, and compact spelling remains useful where alias coverage is
-the subject. This repository policy does not change KD-014's semantic equivalence,
+the subject. This repository policy does not change BD-014's semantic equivalence,
 the wider ecosystem default, or an external project's right to choose its own
 formatter/linter policy.
 
@@ -118,9 +118,9 @@ a defect requiring correction or an explicit design decision.
 
 ## Toolchain direction
 
-Klyxr should eventually support structured documentation comments comparable in
+Bowfin should eventually support structured documentation comments comparable in
 purpose to established documentation-comment systems while remaining coherent
-with Klyxr's assurance model.
+with Bowfin's assurance model.
 
 A future accepted design may provide:
 
@@ -158,5 +158,5 @@ Flagship and reference applications should demonstrate this policy rather than
 merely mention it. Their comments should form a readable explanation of the
 program's purpose, phases, policy, authority, failure behavior, and limits.
 
-Klyxr Sentinel 0 is the first planned reference application expected to apply
+Bowfin Sentinel 0 is the first planned reference application expected to apply
 this policy comprehensively.

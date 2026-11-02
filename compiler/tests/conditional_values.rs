@@ -1,4 +1,4 @@
-use klyxr_compiler::{
+use bowfin_compiler::{
     compile_source,
     hir::{self, ExprKind, ExprType},
     mir::{self, Statement, Terminator},
@@ -175,10 +175,10 @@ fn initializer_only_grammar_and_single_expression_branches() {
 fn ast_hir_spans_and_canonical_references() {
     let text = format!("{DECL} fn f(flag: bool, a: Percent, b: Percent) -> Percent {{ let chosen = if flag {{ a }} else {{ b }}; return chosen; }}");
     let ast = parse_source(&text).unwrap();
-    let klyxr_compiler::ast::FunctionDecl::Ordinary(f) = &ast.functions[0] else {
+    let bowfin_compiler::ast::FunctionDecl::Ordinary(f) = &ast.functions[0] else {
         panic!()
     };
-    let klyxr_compiler::ast::ValueStatement::Let { initializer, .. } = &f.body[0] else {
+    let bowfin_compiler::ast::ValueStatement::Let { initializer, .. } = &f.body[0] else {
         panic!()
     };
     assert_eq!(
@@ -187,7 +187,7 @@ fn ast_hir_spans_and_canonical_references() {
     );
     assert!(matches!(
         initializer.kind,
-        klyxr_compiler::ast::ExprKind::IfValue { .. }
+        bowfin_compiler::ast::ExprKind::IfValue { .. }
     ));
     let p = compile_source(&text).unwrap();
     let f = p.functions()[0].as_ordinary().unwrap();

@@ -104,7 +104,7 @@ pub(super) fn render(
     let _=writeln!(out,"contracts: Reading=nominal range 0..4095; SensorError=nominal range 1..3; open Error={{1:no selected sensor,3:recoverable fixture I/O}}; read Error={{2:no sample,3:recoverable fixture I/O}}; read Error preserves owner");
     let _=writeln!(out,"completion contract: sensor_finish consumes exact owned Sensor; FinishReceipt=nominal range 1..1, Copy status data, source-formable and not proof or authority; only Ok(FinishReceipt(1)) or Error(SensorError(3)); Host/Limit/Integrity never become Error; partial-prefix Error remains Error");
     let _=writeln!(out,"completion protocol is static possible behavior, never an observed runtime trace: completion attempt/success or recoverable Error, protected outcome, fixed release attempt/complete/failure, then inner delivery only after release succeeds; any terminal stop retains prefix, protected outcome and remaining duty without retry/resume/rollback/compensation");
-    let _=writeln!(out,"assumptions: fixed in-process demonstration binding, not a physical device; shared observation cannot mutate Klyxr-visible Sensor state; release has no source Result, flush, commit, durability or completion promise");
+    let _=writeln!(out,"assumptions: fixed in-process demonstration binding, not a physical device; shared observation cannot mutate Bowfin-visible Sensor state; release has no source Result, flush, commit, durability or completion promise");
     for root in &t.roots {
         work.charge(1)?;
         let _ = writeln!(
@@ -163,11 +163,13 @@ pub(super) fn render(
             }
         }
     }
-    let _=writeln!(out,"outcomes: only enumerated binding outcomes become source Ok/Error; denial, Limit, Integrity, Host, range traps and cleanup failure are terminal; protected Results at a terminal stop are retained, never delivered; repeat advancement does not retry, resume, unwind or release; teardown is not successful Klyxr cleanup");
+    let _=writeln!(out,"outcomes: only enumerated binding outcomes become source Ok/Error; denial, Limit, Integrity, Host, range traps and cleanup failure are terminal; protected Results at a terminal stop are retained, never delivered; repeat advancement does not retry, resume, unwind or release; teardown is not successful Bowfin cleanup");
     out.finish()
 }
 
 #[cfg(test)]
 mod completion_tests;
+#[cfg(test)]
+mod migration_tests;
 #[cfg(test)]
 mod tests;

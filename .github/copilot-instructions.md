@@ -1,4 +1,4 @@
-# GitHub Copilot instructions for Klyxr
+# GitHub Copilot instructions for Bowfin
 
 Read `/AGENTS.md` before substantial work.
 

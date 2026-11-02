@@ -207,7 +207,7 @@ struct Approval {
 
 /// No public fields, constructors, mutation, or independent HIR/MIR pairing.
 /// ```compile_fail
-/// use klyxr_compiler::{compile_source, execution::CheckedExecutable};
+/// use bowfin_compiler::{compile_source, execution::CheckedExecutable};
 /// let program = compile_source("fn demo() {}").unwrap();
 /// let executable = CheckedExecutable { program };
 /// ```

@@ -1,4 +1,4 @@
-use klyxr_compiler::{
+use bowfin_compiler::{
     compile_source, diagnostics::Diagnostic, hir::*, ownership, parse_source, resolve, types,
     verify::verify_report, FrontendError,
 };
@@ -96,8 +96,8 @@ fn parameter_reuse_after_binding_reports_the_illegal_use_and_prior_move() {
     assert_eq!(diagnostic.span.line, 4);
     assert_eq!(diagnostic.known.len(), 1);
     assert!(diagnostic.known[0].contains("into local `next` at line 3, column 16"));
-    let rendered = diagnostic.render("move.klx", &text);
-    assert!(rendered.contains("move.klx:4:12"));
+    let rendered = diagnostic.render("move.bow", &text);
+    assert!(rendered.contains("move.bow:4:12"));
     assert!(rendered.contains("ownership checking stopped"));
     for internal in ["ParameterId", "LocalId", "Available", "Moved", "borrow"] {
         assert!(!rendered.contains(internal), "{rendered}");
@@ -268,7 +268,7 @@ fn unsupported_record_features_and_existing_restrictions_are_not_broadened() {
             "{body}"
         );
     }
-    let battery = include_str!("../../examples/battery_ok.klx");
+    let battery = include_str!("../../examples/battery_ok.bow");
     let ordinary = "fn bad(ticket: Battery) -> Battery { return consume(ticket); }";
     assert!(matches!(
         compile_source(&format!("{battery}\n{ordinary}")),
@@ -281,7 +281,7 @@ fn ownership_checked_record_functions_are_not_verified_and_preserve_battery_beha
     let ordinary = "fn identity(ticket: Battery) -> Battery { let next = ticket; return next; }";
     let program = compile_source(&format!(
         "{}\n{ordinary}",
-        include_str!("../../examples/battery_ok.klx")
+        include_str!("../../examples/battery_ok.bow")
     ))
     .unwrap();
     let report = verify_report(&program);
@@ -290,15 +290,15 @@ fn ownership_checked_record_functions_are_not_verified_and_preserve_battery_beha
     assert_eq!(report.calls_checked, 1);
     for (fixture, message) in [
         (
-            include_str!("../../examples/battery_fail.klx"),
+            include_str!("../../examples/battery_fail.bow"),
             "precondition cannot be established",
         ),
         (
-            include_str!("../../examples/battery_sequence_fail.klx"),
+            include_str!("../../examples/battery_sequence_fail.bow"),
             "precondition cannot be established",
         ),
         (
-            include_str!("../../examples/battery_body_fail.klx"),
+            include_str!("../../examples/battery_body_fail.bow"),
             "postcondition cannot be established",
         ),
     ] {

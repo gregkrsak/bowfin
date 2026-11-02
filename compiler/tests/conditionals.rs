@@ -1,4 +1,4 @@
-use klyxr_compiler::{
+use bowfin_compiler::{
     compile_source,
     hir::{self, ExprKind, ExprType},
     mir::{self, Terminator},
@@ -46,11 +46,11 @@ fn source_conditional_preserves_optional_else_and_spans() {
     let text =
         source("fn example(flag: bool) -> bool { if flag {} else {} if flag {} return flag; }");
     let ast = parse_source(&text).unwrap();
-    let klyxr_compiler::ast::FunctionDecl::Ordinary(f) = &ast.functions[0] else {
+    let bowfin_compiler::ast::FunctionDecl::Ordinary(f) = &ast.functions[0] else {
         panic!()
     };
     for (index, present) in [(0, true), (1, false)] {
-        let klyxr_compiler::ast::ValueStatement::If {
+        let bowfin_compiler::ast::ValueStatement::If {
             else_body, span, ..
         } = &f.body[index]
         else {
@@ -369,14 +369,14 @@ fn nested_and_sequential_mir_is_deterministic_acyclic_and_has_only_one_return() 
 fn verified_path_excluded_from_mir_and_proof_counts_unchanged() {
     let text = format!(
         "{} {}",
-        include_str!("../../examples/battery_ok.klx"),
+        include_str!("../../examples/battery_ok.bow"),
         source("fn example(flag: bool) -> bool { if flag {} return flag; }")
             .replace("type Percent = range 0..100;", "")
     );
     let p = compile_source(&text).unwrap();
     let m = mir::lower(&p);
     assert_eq!(m.functions().len(), 1);
-    let report = klyxr_compiler::verify::verify_report(&p);
+    let report = bowfin_compiler::verify::verify_report(&p);
     assert!(report.diagnostics.is_empty());
     assert_eq!(report.functions_proven, 1);
 }
@@ -406,7 +406,7 @@ fn branch_writes_retain_exact_nominal_typing_and_no_mutation_expansion() {
 }
 #[test]
 fn verified_conditionals_remain_outside_the_specialized_grammar() {
-    let text = include_str!("../../examples/battery_ok.klx").replace(
+    let text = include_str!("../../examples/battery_ok.bow").replace(
         "battery.charge -= amount;",
         "if true { battery.charge -= amount; }",
     );

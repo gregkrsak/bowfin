@@ -12,7 +12,7 @@ pub const START: Span = Span {
 };
 
 /// Version-one admission limits. Reservations are conservative peak envelopes,
-/// not Klyxr execution fuel. Existing check/verify do not use this contract.
+/// not Bowfin execution fuel. Existing check/verify do not use this contract.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct AdmissionLimits {
     pub source_bytes: usize,
@@ -177,7 +177,7 @@ impl Context {
         self.reserve_frontend(self.envelope_nodes.get(), self.envelope_source.get())
     }
     /// Additional retained cleanup witnesses are bounded before checker snapshots.
-    /// KED-034 adds explicit descriptor, sealed protocol copies, traversal and
+    /// BED-034 adds explicit descriptor, sealed protocol copies, traversal and
     /// diagnostic terms on top of the unchanged predecessor catalog envelope.
     pub(crate) fn reserve_completion_catalog(
         &self,

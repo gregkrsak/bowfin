@@ -1,5 +1,5 @@
 //! Ordinary-source frontend conformance. Execution/custody is tested separately.
-use klyxr_compiler::{ast, compile_source, hir, mir, parse_source};
+use bowfin_compiler::{ast, compile_source, hir, mir, parse_source};
 
 const RESULT: &str = "Result<success: bool, failure: bool>";
 fn producer() -> String {
@@ -303,7 +303,9 @@ fn source_alias_metadata_does_not_create_an_err_semantic_variant() {
 }
 
 fn run(source: &str) -> String {
-    use klyxr_compiler::execution::{execute, prepare_execution, AdmissionLimits, ExecutionLimits};
+    use bowfin_compiler::execution::{
+        execute, prepare_execution, AdmissionLimits, ExecutionLimits,
+    };
     let executable = prepare_execution(source, AdmissionLimits::default())
         .unwrap_or_else(|e| panic!("{source}\n{e}"));
     let output = execute(
@@ -370,7 +372,7 @@ fn public_complete_results_render_a_bounded_canonical_active_chain() {
 
 #[test]
 fn public_ast_cannot_bypass_reserved_declaration_names() {
-    use klyxr_compiler::resolve;
+    use bowfin_compiler::resolve;
     for name in [
         "Result", "result", "Ok", "oK", "Error", "eRrOr", "Err", "eRr", "match", "mAtCh",
     ] {

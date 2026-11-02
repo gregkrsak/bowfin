@@ -11,7 +11,7 @@ fn sentinel_combined_read_and_finish_failure_preserves_both_original_facts() {
     )
     .unwrap();
     let e = prepare_execution_with_profile(
-        include_str!("../../../../examples/sentinel.klx"),
+        include_str!("../../../../examples/sentinel.bow"),
         AdmissionLimits {
             tokens: 2048,
             frontend_work: 10_000_000_000_000_000,

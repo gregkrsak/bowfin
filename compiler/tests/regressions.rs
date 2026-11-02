@@ -1,4 +1,4 @@
-use klyxr_compiler::{
+use bowfin_compiler::{
     compile_source,
     verify::{verify_report, VerificationReport},
     FrontendError,
@@ -40,13 +40,13 @@ fn fails(source: &str, message: &str) {
 
 #[test]
 fn canonical_examples_and_keyword_aliases() {
-    let result = report(include_str!("../../examples/battery_ok.klx"));
+    let result = report(include_str!("../../examples/battery_ok.bow"));
     assert!(result.diagnostics.is_empty());
     assert_eq!(result.functions_proven, 1);
     assert_eq!(result.calls_checked, 1);
     assert_eq!(result.final_values["battery"], 30);
     fails(
-        include_str!("../../examples/battery_fail.klx"),
+        include_str!("../../examples/battery_fail.bow"),
         "precondition cannot be established",
     );
     let compact = report(&format!(
@@ -273,7 +273,7 @@ fn unsupported_and_malformed_syntax_is_not_skipped() {
         };
         assert!(rejected, "silently accepted: {source}");
     }
-    assert!(compile_source(include_str!("../../examples/effects.klx")).is_err());
+    assert!(compile_source(include_str!("../../examples/effects.bow")).is_err());
 }
 
 #[test]
@@ -335,13 +335,13 @@ fn distinct_named_ranges_are_rejected_regardless_of_numeric_bounds() {
             diagnostic.message,
             "incompatible named range types for <=: `Amount` and `Percent`"
         );
-        let text = diagnostic.render("nominal.klx", &source);
+        let text = diagnostic.render("nominal.bow", &source);
         assert!(text.contains("range `Percent`"));
         assert!(text.contains("range `Amount`"));
         assert!(text.contains(
             "does not permit implicit arithmetic or comparison between distinct named range types"
         ));
-        assert!(text.contains("nominal.klx:"));
+        assert!(text.contains("nominal.bow:"));
     }
 }
 

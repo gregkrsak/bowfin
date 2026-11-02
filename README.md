@@ -1,5 +1,8 @@
 <p align="center">
-  <img src="./assets/readme-banner.png" alt="Klyxr — Systems programming you can reason about" width="100%">
+  <picture>
+    <source media="(max-width: 767px)" srcset="./assets/readme-banner-mobile.png">
+    <img src="./assets/readme-banner.png" alt="Bowfin fish logo and wordmark — Systems programming you can reason about" width="100%">
+  </picture>
 </p>
 
 <p align="center">
@@ -14,23 +17,22 @@
 </p>
 
 <p align="center">
-  <a href="#why-klyxr">Why Klyxr?</a> ·
+  <a href="#why-bowfin">Why Bowfin?</a> ·
   <a href="#documentation-is-part-of-the-program">Documentation</a> ·
   <a href="#a-quick-taste">Quick taste</a> ·
   <a href="#safe--checked--verified">Assurance model</a> ·
-  <a href="#how-is-klyxr-different-from-rust">vs. Rust</a> ·
-  <a href="#how-is-klyxr-different-from-adaspark">vs. Ada/SPARK</a> ·
+  <a href="#how-is-bowfin-different-from-rust">vs. Rust</a> ·
+  <a href="#how-is-bowfin-different-from-adaspark">vs. Ada/SPARK</a> ·
   <a href="#status">Status</a>
 </p>
 
 ---
 
-# Klyxr
+# Bowfin
 
 > **Systems programming you can reason about.**  
-> Pronounced **“CLICK-ser.”**
 
-**Klyxr** is a systems programming language in development that combines
+**Bowfin** is a systems programming language in development that combines
 **ownership-based memory safety**, **first-class contracts**, **explicit effects**,
 **domain-aware types**, and **incremental formal verification**.
 
@@ -39,13 +41,13 @@ It starts from a simple premise:
 > **Memory safety is the beginning of the argument, not the end.**
 
 Modern systems languages have shown that major classes of bugs can be moved from runtime into the language model.
-Klyxr asks the next question:
+Bowfin asks the next question:
 
 > **What other engineering truths should be part of the program itself — visible to the compiler, checkable by tools, and auditable by humans?**
 
 ---
 
-## Why Klyxr?
+## Why Bowfin?
 
 Systems code depends on more than valid pointers.
 
@@ -67,10 +69,13 @@ this assumption is trusted rather than proven
 
 Today those truths often live in comments, tests, wrapper types, runtime checks, coding standards, review checklists, or the heads of experienced engineers.
 
-**Klyxr wants more of them in the language.**
+**Bowfin wants more of them in the language.**
 
 <p align="center">
-  <img src="./assets/diagrams/knowledge-boundaries.svg" alt="Klyxr makes the boundaries visible" width="100%">
+  <picture>
+    <source media="(max-width: 767px)" srcset="./assets/diagrams/knowledge-boundaries-mobile.svg">
+    <img src="./assets/diagrams/knowledge-boundaries.svg" alt="Bowfin makes the boundaries between known, proved, trusted and unsafe visible" width="100%">
+  </picture>
 </p>
 
 The goal is not magical correctness.
@@ -90,7 +95,7 @@ The goal is **engineering clarity**:
 > documentation are reviewed together, and disagreement between them is a
 > defect.**
 
-Klyxr does not assume that source code is self-explanatory. Public declarations
+Bowfin does not assume that source code is self-explanatory. Public declarations
 and examples should explain purpose, domain meaning, effects, authority, failure
 behavior, lifecycle obligations, important policy, assumptions, bounds, and
 non-guarantees in language people can read directly.
@@ -99,7 +104,7 @@ Machine-readable types, contracts, and effects establish facts for the toolchain
 Documentation explains what those facts mean in the application. Neither silently
 substitutes for the other.
 
-See the [Klyxr documentation policy](docs/DOCUMENTATION_POLICY.md).
+See the [Bowfin documentation policy](docs/DOCUMENTATION_POLICY.md).
 
 ---
 
@@ -145,12 +150,12 @@ Nothing here is memory-unsafe.
 
 But it is still wrong.
 
-A Klyxr verifier should be able to explain **why**:
+A Bowfin verifier should be able to explain **why**:
 
 ```text
 error: precondition cannot be established
 
-  --> src/battery.klx:14:1
+  --> src/battery.bow:14:1
 
 14 | consume(&mutable battery, 90);
    | ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -165,7 +170,7 @@ known:
 90 <= 80 is false
 ```
 
-That distinction is central to Klyxr:
+That distinction is central to Bowfin:
 
 > **Memory-safe does not automatically mean application-correct.**
 
@@ -204,14 +209,17 @@ It made the rule **compiler-visible**.
 ## Safe → Checked → Verified
 
 <p align="center">
-  <img src="./assets/diagrams/assurance-ladder.svg" alt="Safe to checked to verified" width="100%">
+  <picture>
+    <source media="(max-width: 767px)" srcset="./assets/diagrams/assurance-ladder-mobile.svg">
+    <img src="./assets/diagrams/assurance-ladder.svg" alt="Safe to checked to verified" width="100%">
+  </picture>
 </p>
 
-Klyxr is designed around **one language with escalating assurance**.
+Bowfin is designed around **one language with escalating assurance**.
 
 ### `safe`
 
-Ordinary Klyxr code gets the language's core guarantees:
+Ordinary Bowfin code gets the language's core guarantees:
 
 - ownership and borrowing,
 - initialization safety,
@@ -246,7 +254,7 @@ verified function withdraw(...)
 
 ## Own what moves. Constrain what exists. Prove what matters.
 
-Klyxr's design philosophy is intentionally compact.
+Bowfin's design philosophy is intentionally compact.
 
 ### **Own what moves**
 Ownership and borrowing make memory and mutation rules structural.
@@ -262,23 +270,23 @@ Allocation, blocking, I/O, trusted assumptions, FFI, and `unsafe` boundaries sho
 
 ---
 
-## How is Klyxr different from Rust?
+## How is Bowfin different from Rust?
 
 Rust proved that systems programmers do not have to choose between
 **low-level control** and **strong memory safety**.
 
-Klyxr takes that lesson seriously.
+Bowfin takes that lesson seriously.
 
 > **Rust reasons deeply about ownership.  
-> Klyxr aims to extend that style of reasoning to contracts, domain constraints, effects, trust boundaries, and selected program properties.**
+> Bowfin aims to extend that style of reasoning to contracts, domain constraints, effects, trust boundaries, and selected program properties.**
 
 Many of those capabilities can be built around Rust through types, libraries, conventions, and verification tools.
 
-Klyxr's goal is different:
+Bowfin's goal is different:
 
 **design them as one coherent language model from the beginning.**
 
-| | Rust | Klyxr |
+| | Rust | Bowfin |
 |---|---|---|
 | Ownership / borrowing | Core | Core |
 | Memory safety without GC | ✅ | ✅ |
@@ -292,16 +300,16 @@ Klyxr's goal is different:
 
 ---
 
-## How is Klyxr different from Ada/SPARK?
+## How is Bowfin different from Ada/SPARK?
 
 Ada/SPARK demonstrated that **contracts, constrained types, static analysis, and proof can be practical engineering tools**.
 
-Klyxr draws deeply from that tradition — but uses a different programming model.
+Bowfin draws deeply from that tradition — but uses a different programming model.
 
 > **SPARK brings formal methods to Ada.  
-> Klyxr is designed to make provable systems programming feel native to the ownership generation.**
+> Bowfin is designed to make provable systems programming feel native to the ownership generation.**
 
-Klyxr combines the assurance mindset with:
+Bowfin combines the assurance mindset with:
 
 - ownership and borrowing,
 - algebraic data types,
@@ -313,10 +321,10 @@ Klyxr combines the assurance mindset with:
 
 The ancestry is deliberate:
 
-> **Rust taught Klyxr how ownership can shape a language.  
-> Ada/SPARK taught Klyxr that specifications and proof belong in real engineering.**
+> **Rust taught Bowfin how ownership can shape a language.<br>
+> Ada/SPARK taught Bowfin that specifications and proof belong in real engineering.**
 
-Klyxr's job is not to imitate either one.
+Bowfin's job is not to imitate either one.
 
 It is to explore what happens when those lessons are designed together.
 
@@ -327,25 +335,25 @@ It is to explore what happens when those lessons are designed together.
 The command line should feel boring in the best possible way:
 
 ```bash
-klyxr new flight-control
+bowfin new flight-control
 cd flight-control
 
-klyxr build
-klyxr test
-klyxr verify
-klyxr audit
+bowfin build
+bowfin test
+bowfin verify
+bowfin audit
 ```
 
-### `klyxr build`
+### `bowfin build`
 Compile the project.
 
-### `klyxr test`
+### `bowfin test`
 Run tests.
 
-### `klyxr verify`
+### `bowfin verify`
 Discharge declared proof obligations.
 
-### `klyxr audit`
+### `bowfin audit`
 Show trust boundaries, unsafe regions, effect violations, and assurance-relevant project information.
 
 The long-term goal is **one toolchain from hello-world to high assurance**.
@@ -354,7 +362,7 @@ The long-term goal is **one toolchain from hello-world to high assurance**.
 
 ## Designed for serious systems work
 
-Klyxr is being designed with environments like these in mind:
+Bowfin is being designed with environments like these in mind:
 
 | Embedded / realtime | Infrastructure | High assurance |
 |---|---|---|
@@ -363,17 +371,17 @@ Klyxr is being designed with environments like these in mind:
 | firmware | compilers | safety-critical systems |
 | hard realtime | security tooling | critical infrastructure |
 
-But Klyxr should never require formal methods expertise merely to get started.
+But Bowfin should never require formal methods expertise merely to get started.
 
-You should be able to use Klyxr as an ordinary safe systems language — and turn up the assurance only when the problem demands it.
+You should be able to use Bowfin as an ordinary safe systems language — and turn up the assurance only when the problem demands it.
 
 ---
 
-## What Klyxr does **not** claim
+## What Bowfin does **not** claim
 
-Klyxr is not based on the idea that a sufficiently fancy compiler can make software infallible.
+Bowfin is not based on the idea that a sufficiently fancy compiler can make software infallible.
 
-A verified Klyxr function does **not** mean:
+A verified Bowfin function does **not** mean:
 
 > “This code is correct.”
 
@@ -395,7 +403,7 @@ projects or the people behind them.
 > **Measure honestly. Publish reproducibly. Report losses alongside wins. Respect
 > the people and projects that make comparison possible.**
 
-Official Klyxr performance claims and published benchmarks must:
+Official Bowfin performance claims and published benchmarks must:
 
 - disclose the relevant source, compiler and toolchain versions, target,
   configuration, assurance mode, enabled checks, methodology, and known
@@ -407,7 +415,7 @@ Official Klyxr performance claims and published benchmarks must:
   respectfully, and with appropriate credit.
 
 For interpreter/native comparisons, semantic agreement comes first: both engines
-must execute the same approved MIR with the same observable Klyxr behavior before
+must execute the same approved MIR with the same observable Bowfin behavior before
 their performance results are treated as comparable.
 
 ---
@@ -415,7 +423,7 @@ their performance results are treated as comparable.
 ## Status
 
 > [!IMPORTANT]
-> **Klyxr is an early-stage language project.**
+> **Bowfin is an early-stage language project.**
 >
 > The compiler, verifier, syntax, semantics, and tooling are still being designed
 > and prototyped.
@@ -438,7 +446,7 @@ their performance results are treated as comparable.
 Try the current prototype from the repository root with Rust/rustup installed:
 
 ```bash
-cargo run --locked --bin klyxr -- verify examples/battery_ok.klx
+cargo run --locked --bin bowfin -- verify examples/battery_ok.bow
 cargo test --locked --workspace
 ```
 
@@ -450,7 +458,7 @@ current prototype.
 ### Run an ordinary function
 
 ```sh
-cargo run --locked --bin klyxr -- run examples/ordinary_run.klx --function demo
+cargo run --locked --bin bowfin -- run examples/ordinary_run.bow --function demo
 ```
 
 This prints `Pair { first: Percent(89), second: Percent(90) }`. `run` performs the
@@ -509,8 +517,8 @@ application-success convention and audit limitations.
 │   └── readme-banner.png
 ├── docs/
 ├── examples/
-│   ├── battery.klx
-│   └── effects.klx
+│   ├── battery.bow
+│   └── effects.bow
 ├── scripts/
 │   └── verify-readme.py
 └── README.md
@@ -540,7 +548,7 @@ Your Markdown extension can render the README while all local assets remain avai
 
 ## Contributing
 
-Klyxr is young enough that **careful thinking matters more than churn**.
+Bowfin is young enough that **careful thinking matters more than churn**.
 
 When contributing, favor:
 
@@ -567,7 +575,7 @@ Areas where thoughtful contributors will eventually be valuable include:
 
 ## The long view
 
-Klyxr began with a question:
+Bowfin began with a question:
 
 > **If ownership can make memory safety part of the language, what other important engineering truths can we move out of comments, conventions, and institutional memory — and into the program itself?**
 
@@ -592,10 +600,10 @@ And ultimately toward software where engineers can say, with much greater precis
 </p>
 
 <p align="center">
-  <code>klyxr build</code> ·
-  <code>klyxr test</code> ·
-  <code>klyxr verify</code> ·
-  <code>klyxr audit</code>
+  <code>bowfin build</code> ·
+  <code>bowfin test</code> ·
+  <code>bowfin verify</code> ·
+  <code>bowfin audit</code>
 </p>
 
 <p align="center">

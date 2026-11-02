@@ -1,4 +1,4 @@
-//! K31-MR01: sealed allocation injection, typed limits, public preparation and
+//! B31-MR01: sealed allocation injection, typed limits, public preparation and
 //! the production CLI reporting boundary. No OOM or production injection switch.
 use super::*;
 use crate::bounded::result_admission::{with_failure, Allocation};

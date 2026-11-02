@@ -1,4 +1,4 @@
-use klyxr_compiler::{ast, compile_source, hir, mir, parse_source, verify, FrontendError};
+use bowfin_compiler::{ast, compile_source, hir, mir, parse_source, verify, FrontendError};
 const DECL: &str = "type Percent = range 0..100; type Temperature = range 0..100; record Battery { charge: Percent, health: Percent, temperature: Temperature } record Capacitor { charge: Percent } record Snapshot { first: Percent, middle: Percent, last: Percent } fn id(p: Percent) -> Percent { return p; } fn three(a: Percent,b: Percent,c: Percent) -> Percent { return a; } fn finish(v: &Battery) {} fn finish_mut(v: &mut Battery) {} fn inspect(v: &Battery) -> Percent { return v.charge; } fn inspect_mut(v: &mut Battery) -> Percent { return v.health; } fn consume(b: Battery) -> Percent { return b.charge; } fn held(v: &Battery,p: Percent,b: Battery) {} fn held_mut(v: &mut Battery,p: Percent,b: Battery) {} fn copy_move(p: Percent,b: Battery) {} fn receive(s: Snapshot,b: Battery) {}";
 fn good(body: &str) -> hir::Program {
     let p = compile_source(&format!("{DECL}\n{body}")).unwrap();
@@ -271,7 +271,7 @@ fn first_middle_final_call_and_construction_children_are_real_handle_uses() {
 fn ordinary_reference_reads_coexist_with_unchanged_verified_battery() {
     let source = format!(
         "{}\n{}",
-        include_str!("../../examples/battery_ok.klx"),
+        include_str!("../../examples/battery_ok.bow"),
         "fn read_battery(v: &Battery) -> Percent { return v.charge; }"
     );
     let p = compile_source(&source).unwrap();
@@ -293,7 +293,7 @@ rejected!(unsupported_verified_shared_state,"Parse","Mut","verified fn bad(v: &B
 fn harness_reference_roots_remain_outside_supported_literal_state() {
     let source = format!(
         "{}\nlet view = &battery;",
-        include_str!("../../examples/battery_ok.klx")
+        include_str!("../../examples/battery_ok.bow")
     );
     assert!(matches!(
         compile_source(&source),

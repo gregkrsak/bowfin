@@ -1,4 +1,4 @@
-use klyxr_compiler::{ast, compile_source, hir, mir, parse_source, resolve, types, FrontendError};
+use bowfin_compiler::{ast, compile_source, hir, mir, parse_source, resolve, types, FrontendError};
 const DECL: &str = "type Percent = range 0..100; type Other = range 0..100; record Ticket { value: Percent } fn work() {} fn observe(view: &bool) {} fn reset(access: &mut bool) { *access = false; } fn take_bool(value: bool) {} fn take_range(value: Percent) {} fn consume(ticket: Ticket) {} fn identity(value: bool) -> bool { return value; } fn fresh() -> Ticket { return fresh(); } fn take(ticket: Ticket) -> Ticket { return ticket; } fn inspect(view: &Ticket) -> bool { return true; } fn bool_ticket(seen: bool, ticket: Ticket) {} fn receive(first: Ticket, held: &bool, last: Ticket) {} fn refs(view: &bool, access: &mut bool) {} fn mut_refs(access: &mut bool, view: &bool) {} fn shared_bool(view: &bool, seen: bool) {} fn touch(access: &mut bool) -> bool { return true; } fn held(view: &Ticket, ticket: Ticket) {} fn read(view: &bool) -> bool { return *view; }";
 fn good(body: &str) -> hir::Program {
     let p = compile_source(&format!("{DECL} {body}")).unwrap();
@@ -849,9 +849,9 @@ fn mir_mixed_return_break_continue_and_real_false_edge() {
 }
 #[test]
 fn verified_and_harness_boundary_is_unchanged() {
-    let battery = include_str!("../../examples/battery_ok.klx");
+    let battery = include_str!("../../examples/battery_ok.bow");
     let p = compile_source(&format!("fn nothing() {{}} {battery}")).unwrap();
-    let r = klyxr_compiler::verify::verify_report(&p);
+    let r = bowfin_compiler::verify::verify_report(&p);
     assert!(r.diagnostics.is_empty());
     assert_eq!(r.functions_proven, 1);
     assert_eq!(r.calls_checked, 1);
@@ -864,7 +864,7 @@ fn verified_and_harness_boundary_is_unchanged() {
 
 #[test]
 fn public_ast_statement_call_cannot_target_verified_function_or_harness() {
-    let mut source = parse_source(include_str!("../../examples/battery_ok.klx")).unwrap();
+    let mut source = parse_source(include_str!("../../examples/battery_ok.bow")).unwrap();
     let mut caller = parse_source("fn nothing() {} fn caller() { nothing(); }").unwrap();
     let ast::ValueStatement::CallNoValue { callee, .. } = &mut ordinary_mut(&mut caller, 1).body[0]
     else {

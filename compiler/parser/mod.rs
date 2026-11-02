@@ -542,7 +542,7 @@ impl Parser<'_> {
                     Some(self.parse_expression(0)?)
                 };
                 if !self.at(&TokenKind::Semicolon) {
-                    return Err(self.error("value-returning Klyxr functions require `return expression;` with a semicolon".into()));
+                    return Err(self.error("value-returning Bowfin functions require `return expression;` with a semicolon".into()));
                 }
                 let end = self.advance().span.end;
                 let span = Span { end, ..span };
@@ -606,7 +606,7 @@ impl Parser<'_> {
                     span: Span { end, ..span },
                 });
             } else {
-                return Err(self.error("value-returning Klyxr functions require `return expression;`; bare expression statements are not supported".into()));
+                return Err(self.error("value-returning Bowfin functions require `return expression;`; bare expression statements are not supported".into()));
             }
             if !body.last().expect("parsed statement").falls_through()
                 && !self.at(&TokenKind::RBrace)

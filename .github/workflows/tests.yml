@@ -14,19 +14,19 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
-          K34_EVIDENCE_DIR="$RUNNER_TEMP/ked034-debug-evidence" cargo test --locked --workspace 2>&1 | tee "$RUNNER_TEMP/ked034-debug.log"
-          python scripts/verify-ked035-tests.py "$RUNNER_TEMP/ked034-debug.log"
-          python scripts/verify-ked034-budgets.py "$RUNNER_TEMP/ked034-debug-evidence"
+          B34_EVIDENCE_DIR="$RUNNER_TEMP/bed034-debug-evidence" cargo test --locked --workspace 2>&1 | tee "$RUNNER_TEMP/bed034-debug.log"
+          python scripts/verify-bed035-tests.py "$RUNNER_TEMP/bed034-debug.log"
+          python scripts/verify-bed034-budgets.py "$RUNNER_TEMP/bed034-debug-evidence"
 
       - name: Verify arithmetic checks in optimized builds
         shell: bash
         run: |
           set -o pipefail
-          K34_EVIDENCE_DIR="$RUNNER_TEMP/ked034-release-evidence" cargo test --locked --workspace --release 2>&1 | tee "$RUNNER_TEMP/ked034-release.log"
-          python scripts/verify-ked035-tests.py "$RUNNER_TEMP/ked034-release.log"
-          python scripts/verify-ked034-budgets.py "$RUNNER_TEMP/ked034-release-evidence"
+          B34_EVIDENCE_DIR="$RUNNER_TEMP/bed034-release-evidence" cargo test --locked --workspace --release 2>&1 | tee "$RUNNER_TEMP/bed034-release.log"
+          python scripts/verify-bed035-tests.py "$RUNNER_TEMP/bed034-release.log"
+          python scripts/verify-bed034-budgets.py "$RUNNER_TEMP/bed034-release-evidence"
 
       - name: Verify compact and explicit examples remain present
         run: |
-          grep -q "verified fn consume" examples/battery_fail.klx
-          grep -q "verified function consume" examples/battery_ok.klx
+          grep -q "verified fn consume" examples/battery_fail.bow
+          grep -q "verified function consume" examples/battery_ok.bow

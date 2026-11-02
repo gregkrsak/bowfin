@@ -1,11 +1,11 @@
 use std::process::{Command, Output};
 fn run(command: &str, extra: &[&str]) -> Output {
-    Command::new(env!("CARGO_BIN_EXE_klyxr"))
+    Command::new(env!("CARGO_BIN_EXE_bowfin"))
         .args([
             command,
             concat!(
                 env!("CARGO_MANIFEST_DIR"),
-                "/../examples/trusted_sensor.klx"
+                "/../examples/trusted_sensor.bow"
             ),
             "--function",
             "sample",
@@ -65,6 +65,13 @@ fn audit_reports_roots_grants_pairing_and_origins_without_execution() {
         String::from_utf8_lossy(&output.stderr)
     );
     let text = String::from_utf8(output.stdout).unwrap();
+    assert!(text.starts_with(&format!(
+        "authority account v1\ntarget=bowfin.ordinary-mir.v1\ncompiler=bowfin-compiler/{}\ncatalog=bowfin.sensor-demo.catalog.v1\nprofile=bowfin.sensor-demo.profile.v1\nassumptions=bowfin.sensor-demo.assumptions.v1\n",
+        env!("CARGO_PKG_VERSION")
+    )));
+    assert!(!text.contains("klyxr.sensor-demo."));
+    assert!(!text.contains("klyxr.ordinary-mir."));
+    assert!(!text.contains("klyxr-compiler/"));
     for required in [
         "root: function=0 name=sample",
         "scenario=NoSample; live-sensor-limit=2",

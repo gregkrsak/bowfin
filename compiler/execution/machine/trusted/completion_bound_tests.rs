@@ -29,7 +29,7 @@ fn minimum(mut upper: u64, mut accepts: impl FnMut(u64) -> bool) -> u64 {
     lower
 }
 fn metric(name: &str, text: &str) {
-    if let Ok(directory) = std::env::var("K34_EVIDENCE_DIR") {
+    if let Ok(directory) = std::env::var("B34_EVIDENCE_DIR") {
         let path = std::path::Path::new(&directory);
         std::fs::create_dir_all(path).unwrap();
         std::fs::write(path.join(format!("{name}.json")), text).unwrap();

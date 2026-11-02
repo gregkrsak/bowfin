@@ -1,4 +1,4 @@
-//! Private canonical-resource KED-032 protocol evidence, not production APIs.
+//! Private canonical-resource BED-032 protocol evidence, not production APIs.
 use super::cleanup::{conservation_tests::conserved, Event};
 use super::*;
 use crate::effects::{Effect, EffectSet};

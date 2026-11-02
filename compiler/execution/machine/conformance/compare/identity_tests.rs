@@ -76,7 +76,7 @@ fn foreign_realm_stale_generation_and_bad_payload_reject_before_projection() {
     use crate::trusted::{Grants, Scenario, Selection};
     let selection = Selection::sensor_demo(Scenario::Sample, Grants::ALL, &["sample"]).unwrap();
     let e = prepare_execution_with_profile(
-        include_str!("../../../../../examples/sensor_finish.klx"),
+        include_str!("../../../../../examples/sensor_finish.bow"),
         AdmissionLimits::default(),
         &selection,
     )
@@ -293,7 +293,7 @@ fn schema_relabeling_preserves_one_global_map_for_cells_owners_generations_and_t
     use crate::trusted::{Grants, Scenario, Selection};
     let selection = Selection::sensor_demo(Scenario::Sample, Grants::ALL, &["sample"]).unwrap();
     let e = prepare_execution_with_profile(
-        include_str!("../../../../../examples/sensor_finish.klx"),
+        include_str!("../../../../../examples/sensor_finish.bow"),
         AdmissionLimits::default(),
         &selection,
     )

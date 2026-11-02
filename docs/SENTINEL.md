@@ -1,11 +1,11 @@
-# Klyxr Sentinel 0
+# Bowfin Sentinel 0
 
 Sentinel is a deterministic, interpreter-run sensor-monitoring application. It
 accepts two successful readings, counts disjoint warning and critical observations,
 retains the peak and greatest severity, explicitly finishes every acquired Sensor
 on ordinary paths, and returns a typed Report or Failure. It uses one source file
 and a zero-argument `monitor` entry. Read the ordinary `//` comments in
-[the application](../examples/sentinel.klx) as its human-facing contract.
+[the application](../examples/sentinel.bow) as its human-facing contract.
 
 ## Run
 
@@ -13,7 +13,7 @@ From the repository root, use the following existing CLI allowances for the
 complete application (not the smaller predecessor example):
 
 ```bash
-cargo run --locked --bin klyxr -- run examples/sentinel.klx --function monitor --profile sensor-demo --scenario warning --sensor-limit 1 --max-tokens 2048 --max-frontend-work 10000000000000000 --max-admission-storage 1073741824 --max-diagnostic-storage 4194304
+cargo run --locked --bin bowfin -- run examples/sentinel.bow --function monitor --profile sensor-demo --scenario warning --sensor-limit 1 --max-tokens 2048 --max-frontend-work 10000000000000000 --max-admission-storage 1073741824 --max-diagnostic-storage 4194304
 ```
 
 These are supported explicit ceilings, not measured minima or actual host RSS.
@@ -37,7 +37,7 @@ With `warning`, stdout is:
 Ok(Report { observations: Count(2), warnings: Count(1), critical: Count(0), peak: Reading(60), disposition: Disposition(1), completed: Count(2) })
 ```
 
-All fields are computed by Klyxr. The Rust host renderer supplies names,
+All fields are computed by Bowfin. The Rust host renderer supplies names,
 punctuation, numeric formatting and the newline. It does not classify readings.
 Warnings and critical dispositions are successful reports, not application failures.
 
@@ -108,7 +108,7 @@ usage/configuration and detected Host/writer failures use exit two. Add
 `--max-steps 1` for an early terminal limit control. It is not a custody-after-open
 test. Unit tests separately cover every fuel cut, acquired custody and release
 before protected publication. There is no retry, rollback, unwinding cleanup or
-late delivery after a stop; teardown is not successful Klyxr release.
+late delivery after a stop; teardown is not successful Bowfin release.
 
 ## Audit and evidence
 

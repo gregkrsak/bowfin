@@ -1,6 +1,6 @@
-# Bounded ordinary MIR execution (KED-026 Draft 3)
+# Bounded ordinary MIR execution (BED-026 Draft 3)
 
-`cargo run --locked --bin klyxr -- run examples/ordinary_run.klx --function demo`
+`cargo run --locked --bin bowfin -- run examples/ordinary_run.bow --function demo`
 prints `Pair { first: Percent(89), second: Percent(90) }`. Initializers run in
 written order; rendering uses canonical declaration order. `loop_demo` returns
 `Percent(0)`; `trap_demo` stops at the inner subtraction with computed `-101`.
@@ -34,7 +34,7 @@ vacant. Shared handles copy; exclusive handles and records transfer. Reads of
 fields, dereferences, borrows, and assignment targets do not consume their roots.
 Each loop `Let` initializes afresh and publishes only on completed evaluation.
 No runtime loans, borrow checking, snapshots, or transactions execute.
-KED-027 adds private synthetic cleanup described below; public source data remains
+BED-027 adds private synthetic cleanup described below; public source data remains
 resource-free.
 A callee's reference slot and caller referent are distinct. Retired IDs are never
 reused; references cannot be public return values.
@@ -148,9 +148,9 @@ Exit status is 0 on success, 1 on frontend/integrity/trap/limit stops, and 2 on
 usage/configuration or detected host/tool failures. No host addresses or Rust
 runtime diagnostics are emitted by the structured error renderer.
 
-## KED-027 private cleanup extension
+## BED-027 private cleanup extension
 
-The frozen KD-042 extension separates canonical resource identity, owned/reference
+The frozen BD-042 extension separates canonical resource identity, owned/reference
 identity and Copy/Move classification. Trusted acquisition/release descriptors and
 shared acyclic cleanup plans are private. Source record fields still require named
 ranges, and the CLI/public data boundary never admits a live resource result.
@@ -169,7 +169,7 @@ canonical membership is complete. Complete cleanup and synthetic partial abort
 visit reverse canonical declaration order, with abort filtered by initialized
 membership. Independent nested pending containers abort inside-out. Moving into a
 pending field never restores the old source on failure. This private synthetic
-failure facility demonstrates KD-042 and does not add source recoverable propagation
+failure facility demonstrates BD-042 and does not add source recoverable propagation
 or general unwinding. Unnamed resource arguments without a defined lifetime reject.
 
 Type classification shares child plans and caps its acyclic depth at 32 (also
@@ -191,7 +191,7 @@ Later validation never assumes that an earlier successful allocation makes the
 next plan-construction attempt infallible. Error traces and reporting
 retain the existing separate bounded diagnostic contract.
 
-In addition to KD-041 charges, fuel is charged before scope entry/exit and owner
+In addition to BD-041 charges, fuel is charged before scope entry/exit and owner
 inspection, successful initialization recording, pending field progress, aggregate
 traversal and fixed trusted operations. Resource-free continuations retain their
 previous costs. Release attempts reserve event storage before any effect and record
@@ -199,14 +199,14 @@ completion exactly once. Configured exhaustion or controlled host release failur
 retains prior effects and all uncompleted payloads, cannot retry, and cannot publish
 ordinary success. Disposal of host interpreter state is not a release effect.
 
-The 86 new KD-042 tests (76 original and 10 focused repair regressions) cover canonical/malformed authority, structured exits,
+The 86 new BD-042 tests (76 original and 10 focused repair regressions) cover canonical/malformed authority, structured exits,
 transfers/returns, aggregates/pending abort, exact fuel/storage thresholds, terminal
 failure/reporting and unique-leaf conservation. GitHub debug and release profiles
 also reconcile the 1,581 predecessor identities and each run the 1,800-case affine
-cross-check. See `docs/engineering/KED-027-IMPLEMENTATION-LEDGER.md` for executed
+cross-check. See `docs/engineering/BED-027-IMPLEMENTATION-LEDGER.md` for executed
 evidence; no local executable conformance is claimed during K27-I01.
 
-## KED-028 replacement protocol and accounting
+## BED-028 replacement protocol and accounting
 
 Eligible direct mutable Move locals execute an explicit compound ReplaceOwned MIR
 operation. Only the complete RHS result gains a new resource boundary; call arguments
@@ -240,21 +240,21 @@ and completed release prefixes, refuse resume and never fabricate rollback or
 successful continuation. Publication/registration is indivisible; every actual
 fallible cut is tested through fuel/storage exhaustion and private Host probes.
 The probes are test facilities, not production callbacks or recoverable source errors.
-No cleanup guarantee is added for KD-042's excluded abrupt outcomes.
+No cleanup guarantee is added for BD-042's excluded abrupt outcomes.
 
 The exact 1,667-test predecessor inventory, four designated identity migrations,
 one separately justified iteration-local outcome correction and every new identity
 are reconciled in each complete debug/release profile. Both profile executions of
 the 1,800-case affine check and the authority compile-fail doctest remain required.
-See [the KED-028 ledger](engineering/KED-028-IMPLEMENTATION-LEDGER.md).
+See [the BED-028 ledger](engineering/BED-028-IMPLEMENTATION-LEDGER.md).
 
-## KED-029 temporary-region accounting
+## BED-029 temporary-region accounting
 
 Temporary execution charges before activation entry, successful registration,
 completion/protection, ownership transfer, retirement traversal, owner inspection
 and final retirement. The private single-owner cleanup fixture requires exactly
 18 units, versus its predecessor's 11; the seven extra progress charges are frozen
-KED-029 section 14 work. Empty resource-free regions are omitted and preserve their
+BED-029 section 14 work. Empty resource-free regions are omitted and preserve their
 previous fuel/storage behavior. Existing expression, call and cleanup charges remain.
 
 Temporary activation, owner and event capacities, protected payloads, call preparation,
@@ -270,7 +270,7 @@ and add no unwind or rollback. Private probes inject failures immediately before
 actual fallible reserves and canonical release operations; they are test facilities,
 not public callbacks. Exact sufficient/insufficient neighbors, every configured call
 cut, U/R unpublished-local cuts, partial pending fields, return/replacement protection
-and identity-sensitive holder censuses are recorded in the [KED-029 ledger](engineering/KED-029-IMPLEMENTATION-LEDGER.md).
+and identity-sensitive holder censuses are recorded in the [BED-029 ledger](engineering/BED-029-IMPLEMENTATION-LEDGER.md).
 
 Each complete debug/release profile reconciles all 1,706 predecessor identities and
 37 additions, with two preserved-ID admission corrections and one justified fuel-cost
@@ -278,7 +278,7 @@ correction. There are no identity renames. Both 1,800-case affine checks and the
 compile-fail authority doctest remain required. GitHub Actions is authoritative;
 local Rust validation was unavailable because of confirmed Work-runtime corruption.
 
-## Frozen KED-030 effect authority and bounds
+## Frozen BED-030 effect authority and bounds
 
 Explicit ordinary declarations are bounded eight-identity upper bounds. Complete
 callee declarations and mechanically derived cleanup summaries are checked during
@@ -316,14 +316,14 @@ retain their original payload custody/order. No declaration-driven events or new
 source fuel charges are introduced. `unsafe` bypasses no rule; interpreter memory
 and diagnostic output do not become source `heap` or `io`.
 
-The [KED-030 ledger](engineering/KED-030-IMPLEMENTATION-LEDGER.md) records complete
+The [BED-030 ledger](engineering/BED-030-IMPLEMENTATION-LEDGER.md) records complete
 debug/release identity reconciliation, all corrections and authoritative GitHub
 workflows. Specification freeze is separate from independent implementation review
 and acceptance. No local Rust executable evidence is claimed.
 
-## Frozen KED-031 typed outcomes
+## Frozen BED-031 typed outcomes
 
-`cargo run --locked --bin klyxr -- run examples/result_handling.klx --function demo`
+`cargo run --locked --bin bowfin -- run examples/result_handling.bow --function demo`
 prints `Error(ErrorCode(1))`; `success_demo` prints `Reading(42)`. Both Error and
 Err are accepted source aliases. Public Result output uses a flat active chain
 and one Bool/range/ordinary-record leaf, avoiding recursively owned output trees.
@@ -357,9 +357,9 @@ Runtime enforces approved custody transitions rather than reconstructing ownersh
 or match coverage. All structured errors stop ordinary resume. No trap, limit,
 Host, integrity or cleanup failure becomes Error; protected failure returns cannot
 reach callers after failed cleanup. Whole-wrapper traversal is separately sealed
-primitive/protocol evidence. See the KED-031 ledger and explicit evidence lanes.
+primitive/protocol evidence. See the BED-031 ledger and explicit evidence lanes.
 
-### K31-MR01 Result admission classification repair
+### B31-MR01 Result admission classification repair
 
 Result syntax-node storage, resolution scratch and canonical-table reservations
 use fallible reservation and retain typed Host failures through bounded public
@@ -380,7 +380,7 @@ admits 4,095 nodes and rejects the next well-formed binary-tree size, 4,097,
 against the 4,096-node ceiling. These private controls isolate individual limits
 from earlier token/syntax ceilings; they do not grant execution authority.
 
-## KED-032 propagation protocol and bounds
+## BED-032 propagation protocol and bounds
 
 The local declaration's approved mode retains exact inner/outer/F identities and
 phrase/binding origins. Its success edge establishes the ordinary local in the
@@ -418,4 +418,4 @@ growth failure and every byte below the successful peak in representative resour
 and nested cases. Selected failures preserve one physical payload owner and
 completed prefixes, publish no continuation and refuse resume. Separate primitive
 fixtures test sibling retirement before dispatch without claiming ordinary-source
-reachability. See the KED-032 ledger and identity manifest for evidence domains.
+reachability. See the BED-032 ledger and identity manifest for evidence domains.

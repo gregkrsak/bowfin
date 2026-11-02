@@ -1,4 +1,4 @@
-use klyxr_compiler::{compile_source, hir, mir, parse_source, FrontendError};
+use bowfin_compiler::{compile_source, hir, mir, parse_source, FrontendError};
 const DECL: &str = "type Percent = range 0..100; type OtherPercent = range 0..100; record Battery { charge: Percent } record Capacitor { charge: Percent } record Meter { level: Percent } record Ticket { value: Percent } fn identity(p: Percent) -> Percent { return p; } fn make(p: Percent) -> Battery { return Battery { charge: p }; } fn extract(b: Battery) -> Percent { return b.charge; } fn consume(t: Ticket) -> Percent { return t.value; } fn duplicate(first: Ticket,second: Ticket) -> Percent { return first.value; } fn with_hold(t: Ticket,view: &bool,last: Ticket) -> Percent { return t.value; } fn discard(b: Battery) {} fn receive(b: Battery,t: Ticket) {} fn inspect(view: &Battery) -> Percent { return inspect(view); } fn inspect_mut(access: &mut Battery) -> Percent { return inspect_mut(access); } fn inspect_percent(p: Percent) {} fn copy_then_move(p: Percent,b: Battery) {} fn move_then_copy(b: Battery,p: Percent) {} fn held_mut(access: &mut Battery,p: Percent) {} fn ready(b: Battery) -> bool { return true; } fn flag_of(flag: bool) -> bool { return flag; } fn work() {}";
 fn good(body: &str) -> hir::Program {
     let p = compile_source(&format!("{DECL} {body}")).unwrap();
@@ -481,7 +481,7 @@ fn constructor_diagnostic_is_at_identifier_with_otherwise_valid_signature() {
     let source =
         format!("{DECL} fn bad(p: Percent) -> Battery {{ return Missing {{ charge: p }}; }}");
     let a = parse_source(&source).unwrap();
-    let error = klyxr_compiler::resolve::resolve(&a).unwrap_err();
+    let error = bowfin_compiler::resolve::resolve(&a).unwrap_err();
     assert!(error[0]
         .message
         .contains("unknown record construction `Missing`"));
@@ -532,10 +532,10 @@ fn ordinary_records_have_canonical_ids_and_no_anonymous_locals_or_harness_bindin
 #[test]
 fn public_ast_cannot_hide_conditional_value_beneath_construction() {
     let mut a=parse_source(&format!("{DECL} fn f(flag: bool,p: Percent) -> Battery {{ let chosen = if flag {{ p }} else {{ p }}; return Battery {{ charge: p }}; }}")).unwrap();
-    let klyxr_compiler::ast::FunctionDecl::Ordinary(f) = a.functions.last_mut().unwrap() else {
+    let bowfin_compiler::ast::FunctionDecl::Ordinary(f) = a.functions.last_mut().unwrap() else {
         panic!()
     };
-    let klyxr_compiler::ast::ValueStatement::Let {
+    let bowfin_compiler::ast::ValueStatement::Let {
         initializer: conditional,
         ..
     } = &f.body[0]
@@ -543,15 +543,15 @@ fn public_ast_cannot_hide_conditional_value_beneath_construction() {
         panic!()
     };
     let conditional = conditional.clone();
-    let klyxr_compiler::ast::ValueStatement::Return { value, .. } = &mut f.body[1] else {
+    let bowfin_compiler::ast::ValueStatement::Return { value, .. } = &mut f.body[1] else {
         panic!()
     };
-    let klyxr_compiler::ast::ExprKind::RecordConstruct { fields, .. } = &mut value.kind else {
+    let bowfin_compiler::ast::ExprKind::RecordConstruct { fields, .. } = &mut value.kind else {
         panic!()
     };
     fields[0].value = conditional;
-    let r = klyxr_compiler::resolve::resolve(&a).unwrap();
-    let e = klyxr_compiler::types::check(r).unwrap_err();
+    let r = bowfin_compiler::resolve::resolve(&a).unwrap();
+    let e = bowfin_compiler::types::check(r).unwrap_err();
     assert!(e[0].message.contains("complete local initializers"));
 }
 #[test]
@@ -577,8 +577,8 @@ fn bare_integer_initializer_parses_and_forms_in_typing() {
         "{DECL} fn f() -> Battery {{ return Battery {{ charge: 80 }}; }}"
     ))
     .unwrap();
-    let r = klyxr_compiler::resolve::resolve(&a).unwrap();
-    klyxr_compiler::types::check(r).unwrap();
+    let r = bowfin_compiler::resolve::resolve(&a).unwrap();
+    bowfin_compiler::types::check(r).unwrap();
 }
 #[test]
 fn identifier_binary_unary_and_nested_condition_blocks_are_preserved() {
@@ -586,9 +586,9 @@ fn identifier_binary_unary_and_nested_condition_blocks_are_preserved() {
 }
 #[test]
 fn verified_battery_path_and_literal_harness_remain_separate() {
-    let source = include_str!("../../examples/battery_ok.klx");
+    let source = include_str!("../../examples/battery_ok.bow");
     let p = compile_source(source).unwrap();
-    let report = klyxr_compiler::verify::verify_report(&p);
+    let report = bowfin_compiler::verify::verify_report(&p);
     assert_eq!(report.functions_proven, 1);
     assert_eq!(report.calls_checked, 1);
     assert!(report.diagnostics.is_empty());

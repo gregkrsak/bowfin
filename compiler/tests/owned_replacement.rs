@@ -1,4 +1,4 @@
-use klyxr_compiler::{compile_source, mir, FrontendError};
+use bowfin_compiler::{compile_source, mir, FrontendError};
 
 const DECL: &str = "type P=range 0..100;record R{x:P}record S{x:P}fn fresh()->R{return R{x:1};}fn inspect(v:&R)->R{return R{x:v.x};}fn touch(v:&mut R)->R{v.x=2;return R{x:v.x};}fn pass(v:R)->R{return v;}fn pair(a:R,b:R)->R{return a;}";
 

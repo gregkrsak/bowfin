@@ -1,4 +1,4 @@
-use klyxr_compiler::{
+use bowfin_compiler::{
     compile_source,
     hir::{self, ExprKind, ValueStatement},
     mir::{self, Statement, Terminator},
@@ -20,16 +20,16 @@ fn bad(body: &str, phase: &str, wording: &str) {
         FrontendError::Parse(_) => ("Parse", e.to_string()),
         FrontendError::Resolve(ds) => (
             "Resolve",
-            ds[0].render("case.klx", &format!("{DECL} {body}")),
+            ds[0].render("case.bow", &format!("{DECL} {body}")),
         ),
-        FrontendError::Type(ds) => ("Type", ds[0].render("case.klx", &format!("{DECL} {body}"))),
+        FrontendError::Type(ds) => ("Type", ds[0].render("case.bow", &format!("{DECL} {body}"))),
         FrontendError::Ownership(ds) => (
             "Ownership",
-            ds[0].render("case.klx", &format!("{DECL} {body}")),
+            ds[0].render("case.bow", &format!("{DECL} {body}")),
         ),
         FrontendError::Effects(ds) => (
             "Effects",
-            ds[0].render("case.klx", &format!("{DECL} {body}")),
+            ds[0].render("case.bow", &format!("{DECL} {body}")),
         ),
     };
     assert_eq!(actual, phase, "{body}: {detail}");
@@ -188,10 +188,10 @@ fn grammar_remains_statement_only_and_direct_local() {
 fn ast_and_hir_preserve_target_identity_and_complete_span() {
     let text = format!("{DECL} fn f(a: Percent) -> Percent {{ let mut current = a; current = current; return current; }}");
     let ast = parse_source(&text).unwrap();
-    let klyxr_compiler::ast::FunctionDecl::Ordinary(f) = &ast.functions[0] else {
+    let bowfin_compiler::ast::FunctionDecl::Ordinary(f) = &ast.functions[0] else {
         panic!()
     };
-    let klyxr_compiler::ast::ValueStatement::Assign { target, span, .. } = &f.body[1] else {
+    let bowfin_compiler::ast::ValueStatement::Assign { target, span, .. } = &f.body[1] else {
         panic!()
     };
     assert_eq!(target, "current");

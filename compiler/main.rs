@@ -1,7 +1,10 @@
 use std::{env, fs, process};
 
-use klyxr_compiler::{compile_source, diagnostics::Diagnostic, execution, verify, FrontendError};
+use bowfin_compiler::{compile_source, diagnostics::Diagnostic, execution, verify, FrontendError};
 mod run_reporting;
+
+// Compile-time target identity; argv[0] cannot select a different implementation.
+const COMMAND: &str = env!("CARGO_BIN_NAME");
 
 fn main() {
     if let Err(code) = run() {
@@ -22,7 +25,17 @@ fn run() -> Result<(), i32> {
             eprintln!("error: too many arguments");
             return Err(2);
         }
-        println!("klyxr 0.0.1 (vertical-slice prototype)");
+        if COMMAND == "klyxr" {
+            println!(
+                "klyxr {} (Bowfin compatibility command; vertical-slice prototype)",
+                env!("CARGO_PKG_VERSION")
+            );
+        } else {
+            println!(
+                "bowfin {} (vertical-slice prototype)",
+                env!("CARGO_PKG_VERSION")
+            );
+        }
         return Ok(());
     }
 
@@ -37,7 +50,7 @@ fn run() -> Result<(), i32> {
     }
 
     let Some(path) = args.next() else {
-        eprintln!("error: missing .klx input path");
+        eprintln!("error: missing .bow input path");
         print_usage();
         return Err(2);
     };
@@ -85,7 +98,7 @@ fn run() -> Result<(), i32> {
         }
     };
 
-    let mir = klyxr_compiler::mir::lower(&program);
+    let mir = bowfin_compiler::mir::lower(&program);
     let report = verify::verify_report(&program);
 
     if report.diagnostics.is_empty() {
@@ -147,13 +160,21 @@ fn run() -> Result<(), i32> {
 }
 
 fn print_usage() {
-    eprintln!("usage: klyxr <check|verify> <file.klx>");
+    eprintln!("usage: {COMMAND} <check|verify> <file.bow>");
+    print_compatibility_role();
+}
+
+fn print_compatibility_role() {
+    if COMMAND == "klyxr" {
+        eprintln!("klyxr is the compatibility command for bowfin");
+    }
 }
 
 fn run_execution(mut args: impl Iterator<Item = String>, audit: bool) -> Result<(), i32> {
     use execution::{AdmissionLimits, ExecutionLimits};
     let Some(path) = args.next() else {
-        eprintln!("usage: klyxr run <file.klx> --function <name> [limit overrides]");
+        eprintln!("usage: {COMMAND} run <file.bow> --function <name> [limit overrides]");
+        print_compatibility_role();
         return Err(2);
     };
     let mut admission = AdmissionLimits::default();
@@ -252,7 +273,7 @@ fn run_execution(mut args: impl Iterator<Item = String>, audit: bool) -> Result<
         return Err(2);
     }
     let selection = if let Some(profile) = profile {
-        use klyxr_compiler::trusted::{Grants, Scenario, Selection};
+        use bowfin_compiler::trusted::{Grants, Scenario, Selection};
         if profile != "sensor-demo" {
             eprintln!("error: unknown profile");
             return Err(2);

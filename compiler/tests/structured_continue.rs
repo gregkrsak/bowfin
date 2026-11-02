@@ -1,4 +1,4 @@
-use klyxr_compiler::{compile_source, hir, mir, parse_source, FrontendError};
+use bowfin_compiler::{compile_source, hir, mir, parse_source, FrontendError};
 const DECL: &str = "type Percent = range 0..100; record Ticket { value: Percent } fn fresh() -> Ticket { return fresh(); } fn consume(ticket: Ticket) -> bool { return true; } fn sink(access: &mut bool) -> bool { return true; } fn read(view: &bool) -> bool { return *view; } fn both(view: &bool, observed: bool) -> bool { return observed; }";
 fn good(body: &str) -> hir::Program {
     let p = compile_source(&format!("{DECL} {body}")).unwrap();
@@ -152,15 +152,15 @@ reject!(write_hold_conflict, "fn f(flag: bool) -> bool { let mut value = false; 
 fn continue_survives_source_and_canonical_hir() {
     let source = "fn f(flag: bool) -> bool { while flag { continue; } return flag; }";
     let ast = parse_source(source).unwrap();
-    let klyxr_compiler::ast::FunctionDecl::Ordinary(f) = &ast.functions[0] else {
+    let bowfin_compiler::ast::FunctionDecl::Ordinary(f) = &ast.functions[0] else {
         panic!()
     };
-    let klyxr_compiler::ast::ValueStatement::While { body, .. } = &f.body[0] else {
+    let bowfin_compiler::ast::ValueStatement::While { body, .. } = &f.body[0] else {
         panic!()
     };
     assert!(matches!(
         body[0],
-        klyxr_compiler::ast::ValueStatement::Continue { .. }
+        bowfin_compiler::ast::ValueStatement::Continue { .. }
     ));
     let p = compile_source(source).unwrap();
     let hir::ValueStatement::While { body, .. } = &p.functions()[0].as_ordinary().unwrap().body[0]
@@ -312,7 +312,7 @@ fn repeated_public_check_and_lower_are_read_only_and_deterministic() {
     let p = good("fn f(flag: bool) -> bool { let mut value = false; while flag { let view = &value; if flag { value = true; continue; } let seen = *view; } return value; }");
     let before = p.clone();
     for _ in 0..3 {
-        klyxr_compiler::ownership::check(&p).unwrap();
+        bowfin_compiler::ownership::check(&p).unwrap();
         mir::lower(&p)
             .functions()
             .iter()
@@ -325,27 +325,27 @@ fn repeated_public_check_and_lower_are_read_only_and_deterministic() {
 fn public_ast_resolution_enforces_continue_placement_and_structural_suffix() {
     let mut ast =
         parse_source("fn f(flag: bool) -> bool { while flag { continue; } return flag; }").unwrap();
-    let klyxr_compiler::ast::FunctionDecl::Ordinary(f) = &mut ast.functions[0] else {
+    let bowfin_compiler::ast::FunctionDecl::Ordinary(f) = &mut ast.functions[0] else {
         panic!()
     };
-    let klyxr_compiler::ast::ValueStatement::While { body, .. } = &f.body[0] else {
+    let bowfin_compiler::ast::ValueStatement::While { body, .. } = &f.body[0] else {
         panic!()
     };
     let continue_statement = body[0].clone();
     f.body.insert(0, continue_statement.clone());
-    assert!(klyxr_compiler::resolve::resolve(&ast).unwrap_err()[0]
+    assert!(bowfin_compiler::resolve::resolve(&ast).unwrap_err()[0]
         .message
         .contains("only inside"));
-    let klyxr_compiler::ast::FunctionDecl::Ordinary(f) = &mut ast.functions[0] else {
+    let bowfin_compiler::ast::FunctionDecl::Ordinary(f) = &mut ast.functions[0] else {
         panic!()
     };
     f.body.remove(0);
     let tail = f.body[1].clone();
-    let klyxr_compiler::ast::ValueStatement::While { body, .. } = &mut f.body[0] else {
+    let bowfin_compiler::ast::ValueStatement::While { body, .. } = &mut f.body[0] else {
         panic!()
     };
     body.push(tail);
-    assert!(klyxr_compiler::resolve::resolve(&ast).unwrap_err()[0]
+    assert!(bowfin_compiler::resolve::resolve(&ast).unwrap_err()[0]
         .message
         .contains("no fallthrough"));
 }

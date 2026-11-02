@@ -1,4 +1,4 @@
-use klyxr_compiler::{
+use bowfin_compiler::{
     compile_source,
     hir::{self, ExprKind, ValueStatement},
     mir::{self, Statement, Terminator},
@@ -19,10 +19,10 @@ fn bad(body: &str, phase: &str, wording: &str) {
     let (actual, detail) = match &e {
         FrontendError::Lex(_) => ("Lex", e.to_string()),
         FrontendError::Parse(_) => ("Parse", e.to_string()),
-        FrontendError::Resolve(ds) => ("Resolve", ds[0].render("case.klx", &source)),
-        FrontendError::Type(ds) => ("Type", ds[0].render("case.klx", &source)),
-        FrontendError::Ownership(ds) => ("Ownership", ds[0].render("case.klx", &source)),
-        FrontendError::Effects(ds) => ("Effects", ds[0].render("case.klx", &source)),
+        FrontendError::Resolve(ds) => ("Resolve", ds[0].render("case.bow", &source)),
+        FrontendError::Type(ds) => ("Type", ds[0].render("case.bow", &source)),
+        FrontendError::Ownership(ds) => ("Ownership", ds[0].render("case.bow", &source)),
+        FrontendError::Effects(ds) => ("Effects", ds[0].render("case.bow", &source)),
     };
     assert_eq!(actual, phase, "{body}: {detail}");
     assert!(detail.contains(wording), "{body}: {detail}");
@@ -195,10 +195,10 @@ fn unsupported_loop_grammar_boundaries() {
 fn lexical_child_scope_and_static_ids() {
     let text = format!("{DECL} fn f(flag: bool) -> bool {{ while flag {{ let temporary = flag; while temporary {{ let inner = temporary; }} }} while flag {{ let temporary = flag; }} return flag; }}");
     let ast = parse_source(&text).unwrap();
-    let klyxr_compiler::ast::FunctionDecl::Ordinary(f) = &ast.functions[0] else {
+    let bowfin_compiler::ast::FunctionDecl::Ordinary(f) = &ast.functions[0] else {
         panic!()
     };
-    let klyxr_compiler::ast::ValueStatement::While { span, .. } = &f.body[0] else {
+    let bowfin_compiler::ast::ValueStatement::While { span, .. } = &f.body[0] else {
         panic!()
     };
     assert_eq!(
@@ -298,7 +298,7 @@ fn mir_nested_cycles_compose_with_conditional_initialization() {
 }
 #[test]
 fn verified_loop_syntax_remains_unsupported() {
-    let text = include_str!("../../examples/battery_ok.klx").replace(
+    let text = include_str!("../../examples/battery_ok.bow").replace(
         "battery.charge -= amount;",
         "while true { battery.charge -= amount; }",
     );

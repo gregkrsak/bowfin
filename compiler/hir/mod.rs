@@ -552,7 +552,7 @@ verified function drain(battery: &mutable Other, amount: Percent)
     }
     #[test]
     fn ordinary_metadata_changes_preserve_canonical_local_and_call_references() {
-        let mut program = compile_source(include_str!("../../examples/value_flow.klx")).unwrap();
+        let mut program = compile_source(include_str!("../../examples/value_flow.bow")).unwrap();
         let original = program.clone();
         for function in &mut program.functions {
             if let super::Function::Ordinary(f) = function {

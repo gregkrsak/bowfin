@@ -1,4 +1,4 @@
-use klyxr_compiler::{
+use bowfin_compiler::{
     compile_source, hir::*, parse_source, resolve, verify::verify_report, FrontendError,
 };
 
@@ -168,14 +168,14 @@ fn parsing_preserves_unresolved_precondition_names_and_spans() {
     );
     let ast = parse_source(&source).unwrap();
     let requires = &ast.functions[0].as_verified().unwrap().requires;
-    let klyxr_compiler::ast::ExprKind::Binary { left, right, .. } = &requires.kind else {
+    let bowfin_compiler::ast::ExprKind::Binary { left, right, .. } = &requires.kind else {
         panic!("expected comparison")
     };
     assert_eq!(
         left.kind,
-        klyxr_compiler::ast::ExprKind::Name("missing".into())
+        bowfin_compiler::ast::ExprKind::Name("missing".into())
     );
-    let klyxr_compiler::ast::ExprKind::FieldAccess(access) = &right.kind else {
+    let bowfin_compiler::ast::ExprKind::FieldAccess(access) = &right.kind else {
         panic!("expected field")
     };
     assert_eq!(access.binding, "other");

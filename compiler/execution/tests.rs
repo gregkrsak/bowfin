@@ -108,7 +108,7 @@ fn entry_rejects_unknown_and_parameterized() {
 fn mixed_verified_ids_and_failing_proof_are_isolated() {
     let s = format!(
         "{}\nfn demo()->Percent{{return 80;}}",
-        include_str!("../../examples/battery_fail.klx")
+        include_str!("../../examples/battery_fail.bow")
     );
     let e = prepare(&s);
     let id = e.entry("demo").unwrap();

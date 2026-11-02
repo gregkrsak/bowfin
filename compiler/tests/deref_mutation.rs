@@ -1,4 +1,4 @@
-use klyxr_compiler::{
+use bowfin_compiler::{
     ast, compile_source,
     diagnostics::Diagnostic,
     hir::{ExprKind, ExprType, ParameterType, Place, ValueStatement, ValueType},
@@ -16,7 +16,7 @@ fn consume(value: Ticket) -> Ticket { return value; }";
 fn source(body: &str) -> String {
     format!("{DECLS}\n{body}")
 }
-fn valid(body: &str) -> klyxr_compiler::hir::Program {
+fn valid(body: &str) -> bowfin_compiler::hir::Program {
     compile_source(&source(body)).unwrap()
 }
 fn type_error(body: &str) -> Diagnostic {
@@ -401,7 +401,7 @@ fn ordinary_copy_mutation_is_not_executed_or_counted_as_verified() {
     let report = verify_report(&program);
     assert!(report.diagnostics.is_empty());
     assert_eq!((report.functions_proven, report.calls_checked), (0, 0));
-    let combined = format!("{} fn set(value: &mut Percent, replacement: Percent) -> Percent {{ *value = replacement; return *value; }}", include_str!("../../examples/battery_ok.klx"));
+    let combined = format!("{} fn set(value: &mut Percent, replacement: Percent) -> Percent {{ *value = replacement; return *value; }}", include_str!("../../examples/battery_ok.bow"));
     let report = verify_report(&compile_source(&combined).unwrap());
     assert!(report.diagnostics.is_empty());
     assert_eq!((report.functions_proven, report.calls_checked), (1, 1));

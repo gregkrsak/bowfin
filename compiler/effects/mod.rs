@@ -1,4 +1,4 @@
-//! Canonical KED-030 audit identities. Membership never grants permission.
+//! Canonical BED-030 audit identities. Membership never grants permission.
 use crate::lexer::Span;
 use std::fmt;
 pub(crate) mod calls;

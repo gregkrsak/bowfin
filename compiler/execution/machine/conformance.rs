@@ -932,7 +932,7 @@ mod tests {
         ] {
             let selection = Selection::sensor_demo(scenario, Grants::ALL, &["sample"]).unwrap();
             let e = prepare_execution_with_profile(
-                include_str!("../../../examples/sensor_finish.klx"),
+                include_str!("../../../examples/sensor_finish.bow"),
                 AdmissionLimits::default(),
                 &selection,
             )
@@ -963,7 +963,7 @@ mod tests {
         use crate::trusted::{Grants, Scenario, Selection};
         let selection = Selection::sensor_demo(Scenario::Sample, Grants::ALL, &["sample"]).unwrap();
         let e = prepare_execution_with_profile(
-            include_str!("../../../examples/sensor_finish.klx"),
+            include_str!("../../../examples/sensor_finish.bow"),
             AdmissionLimits::default(),
             &selection,
         )

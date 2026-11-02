@@ -1,4 +1,4 @@
-use klyxr_compiler::{
+use bowfin_compiler::{
     ast, compile_source, hir, parse_source, verify::verify_report, FrontendError,
 };
 
@@ -23,8 +23,8 @@ fn type_error(source: &str, fragment: &str) {
         "{errors:?}"
     );
     for error in errors {
-        let rendered = error.render("expression.klx", source);
-        assert!(rendered.contains("expression.klx:"));
+        let rendered = error.render("expression.bow", source);
+        assert!(rendered.contains("expression.bow:"));
         assert!(!rendered.contains("RangeTypeId"));
         assert!(!rendered.contains("ParameterId"));
         assert!(error.span.end > error.span.start);
@@ -407,8 +407,8 @@ fn well_typed_richer_expressions_reach_only_the_verifier_support_boundary() {
         };
         assert_eq!(error.span, expr_span);
         assert!(error
-            .render("unsupported.klx", &text)
-            .contains("unsupported.klx:"));
+            .render("unsupported.bow", &text)
+            .contains("unsupported.bow:"));
     }
 }
 

@@ -1,4 +1,4 @@
-use klyxr_compiler::{
+use bowfin_compiler::{
     compile_source,
     effects::{Effect, EffectSet},
     execution::{self, AdmissionLimits, ExecutionLimits, ExecutionResult},
@@ -123,7 +123,7 @@ fn unknown_duplicate_and_malformed_clauses_reject() {
 fn verified_and_harness_effect_clauses_remain_excluded() {
     let source = "type N=range 0..100; record Cell{x:N} verified fn consume(c:&mut Cell,n:N) requires n<=c.x ensures c.x==old(c.x)-n {c.x-=n;} let mut cell=Cell{x:80}; consume(&mut cell,50);";
     let p = compile_source(source).unwrap();
-    let control = klyxr_compiler::verify::verify_report(&p);
+    let control = bowfin_compiler::verify::verify_report(&p);
     assert!(control.diagnostics.is_empty());
     assert_eq!(control.functions_proven, 1);
     for malformed in [

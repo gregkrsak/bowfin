@@ -4,7 +4,7 @@ use crate::execution::ResultPayload;
 use crate::trusted::{Grants, Selection};
 use std::collections::BTreeMap;
 
-const SENTINEL: &str = include_str!("../../../../examples/sentinel.klx");
+const SENTINEL: &str = include_str!("../../../../examples/sentinel.bow");
 
 fn admission() -> AdmissionLimits {
     AdmissionLimits {

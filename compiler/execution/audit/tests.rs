@@ -56,6 +56,16 @@ fn structural_audit_includes_both_alternatives_zero_effect_helpers_and_cleanup_s
 fn audit_exact_output_storage_and_work_neighbors_are_bounded() {
     let e = artifact(SOURCE);
     let normal = e.render_authority(ExecutionLimits::default()).unwrap();
+    // M4 changes only these two live prose spellings. Each adds one actual byte;
+    // retained historical measurements are not rewritten to hide that difference.
+    for (legacy, current) in [
+        ("Klyxr-visible Sensor state", "Bowfin-visible Sensor state"),
+        ("successful Klyxr cleanup", "successful Bowfin cleanup"),
+    ] {
+        assert_eq!(normal.matches(current).count(), 1);
+        assert!(!normal.contains(legacy));
+        assert_eq!(current.len(), legacy.len() + 1);
+    }
     let n = normal.len();
     let limits = ExecutionLimits {
         rendered_output: n,

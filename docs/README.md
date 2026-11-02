@@ -1,4 +1,4 @@
-# Klyxr documentation
+# Bowfin documentation
 
 This prototype directory is intentionally small.
 
@@ -17,7 +17,7 @@ Planned public documentation areas:
 
 ## Documentation placement
 
-The root `README.md` is Klyxr's public front door. Keep it readable without
+The root `README.md` is Bowfin's public front door. Keep it readable without
 project-internal decision history or implementation-process context. Describe the
 current executable capability in ordinary language and link to deeper material.
 
@@ -33,7 +33,7 @@ Use the established documentation layers consistently:
 - GitHub issues and pull requests: drafts, pressure reviews, branch lifecycle,
   acceptance, and merge history.
 
-Do not place KED/KD identifiers, draft or freeze history, branch-specific status,
+Do not place BED/BD identifiers, draft or freeze history, branch-specific status,
 pending-review language, or implementation-ledger prose in the root README.
 `scripts/verify-readme.py` enforces this public-documentation boundary and keeps
 the branded footer as the final section.
