@@ -766,3 +766,148 @@ actual merge is read back. Greg may then issue the separate M1 implementation
 order against that accepted staging head. Neither this draft, its review, its
 future merge nor M0.1's retirement starts M1 automatically.
 
+## 16. Proposed Amendment 4 — Bounded post-cutover content alignment
+
+**Status: Proposed, pending independent review, Greg's explicit acceptance and a
+human ordinary merge into `bowfin-migration-staging`. Not operative.**
+
+**Prepared:** 2026-11-01, as part of the M7 preparation candidate based on staging
+`0f87fbc0c4001a9721561264432f625eeb6e0185`, tree
+`e619fbce9f25fe25722959d4f2e5577a7b50a3ee`. The accepted pre-amendment contract
+blob is `a8aa897de2c179d25ce6050bc760968f492a8707`.
+
+### 16.1 Purpose, precedence and adoption
+
+The complete migration still receives **one independently reviewed, fixed
+production candidate through R2–R5**. The initial candidate, its exact predecessor
+reconciliation, independent recommendation, Greg's separate production acceptance,
+human staging-to-production merge and fresh production verification are unchanged.
+
+An accepted, properly gated deferred alignment plan may coexist with the initial
+R2/R3 disposition. Completion of the later post-rename alignment follow-up is not
+a prerequisite to the original R5 production transition. The follow-up remains
+separately gated after R5, the authorized and executed rename, verification of
+applicable new canonical destinations, assessment of every applicable old-name
+destination and Greg's separate preparation order. This sequencing distinction
+waives no post-rename verification, mandatory compatibility, recovery, R8 or
+external-authorization obligation.
+
+If and only if this amendment is adopted, it creates one narrow exception to
+Section 3: **one additional staging-to-production PR solely for post-cutover
+content alignment**, within Sections 16.2–16.5 below. It does not turn an M0–M7
+phase PR into a production PR, authorize another feature/release candidate, or
+permit direct production writes. Other Section 3 and R-state requirements remain.
+
+This amendment becomes operative only after independent review, Greg's explicit
+acceptance of its exact revision, a human ordinary staging merge and readback of
+that integration. Until then, Amendment 3 and the existing sole-candidate rule
+remain controlling. Preparation, CI and review of this proposal grant no future
+implementation, merge, repository-rename, domain, publication or cutover authority.
+M6-OP07 remains pending; this M7 preparation does not establish final R2 or R3.
+M0.1 remains retired incomplete.
+
+### 16.2 Preconditions to preparing the one follow-up
+
+Even after adoption, the follow-up may be prepared only after all of these facts
+are established and recorded:
+
+1. The actual fixed migration production candidate has been independently reviewed,
+   separately accepted by Greg, human-merged into production and verified through
+   R5 at its actual production commit/tree.
+2. Greg separately authorized the repository rename under R6, a human executed it,
+   and readback confirms the same repository identity, history and issue/PR state.
+3. Individually verify each applicable new canonical repository, raw-content,
+   workflow, badge and routing destination for the exact consumers the follow-up
+   will change. A verified Git redirect alone is not proof for another surface.
+   Test every applicable old-name destination and individually record its result
+   as working compatibility or redirect behavior; failed or unavailable behavior;
+   or indeterminate behavior with the limitation stated. Old-name assessment need
+   not be successful to satisfy this preparation gate: an old-name failure must
+   not, by itself, prohibit preparing the narrowly authorized canonical-link
+   correction when its corresponding new canonical destination is verified and
+   the accepted content still requires correction. Never represent a failed,
+   unavailable or indeterminate old route as successful. Every other Section 16
+   prerequisite must still be satisfied. Any separately mandatory legacy-
+   compatibility obligation remains binding and, if unsatisfied, blocks its
+   applicable completion claim. Retain old-route failures/limitations in the
+   compatibility and recovery assessment; neither preparation nor the follow-up
+   converts them into a passing R8 result or erases them.
+4. Any domain or migration-state wording proposed for change is supported by the
+   corresponding actual routing/state evidence. An unverified destination remains
+   deferred; this exception cannot make an unavailable surface true by editing prose.
+5. Greg separately authorizes preparing that exact bounded follow-up. Adoption of
+   this amendment or successful cutover checks alone do not issue that order.
+
+### 16.3 Exclusive permitted content boundary
+
+The follow-up's complete tracked diff is limited to these six files and exact
+existing passages/field roles. The selectors below identify the current passages
+at reviewed M7 head `047e80748b45f5bf54408189b5c99780c9f80fae`; headings and field
+prefixes define scope, not the whole surrounding section. Movement or line wrapping
+does not enlarge a field. If a selector is missing, ambiguous or requires a wider
+edit in then-verified production, stop for a separately reviewed scope decision.
+
+| File | Sole permitted changes |
+| --- | --- |
+| `README.md` | Only the repository-slug component of the eight existing URL attributes in the top workflow-badge paragraph: the four `a[href]` workflow-page URLs and their four associated `img[src]` badge URLs for exactly `build.yml`, `tests.yml`, `verify.yml` and `docs.yml` under `https://github.com/gregkrsak/klyxr/actions/workflows/`. Replace that slug with the verified canonical slug; preserve every other URL component, attribute, image reference, layout, copy, command and alt text. |
+| `scripts/verify-repo-scaffold.py` | Only the value of the existing module-level `repo_slug = "gregkrsak/klyxr"` assignment, coupled to those eight README fields. Its name, verifier algorithm, required checks and rejection behavior remain unchanged. |
+| `REPO_STRUCTURE.md` | Only the live metadata in the opening paragraph under `# Bowfin Repository Structure`, before its first fenced tree: `Current operational GitHub home: gregkrsak/klyxr` and `The adopted destination is gregkrsak/bowfin; no repository cutover has occurred.` Update only their repository values and corresponding verified cutover-state wording. No domain field currently exists here and none is introduced by this exception. The prototype-description sentence, future-organization-transfer sentence, fenced tree (including its root label), and all later prose are outside scope. |
+| `docs/ai/BOWFIN_CONTEXT.md` | Under `## Project identity`, only the existing `Adopted primary domain:` and `Operational legacy public sites:` lines and their verified operational/cutover-state qualifiers; retain the adopted domain identities and legacy-endpoint retention commitment. Under `## Brand system`, only the single bullet beginning `- adopted repository destination:` that also contains `operational repository:` and `until authorized cutover`. No other field, bullet or passage is eligible; CLI/source-extension promises, branding/artwork/hash fields and historical implementation passages remain unchanged. |
+| `docs/ai/LANGUAGE_DECISIONS.md` | Under `## BD-001 — Public project name`, only the existing `**Adopted primary domain:** bowfin-lang.com (external cutover deferred)` field's verified operational/cutover-state wording. The domain identity is retained. The heading, `Status`, `Decision`, CLI, source-extension and `Operational legacy endpoints` fields, decision history and every other decision are outside scope. |
+| `docs/ai/BOWFIN_AI_CONTEXT_BUNDLE.md` | Regenerate only with the unchanged canonical generator from the unchanged ordered input set, incorporating solely the specifically permitted input-field changes above. Every output difference must derive from those input changes; no hand edit or independent bundle cleanup. |
+
+The generator and its prescribed order remain unchanged:
+`BOWFIN_CONTEXT.md`, `DESIGN_PRINCIPLES.md`, `LANGUAGE_DECISIONS.md`,
+`ARCHITECTURE.md`, `OPEN_QUESTIONS.md`. Only the specifically permitted input
+passages may differ; generated output must reproduce byte-for-byte from those
+inputs.
+
+No compiler behavior, verifier algorithm, workflow, dependency, artwork,
+compatibility promise, historical claim, recorded command, hash or decision status
+may change through this exception. No historical payload or digest is rewritten.
+No new reader, alias, authority, execution behavior or migration infrastructure is
+created. Any necessary change outside the exact boundary stops this follow-up and
+requires a separately reviewed plan and Greg's authority; it cannot be hidden in
+the content-alignment PR.
+
+### 16.4 Ancestry, review and the additional production merge
+
+Before the additional production merge, staging must incorporate the
+**then-verified production ancestry** through ordinary reviewed, human-operated
+integration. Record actual commits, parents and trees; preserve history without
+reset, rebase, force update, replacement cherry-pick or silent ancestry bypass.
+Any intervening production change is incorporated and dependent evidence is
+re-reviewed. Preparation/integration PRs continue to target staging; the one
+additional staging-to-production PR is separately identified as this exception.
+
+The exact follow-up diff must demonstrate compliance with Section 16.3, explicit
+live/compatibility/historical occurrence roles, coherent URL/verifier consumers
+and canonical context reproduction. Complete predecessor reconciliation, existing
+required CI, independent review and **Greg's separate exact-candidate acceptance**
+are required before a human performs the additional production merge. No test
+identity loss, addition, substitution or migration may be attributed to this
+content-only exception. A green summary, matching text or prior-candidate evidence
+does not substitute for the follow-up's actual evidence.
+
+There is no automatic ready-for-review transition, production PR creation,
+acceptance, merge or authorization of the next step from this amendment. Only a
+human may merge.
+
+### 16.5 Fresh production evidence, external reconciliation and recovery
+
+Read back the resulting production merge commit, parents and tree and obtain
+fresh applicable post-merge verification. Record the new production identity;
+do not reuse the original candidate's exact-head evidence for changed content.
+
+Before further external writes or R8 completion, dependent external authorization
+and checks must be reconciled or renewed against the new production state.
+Unavailable or mismatched evidence stops the dependent action and completion
+claim. The exception does not retrospectively close a failed route or grant
+permission for an unnamed external write.
+
+Any repair or recovery beyond this single bounded follow-up still requires the
+separately reviewed plan and owner authority required by Section 11. Repository
+content rollback and external-state recovery remain distinct; caches, downloads,
+public statements, identity routing and issued authority are not undone by a Git
+revert. Old repository-name reuse and removal of retained compatibility surfaces
+remain prohibited under the governing contract.

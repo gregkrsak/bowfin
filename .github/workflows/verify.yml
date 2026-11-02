@@ -36,3 +36,63 @@ jobs:
         run: |
           test "$(cargo run --locked --quiet -- --version)" = "bowfin 0.0.1 (vertical-slice prototype)"
           test "$(cargo run --locked --quiet --bin klyxr -- --version)" = "klyxr 0.0.1 (Bowfin compatibility command; vertical-slice prototype)"
+
+      - name: Verify clean network clone and installed commands
+        shell: bash
+        timeout-minutes: 10
+        run: |
+          set -euo pipefail
+          M7_EXPECTED_SHA=$(git rev-parse HEAD)
+          M7_EXPECTED_TREE=$(git rev-parse HEAD^{tree})
+          M7_TEMP=$(mktemp -d "$RUNNER_TEMP/bowfin-m7-install.XXXXXX")
+          trap 'rm -rf "$M7_TEMP"' EXIT
+          M7_SOURCE="$M7_TEMP/source"
+          M7_INSTALL="$M7_TEMP/install"
+          git clone --no-checkout --no-local \
+            "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY.git" "$M7_SOURCE"
+          git -C "$M7_SOURCE" fetch --no-tags origin "$M7_EXPECTED_SHA"
+          git -C "$M7_SOURCE" checkout --detach "$M7_EXPECTED_SHA"
+          test "$(git -C "$M7_SOURCE" rev-parse HEAD)" = "$M7_EXPECTED_SHA"
+          test "$(git -C "$M7_SOURCE" rev-parse HEAD^{tree})" = "$M7_EXPECTED_TREE"
+          test ! -e "$M7_SOURCE/.git/objects/info/alternates"
+          printf 'Clean network clone verified: commit=%s tree=%s\n' \
+            "$M7_EXPECTED_SHA" "$M7_EXPECTED_TREE"
+          cargo install --locked --path "$M7_SOURCE/compiler" --bins \
+            --root "$M7_INSTALL" --target-dir "$M7_TEMP/build"
+
+          check_installed() {
+            local label="$1" expected="$2"
+            shift 2
+            if ! "$@" > "$M7_TEMP/$label.out" 2> "$M7_TEMP/$label.err"; then
+              cat "$M7_TEMP/$label.err" >&2
+              return 1
+            fi
+            test ! -s "$M7_TEMP/$label.err"
+            cmp "$expected" "$M7_TEMP/$label.out"
+            printf 'Installed check %s passed: ' "$label"
+            cat "$M7_TEMP/$label.out"
+          }
+          printf '%s\n' 'bowfin 0.0.1 (vertical-slice prototype)' > "$M7_TEMP/bowfin-version.expected"
+          printf '%s\n' 'klyxr 0.0.1 (Bowfin compatibility command; vertical-slice prototype)' > "$M7_TEMP/klyxr-version.expected"
+          check_installed bowfin-version "$M7_TEMP/bowfin-version.expected" "$M7_INSTALL/bin/bowfin" --version
+          check_installed klyxr-version "$M7_TEMP/klyxr-version.expected" "$M7_INSTALL/bin/klyxr" --version
+
+          cp "$M7_SOURCE/examples/ordinary_run.bow" "$M7_TEMP/ordinary.bow"
+          cp "$M7_TEMP/ordinary.bow" "$M7_TEMP/ordinary.klx"
+          cmp "$M7_TEMP/ordinary.bow" "$M7_TEMP/ordinary.klx"
+          printf '%s\n' 'Percent(0)' > "$M7_TEMP/ordinary.expected"
+          printf '%s\n' 'Ok(Report { observations: Count(2), warnings: Count(1), critical: Count(0), peak: Reading(60), disposition: Disposition(1), completed: Count(2) })' > "$M7_TEMP/sentinel.expected"
+          for M7_COMMAND in bowfin klyxr; do
+            for M7_SUFFIX in bow klx; do
+              check_installed "$M7_COMMAND-$M7_SUFFIX" "$M7_TEMP/ordinary.expected" \
+                "$M7_INSTALL/bin/$M7_COMMAND" run "$M7_TEMP/ordinary.$M7_SUFFIX" --function loop_demo
+            done
+            check_installed "$M7_COMMAND-sentinel" "$M7_TEMP/sentinel.expected" \
+              "$M7_INSTALL/bin/$M7_COMMAND" run "$M7_SOURCE/examples/sentinel.bow" \
+              --function monitor --profile sensor-demo --scenario warning --sensor-limit 1 \
+              --max-tokens 2048 --max-frontend-work 10000000000000000 \
+              --max-admission-storage 1073741824 --max-diagnostic-storage 4194304
+          done
+          git diff --exit-code HEAD
+          test -z "$(git status --porcelain --untracked-files=no)"
+          printf '%s\n' 'Clean-install check left tracked checkout unchanged'
