@@ -6,10 +6,10 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/gregkrsak/klyxr/actions/workflows/build.yml"><img alt="Build" src="https://github.com/gregkrsak/klyxr/actions/workflows/build.yml/badge.svg"></a>
-  <a href="https://github.com/gregkrsak/klyxr/actions/workflows/tests.yml"><img alt="Tests" src="https://github.com/gregkrsak/klyxr/actions/workflows/tests.yml/badge.svg"></a>
-  <a href="https://github.com/gregkrsak/klyxr/actions/workflows/verify.yml"><img alt="Verify" src="https://github.com/gregkrsak/klyxr/actions/workflows/verify.yml/badge.svg"></a>
-  <a href="https://github.com/gregkrsak/klyxr/actions/workflows/docs.yml"><img alt="Docs" src="https://github.com/gregkrsak/klyxr/actions/workflows/docs.yml/badge.svg"></a>
+  <a href="https://github.com/gregkrsak/bowfin/actions/workflows/build.yml"><img alt="Build" src="https://github.com/gregkrsak/bowfin/actions/workflows/build.yml/badge.svg"></a>
+  <a href="https://github.com/gregkrsak/bowfin/actions/workflows/tests.yml"><img alt="Tests" src="https://github.com/gregkrsak/bowfin/actions/workflows/tests.yml/badge.svg"></a>
+  <a href="https://github.com/gregkrsak/bowfin/actions/workflows/verify.yml"><img alt="Verify" src="https://github.com/gregkrsak/bowfin/actions/workflows/verify.yml/badge.svg"></a>
+  <a href="https://github.com/gregkrsak/bowfin/actions/workflows/docs.yml"><img alt="Docs" src="https://github.com/gregkrsak/bowfin/actions/workflows/docs.yml/badge.svg"></a>
 </p>
 
 <p align="center">
