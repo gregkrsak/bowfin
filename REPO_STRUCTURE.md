@@ -1,8 +1,8 @@
 # Bowfin Repository Structure
 
 This repository contains the initial Bowfin scaffold plus an executable Rust-based
-compiler prototype. Current operational GitHub home: `gregkrsak/klyxr`. The adopted destination is
-`gregkrsak/bowfin`; no repository cutover has occurred. A future organization
+compiler prototype. Current operational GitHub home: `gregkrsak/bowfin`. The adopted destination is
+`gregkrsak/bowfin`; the repository cutover has occurred. A future organization
 transfer requires a separate owner decision.
 
 ```text

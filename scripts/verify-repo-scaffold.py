@@ -7,7 +7,7 @@ root = Path(__file__).resolve().parents[1]
 readme = (root / "README.md").read_text(encoding="utf-8")
 
 expected_workflows = ["build.yml", "tests.yml", "verify.yml", "docs.yml"]
-repo_slug = "gregkrsak/klyxr"
+repo_slug = "gregkrsak/bowfin"
 
 errors = []
 
