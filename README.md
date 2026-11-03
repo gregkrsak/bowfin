@@ -110,33 +110,37 @@ See the [Bowfin documentation policy](docs/DOCUMENTATION_POLICY.md).
 
 ## A quick taste
 
-### Constrain the domain
+<!-- canonical-battery-example:begin -->
+```bowfin
+// This example models a battery whose charge is a percentage from 0 through 100.
+// A consumption request must not exceed the stored charge, and the verifier
+// proves the exact amount remaining under that precondition.
 
-```text
+// Charge values use a percentage domain from 0 through 100.
 type Percent = range 0..100;
 
+// A battery records its remaining charge in that bounded domain.
 record Battery {
     charge: Percent
 }
-```
 
-No convention. No “remember this value is a percentage.”
-
-The type says what values may exist.
-
-### State the contract
-
-```text
-verified function consume(
-    battery: &mutable Battery,
-    amount: Percent
-)
+// Reduce the recorded charge by an amount already available.
+verified function consume(battery: &mutable Battery, amount: Percent)
     requires amount <= battery.charge
     ensures battery.charge == old(battery.charge) - amount
 {
     battery.charge -= amount;
 }
 ```
+<!-- canonical-battery-example:end -->
+
+### Constrain the domain
+
+No convention. No “remember this value is a percentage.”
+
+The type says what values may exist.
+
+### State the contract
 
 Now consider:
 
@@ -154,11 +158,6 @@ A Bowfin verifier should be able to explain **why**:
 
 ```text
 error: precondition cannot be established
-
-  --> src/battery.bow:14:1
-
-14 | consume(&mutable battery, 90);
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^
 
 required:
     amount <= battery.charge
