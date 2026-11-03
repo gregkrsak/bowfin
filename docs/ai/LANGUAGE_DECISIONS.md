@@ -1636,3 +1636,62 @@ migrations. All exact-head and post-merge Actions gates passed. Sarah's final
 focused confirmation resolves I01–I04 and assigns no I05. These finite results
 support the accepted Stage I boundary; they remain neither universal conformance
 proof nor native execution evidence. Stage N remains separately unauthorized.
+
+## BED-038 — Backend architecture direction
+
+**Status:** Direction Accepted by Greg for backend families, downstream C compiler,
+first target, safety-first target eligibility, and modular target architecture.
+Detailed specification: PROPOSED Draft 2 with the owner-direction addendum below,
+not frozen; investigation execution requires its separate current authorization.
+
+[BED-038 / Issue #117](https://github.com/gregkrsak/bowfin/issues/117) selects direct
+LLVM and a first-class approved-MIR C emitter compiled with GCC. The initial target
+is baseline x86-64 Linux System V AMD64. Both consume the same original approved
+MIR/contract and must preserve the existing language semantics. Clang substitution
+in the C route and silent backend fallback are excluded. This supersedes KED-036's
+LLVM-versus-Cranelift selection proposal; Issue #87 is closed as superseded.
+
+This records an implementation direction under BD-012, not a new source-language
+rule or Accepted BD number. BED-035 Stage I remains accepted on its original terms.
+
+Greg explicitly directed that safety, reliability and verification take priority
+over fitting the smallest target. Target reach, footprint or performance cannot
+justify weakening accepted semantics, applicable guarantees or required evidence.
+Assess the generated program and required target runtime together; unsupported
+target/profile combinations reject before native entry. Evidence-preserving
+representation changes remain possible, and development/conformance tooling need
+not reside on every target. This priority preserves existing assurance boundaries;
+it grants no universal correctness or comparative reliability claim (DP-009,
+BD-017), and does not reinterpret Accepted decisions.
+
+Draft 2 treats the borrowed actual-state evidence view, external-tool integration,
+restricted existing-loader mechanism, candidate sources/toolchains and numerical
+limits as proposals requiring independent review and bounded investigation.
+B38-O01 and B38-P01 through B38-P06 are not closed by the new prose. Exact builds,
+modes, data layout, private ABI, production/installation, helper boundaries,
+approved closures, independent schedules and budgets must be resolved before
+freeze and separate full implementation authorization. No public C ABI, FFI,
+portable export, platform-support, or new verification claim is implied.
+
+### Modular targets — Direction Accepted
+
+Greg explicitly adopted [modular targets as decided design direction](https://github.com/gregkrsak/bowfin/issues/117#issuecomment-6614337703).
+Bowfin will use built-in target modules with explicit internal contracts, beginning
+with the selected x86-64 Linux target. Backend selection and target selection are
+separate. A target describes architecture/features, data layout, ABI, object
+format, operating environment and required runtime capabilities; an architecture
+name alone does not establish target compatibility.
+
+Shared frontend checks, original approved MIR and the sealed execution contract
+remain semantic authority. Target-specific generation and platform/runtime
+adapters implement that authority without redefining it. Each supported
+backend/target/profile combination requires evidence for generated code and all
+required target-runtime support together. Unsupported combinations reject
+explicitly; smaller targets receive no weakened semantics or evidence obligations.
+Sealed logical charges remain distinct from physical target storage and layout.
+
+Exact internal interfaces evolve through implementation and review. No public
+plugin API is promised. This accepts structure, not additional target support or
+an assembly backend. LLVM plus C/GCC remains the selected direction. Existing
+review scopes, open findings, investigation stop boundaries and separate freeze,
+implementation and human merge gates remain intact.

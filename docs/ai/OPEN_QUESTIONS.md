@@ -741,3 +741,51 @@ create proof evidence by assertion, conceal trust, or override canonical compile
 artifacts. Mechanically checkable claims should be derived from or validated
 against canonical facts where practical; broader prose remains subject to human
 review.
+
+## BED-038 direction and remaining backend questions
+
+[BED-038 / Issue #117](https://github.com/gregkrsak/bowfin/issues/117) records Greg's
+selection of direct LLVM plus a first-class approved-MIR C emitter compiled with
+GCC, first targeting baseline x86-64 Linux System V AMD64. KED-036 / Issue #87 is
+closed as superseded. Backend-family selection is settled for this work. Greg's
+safety-first target-eligibility direction is also settled: footprint and platform
+reach cannot justify weakening accepted guarantees or required evidence.
+
+Draft 2 remains PROPOSED and NOT READY TO FREEZE. B38-O01/B38-P02 require confirmed
+actual-state evidence access without interpreter substitution or accounting drift;
+B38-P01 requires reproducible builds and executed compatibility; B38-P03 requires
+approved workload inventories and independently derived exact cut/storage tables;
+B38-P04 requires pre-load validation, lifetime and resource-contract evidence;
+B38-P05 requires measurements and ratified budgets; B38-P06 requires independent
+semantic and strategic assessment of the shared infrastructure and successor costs.
+
+Candidate external LLVM tools, C17/GNU extensions, sealed existing-loader design,
+native ABI and physical-failure seams are not accepted implementations. Four
+bounded investigation proposals address these questions, with an early checkpoint
+before native evidence prototyping. Publication launches none of them. The
+80-engineer-day/28,000-line full-stage proposal is not adopted. Exact configurations,
+helper signatures, lowering manifests, complete matrices and numerical budgets
+remain open before a separate freeze and implementation decision.
+
+OQ-012, OQ-013, OQ-016, and OQ-026 are engaged only for the proposed private backend
+boundary. Public FFI/layout, stable C export, runtime layering for freestanding
+targets, generalized MIR redesign, and OQ-011 realtime claims remain unresolved.
+The BED-035 Stage I boundary above remains historical and authoritative; its
+original lack of a backend selection is not a claim that no later direction exists.
+
+### Modular targets: settled direction, open mechanisms
+
+[Greg accepted modular target architecture](https://github.com/gregkrsak/bowfin/issues/117#issuecomment-6614337703).
+Built-in target modules, separation of backend from target selection, shared
+approved-MIR authority, distinct platform/runtime adapters and qualification of
+supported backend/target/profile combinations are settled direction. These are
+not open alternatives to a monolithic target design.
+
+OQ-012/OQ-013/OQ-016/OQ-026 retain the exact target-description schema, internal
+lowering and adapter interfaces, capability validation, registration mechanism,
+runtime composition and per-combination qualification details. Public CLI
+selection and any future plugin API remain unsettled. Only baseline x86-64 Linux
+System V AMD64 is selected initially; LLVM plus C/GCC remains the backend direction.
+An assembly backend, additional targets, public FFI/export and freestanding or
+realtime support require separate decisions and evidence. Existing findings and
+investigation stop boundaries are not closed by accepting this structure.

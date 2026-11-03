@@ -183,7 +183,7 @@ Bowfin should support modular runtime configurations from hosted targets to bare
 Current direction:
 
 - first compiler likely implemented in Rust;
-- LLVM is a plausible initial code-generation backend;
+- BED-038 selects direct LLVM and a C/GCC backend as direction; see its boundary below;
 - Z3 is a plausible initial SMT backend;
 - self-hosting is a long-term possibility.
 
@@ -1327,3 +1327,82 @@ release profiles each pass 2,112 identities with zero predecessor migrations.
 The repair changes no frozen semantics, public API, source ownership/lifetime rule,
 primary interpreter behavior or Stage N boundary. Post-merge build, tests, verify
 and docs workflows all pass on c2910493ad5e04fb80f5cfa0ae8d3ee80be5d717.
+
+## BED-038 selected backend direction
+
+The owner-selected backend families are direct LLVM and a first-class C emitter
+compiled with GCC; baseline x86-64 Linux System V AMD64 is the first target.
+Both consume approved MIR and its original sealed execution contract. The C
+backend emits program-specific control/data flow and explicit approved behavior,
+not a surface-syntax translation or an interpreter-dispatch wrapper. No Clang
+substitution is permitted in the C route.
+
+[BED-038 Draft 2](https://github.com/gregkrsak/bowfin/issues/117) proposes a bounded
+common computational/custody slice, with Sentinel 0 as the custody foundation,
+then unoptimized and optimized evidence for both routes. Shared lowering must
+retain correspondence to approved MIR. Generated code owns decisive execution;
+bounded runtime helpers cannot dispatch arbitrary MIR. Retained custody, logical
+compatibility ledgers, physical runtime storage and observation remain distinct.
+
+The proposed evidence view borrows the actual engine session's approval, input
+controller, limits, outcome, capture and final census. It cannot create custody,
+repair evidence or run an interpreter to supply native observations. Preserve the
+existing public interpreter wrapper, independent validation before correspondence,
+all operand/queue/reference protections, and version-one accounting geometry.
+Native state mutations, disabled interpreter entry and actual-token censuses must
+discriminate substitution. B38-O01 remains open pending confirmation and evidence.
+
+The hosted mechanism candidate uses external LLVM tools or GCC, GNU assembly/link,
+a private fixed-layout runtime table, and restricted ELF validation on immutable
+sealed bytes before existing-loader execution. Initializers/imports/IFUNC/TLS and
+unsupported policy reject before loading. Stopped sessions retain module lifetime.
+Exact ABI signatures, loader resource assumptions and a justified real runtime
+failure seam remain unresolved; no general custom loader is permitted.
+
+Safety, reliability, verification and required evidence govern target eligibility.
+Measure generated code and required runtime together; do not shrink guarantees to
+fit a target. Compiler-host tooling and conformance support can be separated from
+target execution without removing applicable obligations. Hosted installation is
+a target adapter, not proof of constrained-target readiness. GCC supplies
+downstream diversity, not complete independence from shared Bowfin or LLVM-built
+host/runtime components.
+
+Four proposed pre-freeze investigations cover toolchain/ABI compatibility,
+installation, approved workload inventories and a minimal actual-state evidence
+path. They are bounded prototype implementation, separately authorized after
+review, with early cost gates and no automatic production adoption. Exact builds,
+layout/ABI, C dialect, mechanism, modes, schedules, budgets and public selection
+remain unfrozen. No implementation or additional platform is authorized here.
+KED-036 / Issue #87 and the original Draft 1 review records remain preserved.
+
+### Modular target architecture — Direction Accepted
+
+[Greg's recorded decision](https://github.com/gregkrsak/bowfin/issues/117#issuecomment-6614337703)
+requires built-in target modules with explicit internal contracts. Backend and
+target are separate selections; supported combinations must be explicit.
+
+| Boundary | Responsibility |
+|---|---|
+| Shared semantic core | Frontend checks, original approved MIR, sealed execution contract, and any common lowering with validated correspondence; no new semantic authority. |
+| Target description and generation | Instruction set/features, data layout/word sizes, byte order, alignment, calling convention/ABI, object format and target-specific emission requirements. LLVM/GCC supply machine lowering where delegated by their routes. |
+| Platform and required runtime | Execution environment, memory provisioning, loading/linking assumptions, required services, retained-state lifetime and physical resource bounds; isolate platform adapters from reusable runtime logic where valid. |
+| Qualification | Evidence for each supported backend/target/profile combination, including generated code and every required runtime component, data, stack and service. |
+
+Compiler-host and conformance tooling may remain off-target without removing
+applicable obligations. Target representations and instruction sequences may
+differ while preserving mathematical values, checks, outcomes, custody and the
+accepted contract. Preserve sealed logical charges independently of physical
+target layout; do not derive new logical charges from a target's representation.
+Unsupported combinations reject explicitly before native entry without fallback.
+
+The first implementation remains baseline x86-64 Linux System V AMD64. Refine
+internal interfaces through implementation and review before promising any public
+plugin API. Exact types, module paths, registration and public selection syntax
+are not settled here. This establishes no additional architecture, bare-metal or
+realtime support. The existing codegen placeholder is not an implementation of
+these modules. A possible assembly emitter would need its own target-specific
+instructions, registers, stack and ABI implementation, but has not been selected;
+the selected routes remain direct LLVM and C/GCC.
+
+This direction adds no implementation authorization and extends no earlier review
+to unreviewed artifacts. BED-038's open findings and investigation gates remain.
