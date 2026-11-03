@@ -1,0 +1,470 @@
+{
+  "package": "B38-X01",
+  "status": "STOPPED_INCOMPLETE",
+  "identity": {
+    "compiler": "fb67a7608ab75d9b6721e91b58dbf61e8edaace1",
+    "compiler_tree": "c9e5047eaec9430698cd7a82c1d05205d729994f",
+    "design": "efb636de48c7b7b6c412aa30520e112329baed80",
+    "design_tree": "5e2376650d6306e127cfe107c98e7f286aa652e8"
+  },
+  "report": {
+    "path": "docs/engineering/BED-038-X01-REPORT.md",
+    "sha256": "36c6ba1eb8371fe287b5215fda9ee6c753d298903a8b4f9cfff8549ff57fb917"
+  },
+  "source_files": {
+    "experiments/bed-038/x01/snapshot.sh": {
+      "bytes": 3162,
+      "sha256": "9e4731d2a53bba3b85407b524dab6789e67ed27f26d9e71cb7063bba9341cddf"
+    },
+    "experiments/bed-038/x01/PROBE-PLAN.md": {
+      "bytes": 2731,
+      "sha256": "4661c04e6951debedd381223371abea1089a487fea7a3f8873901547b23fba05"
+    },
+    "experiments/bed-038/x01/input-resolution.json": {
+      "bytes": 7488,
+      "sha256": "4a39474ad7f4d87e7647b1f452a3ed0f8d3684cb2288e2b311145f11b10aefda"
+    },
+    "experiments/bed-038/x01/HARDENING.md": {
+      "bytes": 4393,
+      "sha256": "b8d67537c58514b6a93ccc853990eeb6933ba8af77c68af2c5495596d21a409b"
+    },
+    "experiments/bed-038/x01/launch.py": {
+      "bytes": 5113,
+      "sha256": "e7f18813de7d022d978e1bcd344797243572f94fa6660c15ac4c426970722e78"
+    },
+    "experiments/bed-038/x01/launch-manifest.json": {
+      "bytes": 2640,
+      "sha256": "9826d67e2978d398ce4d58694fdd63ecb83bdd68231f965f19622b23e32127b0"
+    },
+    ".github/workflows/bed-038-x01.yml": {
+      "bytes": 1371,
+      "sha256": "da28238ff1987173b7bf718faeefce89fca5d3b33aa83337f746fa38bd1d301f"
+    }
+  },
+  "snapshots": {
+    "ipr": {
+      "bytes": 56802,
+      "sha256": "934dec687dc581b75217d0ebfb306c8bfa1acd8524f1df223b0c0b3b5040840b"
+    },
+    "auth": {
+      "bytes": 6144,
+      "sha256": "a8bdb1fa8313d90f64c1a9b29581797ad02102e9b03ca5e8391786ee919f7716"
+    },
+    "draft": {
+      "bytes": 59340,
+      "sha256": "31abb5a224a8c877d64749cc548588a3910d7df400bf99c7411b58e60c53dd85"
+    },
+    "x01": {
+      "bytes": 12389,
+      "sha256": "092188023e7cc210b147492623099762816b74ac132e94e35de55cd8f9f49ee3"
+    },
+    "sarah": {
+      "bytes": 37141,
+      "sha256": "4767e310c92f03d70cb0f15b6e76c4715915a80cdee441a6e1b6cc76fa5ffd02"
+    },
+    "x03": {
+      "bytes": 13143,
+      "sha256": "04eabdb1c83bbf736b88d7fc633744df91736ca34cfebb6838230522c6d6260c"
+    }
+  },
+  "artifacts": [
+    {
+      "local_collection": "b38-x01-preflight",
+      "files": {
+        "artifact.zip": {
+          "bytes": 17414,
+          "sha256": "74c509ba7bff2a810a878be06ac89c29277d21ba6976c68031f9682b9355c82f"
+        },
+        "confinement.json": {
+          "bytes": 266,
+          "sha256": "ccb213f76d164303733fe0d26cb311a1d4d4726ac9680c94b01d3a245090a38c"
+        },
+        "enforcement.json": {
+          "bytes": 4870,
+          "sha256": "b829dd17cedeedf2c05f3826a8ff8171bec73b0ea89b8b983ee583ac6455438e"
+        },
+        "group.log": {
+          "bytes": 205,
+          "sha256": "2b498dce17bb992ee4b6a7eb2814e1101f46b56de4b1bd44cdf86071e1c54f52"
+        },
+        "installed-packages.tsv": {
+          "bytes": 43974,
+          "sha256": "c012e62194a2f6ebdfed9c5cca67d42d02387069bca4fe44fb4b03779a34de56"
+        },
+        "installed-tools.json": {
+          "bytes": 4268,
+          "sha256": "d51345412f37f598ebecd5967847b19d402ace9dd66ddd51037d5851a3a487c4"
+        },
+        "launch-result.json": {
+          "bytes": 2826,
+          "sha256": "b92656a2ce4a5137cf1462c830b8137543eb7eda78d249cd93746ca3dc7a216e"
+        },
+        "scope.txt": {
+          "bytes": 175,
+          "sha256": "90700b1a0a32c76853e87e94eea3ad89098b2d5dcd715b86eef83c3b254a4736"
+        },
+        "sha256.json": {
+          "bytes": 631,
+          "sha256": "10d4cf142c1c10780bc87b263613a49e38069237cc4239e3821b67433fd110e8"
+        }
+      },
+      "launch_result": {
+        "stage": "resource-preflight",
+        "status": "resource-and-bootstrap-snapshot-only-gates-unresolved",
+        "started": 1793725106.3216522,
+        "commit": "30bb7c86122cdeef52a53883aa206b5b49ec04e2",
+        "tree": "0e77b00e1e496c9dd6ce1209c9e6216ee275ed6e",
+        "runner_image": "ubuntu24",
+        "runner_image_version": "20261101.360.1",
+        "kernel": "Linux runnervm7aw5e 7.0.0-1017-azure #17~24.04.1-Ubuntu SMP PREEMPT Thu Sep 24 18:46:57 UTC 2026 x86_64 x86_64 x86_64 GNU/Linux",
+        "allocated_vcpus": 4,
+        "allowed_cpus": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "meminfo": "MemTotal:       16366512 kB\nMemFree:        14842312 kB\nMemAvailable:   15434088 kB\nBuffers:           55760 kB\nCached:           829616 kB\nSwapCached:            0 kB\nActive:           702528 kB\nInactive:         431868 kB\nActive(anon):     301040 kB\nInactive(anon):        0 kB\nActive(file):     401488 kB\nInactive(file):   431868 kB\nUnevictable:       46728 kB\nMlocked:           43656 kB\nSwapTotal:       3145724 kB\nSwapFree:        3145724 kB\nZswap:                 0 kB\nZswapped:              0 kB\nDirty:             13016 kB\nWriteback:             0 kB\nAnonPages:        295680 kB\nMapped:           325864 kB\nShmem:             43288 kB\nKReclaimable:      39512 kB\nSlab:             113532 kB\nSReclaimable:      39512 kB\nSUnreclaim:        74020 kB\nKernelStack:        4128 kB\nPageTables:         6324 kB\nSecPageTables:         0 kB\nNFS_Unstable:          0 kB\nBounce:                0 kB\nWritebackTmp:          0 kB\nCommitLimit:    11328980 kB\nCommitted_AS:    1982964 kB\nVmallocTotal:   13743895347199 kB\nVmallocUsed:       38936 kB\nVmallocChunk:          0 kB\nPercpu:             2352 kB\nHardwareCorrupted:     0 kB\nAnonHugePages:         0 kB\nShmemHugePages:        0 kB\nShmemPmdMapped:        0 kB\nFileHugePages:         0 kB\nFilePmdMapped:         0 kB\nCmaTotal:              0 kB\nCmaFree:         1476608 kB\nUnaccepted:            0 kB\nBalloon:               0 kB\nGPUActive:             0 kB\nGPUReclaim:            0 kB\nHugePages_Total:       0\nHugePages_Free:        0\nHugePages_Rsvd:        0\nHugePages_Surp:        0\nHugepagesize:       2048 kB\nHugetlb:               0 kB\nDirectMap4k:      119936 kB\nDirectMap2M:     3020800 kB\nDirectMap1G:    15728640 kB\n",
+        "free_disk": 92123287552,
+        "baseline_runner_class_observed_cpus": "4",
+        "workflow_sha256": "da28238ff1987173b7bf718faeefce89fca5d3b33aa83337f746fa38bd1d301f",
+        "no_interpreter_execution": true,
+        "no_image_build_or_abi_probe": true,
+        "outside_task_input_bytes": 10688508,
+        "checkout_bytes": 10688508,
+        "scratch_image_bytes": 10603200512,
+        "disk_account": "128 MiB of 10 GiB reserved: checkout <=64 MiB, snapshot <=32 MiB, upload overhead <=32 MiB; 10112 MiB filesystem",
+        "process_exit": 0,
+        "finished": 1793725107.334468
+      },
+      "enforcement": {
+        "cpu.max": "200000 100000",
+        "cpuset.cpus.effective": "0-1",
+        "memory.max": "6442450944",
+        "memory.swap.max": "0",
+        "affinity": [
+          0,
+          1
+        ],
+        "mountinfo": "404 273 259:1 / / ro,nosuid,relatime shared:325 master:1 - ext4 /dev/root rw,discard,journal_async_commit,nobarrier,errors=remount-ro,commit=30,data=writeback\n405 404 0:7 / /dev rw,nosuid,noexec,relatime shared:326 master:2 - devtmpfs devtmpfs rw,size=7422084k,nr_inodes=1855521,mode=755,inode64\n406 405 0:27 / /dev/shm ro,nosuid,nodev shared:327 master:3 - tmpfs tmpfs rw,inode64\n407 405 0:28 / /dev/pts rw,nosuid,noexec,relatime shared:328 master:4 - devpts devpts rw,gid=5,mode=620,ptmxmode=000\n408 405 0:36 / /dev/hugepages rw,nosuid,nodev,relatime shared:329 master:15 - hugetlbfs hugetlbfs rw,pagesize=2M\n409 405 0:23 / /dev/mqueue rw,nosuid,nodev,noexec,relatime shared:330 master:16 - mqueue mqueue rw\n413 404 0:26 / /sys rw,nosuid,nodev,noexec,relatime shared:331 master:6 - sysfs sysfs rw\n414 413 0:8 / /sys/kernel/security rw,nosuid,nodev,noexec,relatime shared:332 master:7 - securityfs securityfs rw\n415 413 0:31 / /sys/fs/cgroup rw,nosuid,nodev,noexec,relatime shared:333 master:8 - cgroup2 cgroup2 rw,nsdelegate,memory_recursiveprot\n416 413 0:32 / /sys/fs/pstore rw,nosuid,nodev,noexec,relatime shared:334 master:9 - pstore none rw\n417 413 0:33 / /sys/firmware/efi/efivars rw,nosuid,nodev,noexec,relatime shared:335 master:10 - efivarfs efivarfs rw\n418 413 0:34 / /sys/fs/bpf ro,nosuid,nodev,noexec,relatime shared:336 master:11 - bpf bpf rw,mode=700\n419 413 0:9 / /sys/kernel/debug ro,nosuid,nodev,noexec,relatime shared:337 master:17 - debugfs debugfs rw\n420 413 0:14 / /sys/kernel/tracing ro,nosuid,nodev,noexec,relatime shared:339 master:18 - tracefs tracefs rw\n421 413 0:37 / /sys/fs/fuse/connections rw,nosuid,nodev,noexec,relatime shared:340 master:19 - fusectl fusectl rw\n422 413 0:21 / /sys/kernel/config rw,nosuid,nodev,noexec,relatime shared:341 master:20 - configfs configfs rw\n423 404 0:29 / /run rw,nosuid,nodev shared:342 master:12 - tmpfs tmpfs rw,size=3273304k,nr_inodes=819200,mode=755,inode64\n424 423 0:30 / /run/lock rw,nosuid,nodev,noexec,relatime shared:343 master:13 - tmpfs tmpfs rw,size=5120k,inode64\n425 423 0:52 / /run/user/1001 rw,nosuid,nodev,relatime shared:344 master:338 - tmpfs tmpfs rw,size=1636648k,nr_inodes=409162,mode=700,uid=1001,gid=1001,inode64\n426 404 259:4 / /boot ro,nosuid,relatime shared:357 master:44 - ext4 /dev/nvme0n1p16 rw,discard\n427 426 259:3 / /boot/efi ro,nosuid,relatime shared:358 master:46 - vfat /dev/nvme0n1p15 rw,fmask=0077,dmask=0077,codepage=437,iocharset=iso8859-1,shortname=mixed,errors=remount-ro\n428 404 7:0 / /mnt/b38-x01 rw,nosuid,nodev,relatime shared:359 master:308 - ext4 /dev/loop0 rw\n429 404 0:50 / /proc rw,nosuid,nodev,noexec,relatime shared:360 - proc proc rw\n410 429 0:39 / /proc/sys/fs/binfmt_misc rw,nosuid,nodev,noexec,relatime shared:361 master:48 - binfmt_misc binfmt_misc rw\n411 429 0:50 /acpi /proc/acpi ro,nosuid,nodev,noexec,relatime shared:362 - proc proc rw\n412 429 0:50 /bus /proc/bus ro,nosuid,nodev,noexec,relatime shared:363 - proc proc rw\n430 429 0:50 /fs /proc/fs ro,nosuid,nodev,noexec,relatime shared:364 - proc proc rw\n431 429 0:50 /irq /proc/irq ro,nosuid,nodev,noexec,relatime shared:365 - proc proc rw\n432 429 0:29 /systemd/inaccessible/reg /proc/kallsyms ro,nosuid,nodev,noexec shared:366 master:12 - tmpfs tmpfs rw,size=3273304k,nr_inodes=819200,mode=755,inode64\n433 429 0:29 /systemd/inaccessible/reg /proc/kcore ro,nosuid,nodev,noexec shared:367 master:12 - tmpfs tmpfs rw,size=3273304k,nr_inodes=819200,mode=755,inode64\n434 429 0:50 /latency_stats /proc/latency_stats ro,nosuid,nodev,noexec,relatime shared:368 - proc proc rw\n435 429 0:50 /mtrr /proc/mtrr ro,nosuid,nodev,noexec,relatime shared:369 - proc proc rw\n436 429 0:50 /scsi /proc/scsi ro,nosuid,nodev,noexec,relatime shared:370 - proc proc rw\n437 429 0:50 /sys /proc/sys ro,nosuid,nodev,noexec,relatime shared:371 - proc proc rw\n438 437 0:39 / /proc/sys/fs/binfmt_misc ro,nosuid,nodev,noexec,relatime shared:372 master:48 - binfmt_misc binfmt_misc rw\n439 429 0:50 /sysrq-trigger /proc/sysrq-trigger ro,nosuid,nodev,noexec,relatime shared:373 - proc proc rw\n440 423 0:29 /systemd/inaccessible/dir /run/credentials ro,nosuid,nodev,noexec shared:345 master:12 - tmpfs tmpfs rw,size=3273304k,nr_inodes=819200,mode=755,inode64\n441 423 0:29 /systemd/propagate/b38-x01.service /run/systemd/incoming ro,nosuid,nodev master:12 - tmpfs tmpfs rw,size=3273304k,nr_inodes=819200,mode=755,inode64\n442 423 0:29 /user /run/user ro,nosuid,nodev shared:347 master:12 - tmpfs tmpfs rw,size=3273304k,nr_inodes=819200,mode=755,inode64\n443 442 0:52 / /run/user/1001 ro,nosuid,nodev,relatime shared:356 master:338 - tmpfs tmpfs rw,size=1636648k,nr_inodes=409162,mode=700,uid=1001,gid=1001,inode64\n"
+      },
+      "github_artifact_id": 13252985712,
+      "expires_at": "2026-12-03T16:58:27Z",
+      "run_id": 41679554939
+    }
+  ],
+  "github_artifact_metadata": {
+    "x01": {
+      "artifacts": [
+        {
+          "id": 13252985712,
+          "name": "b38-x01-preflight-30bb7c86122cdeef52a53883aa206b5b49ec04e2",
+          "size_in_bytes": 17414,
+          "url": "https://api.github.com/repos/gregkrsak/bowfin/actions/artifacts/13252985712",
+          "archive_download_url": "https://api.github.com/repos/gregkrsak/bowfin/actions/artifacts/13252985712/zip",
+          "expired": false,
+          "created_at": "2026-11-03T16:58:28Z",
+          "expires_at": "2026-12-03T16:58:27Z",
+          "updated_at": "2026-11-03T16:58:28Z",
+          "digest": "sha256:74c509ba7bff2a810a878be06ac89c29277d21ba6976c68031f9682b9355c82f",
+          "workflow_run": {
+            "id": 41679554939,
+            "repository_id": 1398259526,
+            "head_repository_id": 1398259526,
+            "head_branch": "bed-038-x01-toolchain-abi",
+            "head_sha": "30bb7c86122cdeef52a53883aa206b5b49ec04e2"
+          }
+        }
+      ]
+    }
+  },
+  "jobs": [
+    {
+      "run": 41679562865,
+      "name": "docs",
+      "event": "pull_request",
+      "head": "30bb7c86122cdeef52a53883aa206b5b49ec04e2",
+      "jobs": [
+        {
+          "id": 126069281506,
+          "name": "docs",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-03T16:58:22Z",
+          "completed_at": "2026-11-03T16:58:29Z",
+          "runner_name": "GitHub Actions 1000002542",
+          "labels": [
+            "ubuntu-latest"
+          ]
+        }
+      ]
+    },
+    {
+      "run": 41679562849,
+      "name": "verify",
+      "event": "pull_request",
+      "head": "30bb7c86122cdeef52a53883aa206b5b49ec04e2",
+      "jobs": [
+        {
+          "id": 126069281502,
+          "name": "battery-contract",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-03T16:58:20Z",
+          "completed_at": "2026-11-03T16:58:58Z",
+          "runner_name": "GitHub Actions 1000002540",
+          "labels": [
+            "ubuntu-latest"
+          ]
+        }
+      ]
+    },
+    {
+      "run": 41679562863,
+      "name": "build",
+      "event": "pull_request",
+      "head": "30bb7c86122cdeef52a53883aa206b5b49ec04e2",
+      "jobs": [
+        {
+          "id": 126069281610,
+          "name": "compiler-build",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-03T16:58:21Z",
+          "completed_at": "2026-11-03T16:59:05Z",
+          "runner_name": "GitHub Actions 1000002541",
+          "labels": [
+            "ubuntu-latest"
+          ]
+        }
+      ]
+    },
+    {
+      "run": 41679562925,
+      "name": "tests",
+      "event": "pull_request",
+      "head": "30bb7c86122cdeef52a53883aa206b5b49ec04e2",
+      "jobs": [
+        {
+          "id": 126069282599,
+          "name": "compiler-tests",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-03T16:58:20Z",
+          "completed_at": "2026-11-03T17:00:34Z",
+          "runner_name": "GitHub Actions 1000002543",
+          "labels": [
+            "ubuntu-latest"
+          ]
+        }
+      ]
+    },
+    {
+      "run": 41679554939,
+      "name": "bed-038-x01",
+      "event": "push",
+      "head": "30bb7c86122cdeef52a53883aa206b5b49ec04e2",
+      "jobs": [
+        {
+          "id": 126069254179,
+          "name": "baseline-runner-account",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-03T16:58:18Z",
+          "completed_at": "2026-11-03T16:58:20Z",
+          "runner_name": "GitHub Actions 1000002538",
+          "labels": [
+            "ubuntu-latest"
+          ]
+        },
+        {
+          "id": 126069298596,
+          "name": "resource-and-bootstrap-metadata",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-03T16:58:22Z",
+          "completed_at": "2026-11-03T16:58:31Z",
+          "runner_name": "GitHub Actions 1000002544",
+          "labels": [
+            "ubuntu-24.04"
+          ]
+        }
+      ]
+    },
+    {
+      "run": 41679555494,
+      "name": "build",
+      "event": "push",
+      "head": "30bb7c86122cdeef52a53883aa206b5b49ec04e2",
+      "jobs": [
+        {
+          "id": 126069256529,
+          "name": "compiler-build",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-03T16:58:18Z",
+          "completed_at": "2026-11-03T16:58:49Z",
+          "runner_name": "GitHub Actions 1000002539",
+          "labels": [
+            "ubuntu-latest"
+          ]
+        }
+      ]
+    },
+    {
+      "run": 41679554814,
+      "name": "docs",
+      "event": "push",
+      "head": "30bb7c86122cdeef52a53883aa206b5b49ec04e2",
+      "jobs": [
+        {
+          "id": 126069253205,
+          "name": "docs",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-03T16:58:18Z",
+          "completed_at": "2026-11-03T16:58:28Z",
+          "runner_name": "GitHub Actions 1000002537",
+          "labels": [
+            "ubuntu-latest"
+          ]
+        }
+      ]
+    },
+    {
+      "run": 41679554635,
+      "name": "verify",
+      "event": "push",
+      "head": "30bb7c86122cdeef52a53883aa206b5b49ec04e2",
+      "jobs": [
+        {
+          "id": 126069252787,
+          "name": "battery-contract",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-03T16:58:25Z",
+          "completed_at": "2026-11-03T16:59:07Z",
+          "runner_name": "GitHub Actions 1000002535",
+          "labels": [
+            "ubuntu-latest"
+          ]
+        }
+      ]
+    },
+    {
+      "run": 41679554622,
+      "name": "tests",
+      "event": "push",
+      "head": "30bb7c86122cdeef52a53883aa206b5b49ec04e2",
+      "jobs": [
+        {
+          "id": 126069252756,
+          "name": "compiler-tests",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-03T16:58:18Z",
+          "completed_at": "2026-11-03T17:00:14Z",
+          "runner_name": "GitHub Actions 1000002536",
+          "labels": [
+            "ubuntu-latest"
+          ]
+        }
+      ]
+    },
+    {
+      "run": 41678002388,
+      "name": "docs",
+      "event": "push",
+      "head": "fb67a7608ab75d9b6721e91b58dbf61e8edaace1",
+      "jobs": [
+        {
+          "id": 126063721158,
+          "name": "docs",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-03T16:49:03Z",
+          "completed_at": "2026-11-03T16:49:10Z",
+          "runner_name": "GitHub Actions 1000002509",
+          "labels": [
+            "ubuntu-latest"
+          ]
+        }
+      ]
+    },
+    {
+      "run": 41678002391,
+      "name": "verify",
+      "event": "push",
+      "head": "fb67a7608ab75d9b6721e91b58dbf61e8edaace1",
+      "jobs": [
+        {
+          "id": 126063721422,
+          "name": "battery-contract",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-03T16:48:58Z",
+          "completed_at": "2026-11-03T16:49:46Z",
+          "runner_name": "GitHub Actions 1000002510",
+          "labels": [
+            "ubuntu-latest"
+          ]
+        }
+      ]
+    },
+    {
+      "run": 41678002184,
+      "name": "build",
+      "event": "push",
+      "head": "fb67a7608ab75d9b6721e91b58dbf61e8edaace1",
+      "jobs": [
+        {
+          "id": 126063720690,
+          "name": "compiler-build",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-03T16:48:55Z",
+          "completed_at": "2026-11-03T16:49:36Z",
+          "runner_name": "GitHub Actions 1000002507",
+          "labels": [
+            "ubuntu-latest"
+          ]
+        }
+      ]
+    },
+    {
+      "run": 41678002604,
+      "name": "tests",
+      "event": "push",
+      "head": "fb67a7608ab75d9b6721e91b58dbf61e8edaace1",
+      "jobs": [
+        {
+          "id": 126063721620,
+          "name": "compiler-tests",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-03T16:48:53Z",
+          "completed_at": "2026-11-03T16:50:46Z",
+          "runner_name": "GitHub Actions 1000002508",
+          "labels": [
+            "ubuntu-latest"
+          ]
+        }
+      ]
+    }
+  ],
+  "cost_snapshot": {
+    "job_seconds": 642.0,
+    "allocated_vcpus_observed_per_runner_class": 4,
+    "individual_ordinary_job_allocation_observed": false,
+    "proxy_cpu_minutes": 42.8,
+    "closeout_reserve_cpu_minutes": 36,
+    "ceiling_cpu_minutes": 120,
+    "settled_closeout": "append-only PR comment after report/index commit CI"
+  },
+  "line_charge_upper_bound": 531,
+  "line_charge_method": "ALL live nonblank lines including comments/headings plus conservative cumulative discarded/revision allowances; report/index construction <=75; generated metadata rows excluded",
+  "new_cargo_dependencies": 0,
+  "unsafe_ffi_lines": 0,
+  "human_effort": "not supplied; no inference from AI wall time",
+  "restore": "Download artifact ZIP by ID from the recorded Actions run or authenticated /repos/gregkrsak/bowfin/actions/artifacts/ID/zip endpoint; verify ZIP SHA-256, extract without executing contents, verify sha256.json; expiry/missing bytes leaves trust unestablished."
+}
