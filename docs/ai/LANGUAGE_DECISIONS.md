@@ -1636,3 +1636,22 @@ migrations. All exact-head and post-merge Actions gates passed. Sarah's final
 focused confirmation resolves I01–I04 and assigns no I05. These finite results
 support the accepted Stage I boundary; they remain neither universal conformance
 proof nor native execution evidence. Stage N remains separately unauthorized.
+
+## BED-038 — Backend architecture direction
+
+**Status:** Direction Accepted by Greg for backend families, downstream C compiler,
+and first target only. Detailed specification: PROPOSED Draft 1, not frozen.
+
+[BED-038 / Issue #117](https://github.com/gregkrsak/bowfin/issues/117) selects direct
+LLVM and a first-class approved-MIR C emitter compiled with GCC. The initial target
+is baseline x86-64 Linux System V AMD64. Both consume the same original approved
+MIR/contract and must preserve the existing language semantics. Clang substitution
+in the C route and silent backend fallback are excluded. This supersedes KED-036's
+LLVM-versus-Cranelift selection proposal; Issue #87 is closed as superseded.
+
+This records an implementation direction under BD-012, not a new source-language
+rule or Accepted BD number. BED-035 Stage I remains accepted on its original terms.
+Exact versions, modes, data layout, private runtime ABI, native production and
+installation, helper boundaries, workload closure, evidence, and numerical budgets
+require review and freeze before separate implementation authorization. No public
+C ABI, FFI, portable export, platform-support, or new verification claim is implied.

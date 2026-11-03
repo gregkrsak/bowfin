@@ -956,3 +956,24 @@ delivery prevents the prohibited operation; partial and emergency output never
 authorize execution. Existing result/audit accounts and run/verify distinctions
 remain unchanged. Independent implementation review and Greg's separate
 acceptance remain required; this candidate does not authorize a merge.
+
+## BED-038 — Owner-selected LLVM and C/GCC direction
+
+Greg selected two first-class backends consuming the same approved MIR: direct
+LLVM and a C emitter compiled with GCC, with baseline x86-64 Linux System V AMD64
+as the first target. The C route explicitly encodes approved behavior; it does not
+translate surface syntax, bypass semantic checks, or delegate decisive execution
+to the interpreter. Clang is excluded from this C route; Cranelift is outside the
+selected work.
+
+[BED-038 Draft 1](https://github.com/gregkrsak/bowfin/issues/117) starts the new
+specification/review track and supersedes closed KED-036 / Issue #87. Backend
+families, GCC, and first target are owner-selected direction; exact toolchains,
+private ABI, lowering/runtime split, installation, workloads/cuts, and budgets
+remain unfrozen. Sentinel 0 is the custody-workload foundation. BED-035 semantics,
+independent expectations, retained custody, and optimized/unoptimized evidence
+apply to both routes. GCC diversifies downstream compilation without eliminating
+shared frontend, lowering, runtime, or host-toolchain failure points.
+
+No backend is implemented or implementation-authorized by this direction record.
+Historical BED-035 statements that it selected no backend remain true of Stage I.

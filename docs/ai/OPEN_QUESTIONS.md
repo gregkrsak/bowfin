@@ -741,3 +741,18 @@ create proof evidence by assertion, conceal trust, or override canonical compile
 artifacts. Mechanically checkable claims should be derived from or validated
 against canonical facts where practical; broader prose remains subject to human
 review.
+
+## BED-038 direction and remaining backend questions
+
+[BED-038 / Issue #117](https://github.com/gregkrsak/bowfin/issues/117) records Greg's
+selection of direct LLVM plus a first-class approved-MIR C emitter compiled with
+GCC, first targeting baseline x86-64 Linux System V AMD64. KED-036 / Issue #87 is
+closed as superseded. Backend-family selection is settled for this work; exact
+versions, configurations, runtime/ABI, lowering granularity, installation,
+workload/cut matrices, and numerical budgets remain open before freeze.
+
+OQ-012, OQ-013, OQ-016, and OQ-026 are engaged only for the proposed private backend
+boundary. Public FFI/layout, stable C export, runtime layering for freestanding
+targets, generalized MIR redesign, and OQ-011 realtime claims remain unresolved.
+The BED-035 Stage I boundary above remains historical and authoritative; its
+original lack of a backend selection is not a claim that no later direction exists.

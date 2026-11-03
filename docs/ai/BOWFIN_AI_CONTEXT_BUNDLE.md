@@ -970,6 +970,27 @@ authorize execution. Existing result/audit accounts and run/verify distinctions
 remain unchanged. Independent implementation review and Greg's separate
 acceptance remain required; this candidate does not authorize a merge.
 
+## BED-038 — Owner-selected LLVM and C/GCC direction
+
+Greg selected two first-class backends consuming the same approved MIR: direct
+LLVM and a C emitter compiled with GCC, with baseline x86-64 Linux System V AMD64
+as the first target. The C route explicitly encodes approved behavior; it does not
+translate surface syntax, bypass semantic checks, or delegate decisive execution
+to the interpreter. Clang is excluded from this C route; Cranelift is outside the
+selected work.
+
+[BED-038 Draft 1](https://github.com/gregkrsak/bowfin/issues/117) starts the new
+specification/review track and supersedes closed KED-036 / Issue #87. Backend
+families, GCC, and first target are owner-selected direction; exact toolchains,
+private ABI, lowering/runtime split, installation, workloads/cuts, and budgets
+remain unfrozen. Sentinel 0 is the custody-workload foundation. BED-035 semantics,
+independent expectations, retained custody, and optimized/unoptimized evidence
+apply to both routes. GCC diversifies downstream compilation without eliminating
+shared frontend, lowering, runtime, or host-toolchain failure points.
+
+No backend is implemented or implementation-authorized by this direction record.
+Historical BED-035 statements that it selected no backend remain true of Stage I.
+
 <!-- END BOWFIN_CONTEXT.md -->
 
 ---
@@ -2751,6 +2772,25 @@ focused confirmation resolves I01–I04 and assigns no I05. These finite results
 support the accepted Stage I boundary; they remain neither universal conformance
 proof nor native execution evidence. Stage N remains separately unauthorized.
 
+## BED-038 — Backend architecture direction
+
+**Status:** Direction Accepted by Greg for backend families, downstream C compiler,
+and first target only. Detailed specification: PROPOSED Draft 1, not frozen.
+
+[BED-038 / Issue #117](https://github.com/gregkrsak/bowfin/issues/117) selects direct
+LLVM and a first-class approved-MIR C emitter compiled with GCC. The initial target
+is baseline x86-64 Linux System V AMD64. Both consume the same original approved
+MIR/contract and must preserve the existing language semantics. Clang substitution
+in the C route and silent backend fallback are excluded. This supersedes KED-036's
+LLVM-versus-Cranelift selection proposal; Issue #87 is closed as superseded.
+
+This records an implementation direction under BD-012, not a new source-language
+rule or Accepted BD number. BED-035 Stage I remains accepted on its original terms.
+Exact versions, modes, data layout, private runtime ABI, native production and
+installation, helper boundaries, workload closure, evidence, and numerical budgets
+require review and freeze before separate implementation authorization. No public
+C ABI, FFI, portable export, platform-support, or new verification claim is implied.
+
 <!-- END LANGUAGE_DECISIONS.md -->
 
 ---
@@ -2942,7 +2982,7 @@ Bowfin should support modular runtime configurations from hosted targets to bare
 Current direction:
 
 - first compiler likely implemented in Rust;
-- LLVM is a plausible initial code-generation backend;
+- BED-038 selects direct LLVM and a C/GCC backend as direction; see its boundary below;
 - Z3 is a plausible initial SMT backend;
 - self-hosting is a long-term possibility.
 
@@ -4087,6 +4127,29 @@ The repair changes no frozen semantics, public API, source ownership/lifetime ru
 primary interpreter behavior or Stage N boundary. Post-merge build, tests, verify
 and docs workflows all pass on c2910493ad5e04fb80f5cfa0ae8d3ee80be5d717.
 
+## BED-038 selected backend direction
+
+The owner-selected backend families are direct LLVM and a first-class C emitter
+compiled with GCC; baseline x86-64 Linux System V AMD64 is the first target.
+Both consume approved MIR and its original sealed execution contract. The C
+backend emits program-specific control/data flow and explicit approved behavior,
+not a surface-syntax translation or an interpreter-dispatch wrapper. No Clang
+substitution is permitted in the C route.
+
+[BED-038 Draft 1](https://github.com/gregkrsak/bowfin/issues/117) proposes a bounded
+common computational/custody slice, with Sentinel 0 as the custody foundation,
+then unoptimized and optimized evidence for both routes. Shared lowering must
+retain correspondence to approved MIR. Retained state, private runtime helpers,
+production/installation authority, dependency diversity, and future target costs
+are explicit review questions. GCC supplies downstream compiler diversity, not
+complete independence from shared Bowfin or LLVM-based host/runtime components.
+
+Exact toolchains, layout/ABI, C dialect, mechanism, modes, budgets, and public
+backend-selection interface remain unfrozen. No implementation or additional
+platform is authorized by this record. KED-036 / Issue #87 is superseded, with
+its historical review and specification preserved. The initial mechanism proposal
+and full obligations are in Issue #117; they are not implemented architecture.
+
 <!-- END ARCHITECTURE.md -->
 
 ---
@@ -4836,5 +4899,20 @@ create proof evidence by assertion, conceal trust, or override canonical compile
 artifacts. Mechanically checkable claims should be derived from or validated
 against canonical facts where practical; broader prose remains subject to human
 review.
+
+## BED-038 direction and remaining backend questions
+
+[BED-038 / Issue #117](https://github.com/gregkrsak/bowfin/issues/117) records Greg's
+selection of direct LLVM plus a first-class approved-MIR C emitter compiled with
+GCC, first targeting baseline x86-64 Linux System V AMD64. KED-036 / Issue #87 is
+closed as superseded. Backend-family selection is settled for this work; exact
+versions, configurations, runtime/ABI, lowering granularity, installation,
+workload/cut matrices, and numerical budgets remain open before freeze.
+
+OQ-012, OQ-013, OQ-016, and OQ-026 are engaged only for the proposed private backend
+boundary. Public FFI/layout, stable C export, runtime layering for freestanding
+targets, generalized MIR redesign, and OQ-011 realtime claims remain unresolved.
+The BED-035 Stage I boundary above remains historical and authoritative; its
+original lack of a backend selection is not a claim that no later direction exists.
 
 <!-- END OPEN_QUESTIONS.md -->

@@ -183,7 +183,7 @@ Bowfin should support modular runtime configurations from hosted targets to bare
 Current direction:
 
 - first compiler likely implemented in Rust;
-- LLVM is a plausible initial code-generation backend;
+- BED-038 selects direct LLVM and a C/GCC backend as direction; see its boundary below;
 - Z3 is a plausible initial SMT backend;
 - self-hosting is a long-term possibility.
 
@@ -1327,3 +1327,26 @@ release profiles each pass 2,112 identities with zero predecessor migrations.
 The repair changes no frozen semantics, public API, source ownership/lifetime rule,
 primary interpreter behavior or Stage N boundary. Post-merge build, tests, verify
 and docs workflows all pass on c2910493ad5e04fb80f5cfa0ae8d3ee80be5d717.
+
+## BED-038 selected backend direction
+
+The owner-selected backend families are direct LLVM and a first-class C emitter
+compiled with GCC; baseline x86-64 Linux System V AMD64 is the first target.
+Both consume approved MIR and its original sealed execution contract. The C
+backend emits program-specific control/data flow and explicit approved behavior,
+not a surface-syntax translation or an interpreter-dispatch wrapper. No Clang
+substitution is permitted in the C route.
+
+[BED-038 Draft 1](https://github.com/gregkrsak/bowfin/issues/117) proposes a bounded
+common computational/custody slice, with Sentinel 0 as the custody foundation,
+then unoptimized and optimized evidence for both routes. Shared lowering must
+retain correspondence to approved MIR. Retained state, private runtime helpers,
+production/installation authority, dependency diversity, and future target costs
+are explicit review questions. GCC supplies downstream compiler diversity, not
+complete independence from shared Bowfin or LLVM-based host/runtime components.
+
+Exact toolchains, layout/ABI, C dialect, mechanism, modes, budgets, and public
+backend-selection interface remain unfrozen. No implementation or additional
+platform is authorized by this record. KED-036 / Issue #87 is superseded, with
+its historical review and specification preserved. The initial mechanism proposal
+and full obligations are in Issue #117; they are not implemented architecture.
