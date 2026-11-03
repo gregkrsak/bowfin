@@ -10,6 +10,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Verify canonical public battery source
+        run: cargo run --locked --quiet --bin bowfin -- verify examples/battery.bow
+
       - name: Accept provable battery call
         run: cargo run --locked --quiet --bin bowfin -- verify examples/battery_ok.bow
 

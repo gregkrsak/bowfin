@@ -53,6 +53,41 @@ jobs:
           assert hashlib.sha256(readme.read_bytes()).hexdigest() == before
           subprocess.run(["git", "diff", "--exit-code"], check=True)
           PY
+      - name: Reject canonical battery-example alias drift
+        run: |
+          python - <<'PYCONTROL'
+          import hashlib
+          import os
+          from pathlib import Path
+          import shutil
+          import subprocess
+          import sys
+          import tempfile
+
+          root = Path.cwd().resolve()
+          readme = root / "README.md"
+          before = hashlib.sha256(readme.read_bytes()).hexdigest()
+          with tempfile.TemporaryDirectory(dir=os.environ["RUNNER_TEMP"]) as directory:
+              temporary = Path(directory) / "README.md"
+              assert root not in temporary.resolve().parents
+              shutil.copyfile(readme, temporary)
+              data = temporary.read_bytes()
+              original = b"verified function consume"
+              assert data.count(original) == 1
+              temporary.write_bytes(data.replace(original, b"verified fn consume", 1))
+              result = subprocess.run(
+                  [sys.executable, "scripts/verify-readme.py", "--readme", str(temporary)],
+                  capture_output=True, text=True,
+              )
+              output = result.stdout + result.stderr
+              print(output, end="")
+              assert result.returncode != 0, "canonical battery alias drift was accepted"
+              assert "canonical battery-example drift" in output
+              assert str(temporary) in output
+              print("Canonical battery-example alias drift rejected: verified function consume -> verified fn consume")
+          assert hashlib.sha256(readme.read_bytes()).hexdigest() == before
+          subprocess.run(["git", "diff", "--exit-code"], check=True)
+          PYCONTROL
       - name: Validate repository scaffold
         run: python scripts/verify-repo-scaffold.py
       - name: Verify BED-035 ledger and evidence map

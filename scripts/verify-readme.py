@@ -37,6 +37,22 @@ def srcset_urls(value):
         yield url
 
 
+def canonical_battery_block(data, publication):
+    """Extract one strictly delimited UTF-8 publication without normalizing bytes."""
+    begin = b"<!-- canonical-battery-example:begin -->"
+    end = b"<!-- canonical-battery-example:end -->"
+    if (data.count(b"canonical-battery-example") != 2
+            or data.count(begin) != 1 or data.count(end) != 1):
+        raise ValueError(f"{publication}: canonical battery-example drift: missing, duplicated or malformed markers")
+    match = re.search(
+        rb"(?m)^" + re.escape(begin) + rb"\n```bowfin\n([\s\S]*?)^```\n"
+        + re.escape(end) + rb"(?:\n|\Z)", data,
+    )
+    if match is None or re.search(rb"(?m)^[ \t]*(?:`{3,}|~{3,})", match[1]):
+        raise ValueError(f"{publication}: canonical battery-example drift: malformed or unterminated fence/markers")
+    return match[1]
+
+
 class AssetParser(HTMLParser):
     def __init__(self):
         super().__init__()
@@ -55,7 +71,22 @@ class AssetParser(HTMLParser):
 root = Path(__file__).resolve().parents[1]
 arguments = argparse.ArgumentParser(description="Validate README assets and policy.")
 arguments.add_argument("--readme", type=Path, default=root / "README.md")
-readme = arguments.parse_args().readme.read_text(encoding="utf-8")
+readme_path = arguments.parse_args().readme
+readme_bytes = readme_path.read_bytes()
+readme = readme_bytes.decode("utf-8")
+
+canonical_source = (root / "examples/battery.bow").read_bytes()
+example_errors = []
+for publication, data in [
+    (str(readme_path), readme_bytes),
+    ("docs/ai/BOWFIN_CONTEXT.md", (root / "docs/ai/BOWFIN_CONTEXT.md").read_bytes()),
+]:
+    try:
+        if canonical_battery_block(data, publication) != canonical_source:
+            raise ValueError(f"{publication}: canonical battery-example drift: bytes differ from examples/battery.bow")
+    except ValueError as error:
+        example_errors.append(str(error))
+
 
 html_assets = AssetParser()
 html_assets.feed(readme)
@@ -135,10 +166,16 @@ if policy_errors:
         "to docs/engineering/."
     )
 
-if missing or policy_errors:
+if example_errors:
+    for error in example_errors:
+        print(error)
+
+if missing or policy_errors or example_errors:
     sys.exit(1)
 
 print(
     f"README local assets OK ({len(local)} references checked); "
     "public-documentation boundary OK"
 )
+
+print("Canonical battery example OK (README and canonical context match source bytes)")

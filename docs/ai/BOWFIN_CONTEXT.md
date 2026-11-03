@@ -299,23 +299,29 @@ Do not market Bowfin as eliminating bugs, proving arbitrary global correctness, 
 
 ### Application-level correctness
 
+<!-- canonical-battery-example:begin -->
 ```bowfin
+// This example models a battery whose charge is a percentage from 0 through 100.
+// A consumption request must not exceed the stored charge, and the verifier
+// proves the exact amount remaining under that precondition.
+
+// Charge values use a percentage domain from 0 through 100.
 type Percent = range 0..100;
 
+// A battery records its remaining charge in that bounded domain.
 record Battery {
     charge: Percent
 }
 
-verified function consume(
-    battery: &mutable Battery,
-    amount: Percent
-)
+// Reduce the recorded charge by an amount already available.
+verified function consume(battery: &mutable Battery, amount: Percent)
     requires amount <= battery.charge
     ensures battery.charge == old(battery.charge) - amount
 {
     battery.charge -= amount;
 }
 ```
+<!-- canonical-battery-example:end -->
 
 A call that attempts to consume `90` from a battery at `80` charge is memory-safe but contract-invalid.
 
