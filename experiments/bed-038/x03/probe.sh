@@ -26,7 +26,7 @@ for name,n,h in [('computational.bow',947,'1c9a863981ec28467de4f1850ba797a6ad196
 b=Path('examples/sentinel.bow').read_bytes()+b'\n'+Path('experiments/bed-038/x03/companion-suffix.bow').read_bytes()
 assert len(b)==7866 and hashlib.sha256(b).hexdigest()=='c0c3725889590b60a1df713f4d25a252f0774b1eab4373a7e8256cbb4ca02934'
 PY
-rustup toolchain install 1.80.0 --profile minimal
+rustup toolchain install 1.80.0 --profile minimal --no-self-update
 rustc +1.80.0 -vV > /mnt/b38-x03/out/rustc.txt
 find "$RUSTUP_HOME/toolchains" -type f -print0 | sort -z | xargs -0 sha256sum > /mnt/b38-x03/out/toolchain.sha256
 export RUSTFLAGS='--cfg b38_x03 --check-cfg=cfg(b38_x03)'

@@ -92,11 +92,16 @@ mod investigation {
             left: 8 * 1024 * 1024,
         };
         writeln!(out, "B38-X03 static-v1\nADMISSION_LIMITS {:?}", limits())?;
-        writeln!(out, "SCHEDULE_UNITS representation/capacity=bytes fuel_unit=logical-actions")?;
+        writeln!(
+            out,
+            "SCHEDULE_UNITS representation/capacity=bytes fuel_unit=logical-actions"
+        )?;
         for labels in [
             "machine=Frame,Task,Value,PlaceSlot,FieldValue,FieldRange,CallTrace,ResultLayer",
-            concat!("cleanup=State,Event,ResourceFrame,Activation,Generation,Pending,",
-                "LocalGen,FieldValue,ReplacementPrepared"),
+            concat!(
+                "cleanup=State,Event,ResourceFrame,Activation,Generation,Pending,",
+                "LocalGen,FieldValue,ReplacementPrepared"
+            ),
             "results=State,Cell,OwnerPair,InertRecord,ResultLayer",
             "temporaries=State,Activation,Owner,Event",
             "trusted=State,Entry,Production,Event,Sensor,Receipt,CompletionPending,Payload",

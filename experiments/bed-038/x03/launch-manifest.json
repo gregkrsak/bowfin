@@ -56,5 +56,12 @@
     "human_engineer_days": 2
   },
   "cost_method": "All automatic and experiment jobs/attempts; allocation times elapsed as proxy; actual experimental allocation recorded; baseline allocation must be resolved, not silently assumed",
-  "baseline_inventory_sha256": "d19fea5f852d74c6c3552e0c3e52d8c195da5a39419c0a77df04b4878bcde36a"
+  "baseline_inventory_sha256": "d19fea5f852d74c6c3552e0c3e52d8c195da5a39419c0a77df04b4878bcde36a",
+  "attempt_1": {
+    "run": 41678693408,
+    "artifact": 13252635601,
+    "sha256": "39c0660cd4128c16d66d8f88104fedde1bbc842425573bda2a4c213cfbce94b9",
+    "result": "Resource confinement verified; rustup self-update attempted protected home write and exited before compilation. No expectations changed.",
+    "repair": "--no-self-update prevents tool self-update; preserve all confinement. Exact two rustfmt corrections from existing Actions log."
+  }
 }
