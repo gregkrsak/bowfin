@@ -429,10 +429,17 @@ fn run_execution(mut args: impl Iterator<Item = String>, audit: bool) -> Result<
                 )
             }
         };
-        lint_gate(&facts, &path, lint).map_err(lint_status)?;
         // The session owns binding state and all terminal custody through result,
         // diagnostic rendering and the final writer operation.
-        return match session.advance() {
+        let advanced = lint_reporting::advance_selected(
+            &mut session,
+            &facts,
+            &path,
+            lint,
+            std::io::stderr().lock(),
+        )
+        .map_err(lint_status)?;
+        return match advanced {
             Ok(result) => match artifact.render_result(result, execution.rendered_output) {
                 Ok(text) => execution::write_output(std::io::stdout().lock(), &text).map_err(|_| 2),
                 Err(e) => run_reporting::execution_error(

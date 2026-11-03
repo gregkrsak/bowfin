@@ -197,6 +197,29 @@ fn record(
     frame(sink, work, HELP)
 }
 
+/// Instrument the actual allocation request, not a separately predicted demand.
+fn reserve_record_payload(bytes: &mut Vec<u8>, requested: usize) -> Result<(), Failure> {
+    #[cfg(test)]
+    {
+        trace(|t| {
+            t.allocations += 1;
+            t.request = requested;
+        });
+        if fault(Fault::Allocation)
+            || CONTROL.with(|t| {
+                t.borrow()
+                    .maximum_request
+                    .is_some_and(|maximum| requested > maximum)
+            })
+        {
+            return Err(Failure::Host);
+        }
+    }
+    bytes
+        .try_reserve_exact(requested)
+        .map_err(|_| Failure::Host)
+}
+
 fn render(facts: &SourceFacts, path: &str, settings: Settings) -> Result<Record, Failure> {
     if settings.report_bytes == 0 || settings.report_bytes > MAX_REPORT_BYTES {
         return Err(Failure::Limit);
@@ -226,26 +249,7 @@ fn render(facts: &SourceFacts, path: &str, settings: Settings) -> Result<Record,
         bytes: Vec::new(),
         demand: sizing.length,
     };
-    #[cfg(test)]
-    {
-        trace(|t| {
-            t.allocations += 1;
-            t.request = sizing.length;
-        });
-        if fault(Fault::Allocation)
-            || CONTROL.with(|t| {
-                t.borrow()
-                    .maximum_request
-                    .is_some_and(|maximum| sizing.length > maximum)
-            })
-        {
-            return Err(Failure::Host);
-        }
-    }
-    result
-        .bytes
-        .try_reserve_exact(sizing.length)
-        .map_err(|_| Failure::Host)?;
+    reserve_record_payload(&mut result.bytes, sizing.length)?;
     #[cfg(test)]
     {
         trace(|t| t.render_calls += 1);
@@ -333,6 +337,26 @@ pub(crate) fn report(
         Failure::Limit => Outcome::ReportingLimit,
         Failure::Host => Outcome::HostReportingFailure,
     }
+}
+
+/// The CLI and its fault-injection tests share this exact continuation. The
+/// admitted real session stays alive, and cannot advance before complete lint
+/// delivery. No session construction or admission is repeated here.
+pub(crate) fn advance_selected<'s>(
+    session: &'s mut crate::execution::ExecutionSession<'_>,
+    facts: &SourceFacts,
+    path: &str,
+    settings: Settings,
+    destination: impl Write,
+) -> Result<
+    Result<&'s crate::execution::ExecutionResult, &'s crate::execution::ExecutionError>,
+    Outcome,
+> {
+    let outcome = report(facts, path, settings, destination);
+    if outcome.exit_code().is_some() {
+        return Err(outcome);
+    }
+    Ok(session.advance())
 }
 
 #[cfg(test)]

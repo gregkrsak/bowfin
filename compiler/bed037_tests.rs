@@ -90,15 +90,17 @@ fn selected_real_session_retains_zero_events_at_denial_and_report_failure() {
         Some(Fault::Mismatch),
     ] {
         execution::reset_execution_observations();
-        let session = execution::ExecutionSession::new(
+        let mut session = execution::ExecutionSession::new(
             &artifact,
             artifact.entry("demo").unwrap(),
             ExecutionLimits::default(),
         )
         .unwrap();
-        let action = || {
-            gate(
+        let mut action = || {
+            lint_reporting::advance_selected(
+                &mut session,
                 &facts,
+                "example.bow",
                 Settings {
                     severity: if fault.is_none() {
                         Severity::Deny
@@ -109,6 +111,7 @@ fn selected_real_session_retains_zero_events_at_denial_and_report_failure() {
                 },
                 Vec::new(),
             )
+            .map(|later| later.is_ok())
         };
         let result = match fault {
             Some(fault) => lint_reporting::with_fault(fault, action),
@@ -127,16 +130,18 @@ fn selected_real_session_retains_zero_events_at_denial_and_report_failure() {
             ExecutionLimits::default(),
         )
         .unwrap();
-        gate(
+        assert!(lint_reporting::advance_selected(
+            &mut session,
             &facts,
+            "example.bow",
             Settings {
                 severity,
                 ..Settings::default()
             },
             Vec::new(),
         )
-        .unwrap();
-        assert!(session.advance().is_ok());
+        .unwrap()
+        .is_ok());
         assert!(!session.events().is_empty());
         assert!(session
             .events()
@@ -193,14 +198,21 @@ fn partial_final_lf_and_flush_failures_prevent_real_ordinary_and_trusted_activit
                 fail_flush,
             };
             if selected {
-                let session = execution::ExecutionSession::new(
+                let mut session = execution::ExecutionSession::new(
                     &artifact,
                     artifact.entry("demo").unwrap(),
                     ExecutionLimits::default(),
                 )
                 .unwrap();
                 assert_eq!(
-                    gate(&facts, Settings::default(), writer),
+                    lint_reporting::advance_selected(
+                        &mut session,
+                        &facts,
+                        "example.bow",
+                        Settings::default(),
+                        writer,
+                    )
+                    .map(|later| later.is_ok()),
                     Err(Outcome::HostReportingFailure)
                 );
                 assert!(session.events().is_empty());
