@@ -20,11 +20,16 @@ fn ordinary_success_consumes_one_admission_after_one_gate_and_starts_real_machin
     let e = ordinary();
     let calls = Cell::new(0);
     reset_execution_observations();
-    let result = execute_with_gate(&e, e.entry("demo").unwrap(), ExecutionLimits::default(), || {
-        calls.set(calls.get() + 1);
-        assert_eq!(execution_observations(), (1, 0));
-        Ok::<(), ()>(())
-    })
+    let result = execute_with_gate(
+        &e,
+        e.entry("demo").unwrap(),
+        ExecutionLimits::default(),
+        || {
+            calls.set(calls.get() + 1);
+            assert_eq!(execution_observations(), (1, 0));
+            Ok::<(), ()>(())
+        },
+    )
     .unwrap();
     assert_eq!(e.render_result(&result, 10).unwrap(), "Bool(true)");
     assert_eq!(calls.get(), 1);
@@ -46,9 +51,12 @@ fn ordinary_denial_and_failed_report_gate_have_no_real_machine_start() {
         assert_eq!(execution_observations(), (1, 0));
     }
     reset_execution_observations();
-    execute_with_gate(&e, e.entry("demo").unwrap(), ExecutionLimits::default(), || {
-        Ok::<(), &str>(())
-    })
+    execute_with_gate(
+        &e,
+        e.entry("demo").unwrap(),
+        ExecutionLimits::default(),
+        || Ok::<(), &str>(()),
+    )
     .unwrap();
     assert_eq!(execution_observations(), (1, 1));
 }
@@ -84,9 +92,12 @@ fn ordinary_public_result_boundary_precedes_gate_even_after_entry_resolution() {
     let e = prepare_ordinary_synthetic(program, AdmissionLimits::default()).unwrap();
     let entry = e.entry("demo").unwrap();
     reset_execution_observations();
-    let result = execute_with_gate(&e, entry, ExecutionLimits::default(), || -> Result<(), ()> {
-        panic!("lint ran before public-result admission")
-    });
+    let result = execute_with_gate(
+        &e,
+        entry,
+        ExecutionLimits::default(),
+        || -> Result<(), ()> { panic!("lint ran before public-result admission") },
+    );
     assert!(matches!(
         result,
         Err(GatedError::Primary(ExecutionError {
@@ -267,12 +278,11 @@ fn audit_consumes_same_preflight_and_preserves_exact_output_storage_work_neighbo
     let mut high = limits.steps;
     while low < high {
         let middle = (low + high) / 2;
-        if e
-            .render_authority(ExecutionLimits {
-                steps: middle,
-                ..limits
-            })
-            .is_ok()
+        if e.render_authority(ExecutionLimits {
+            steps: middle,
+            ..limits
+        })
+        .is_ok()
         {
             high = middle;
         } else {
@@ -383,10 +393,12 @@ fn bounded_companion_owns_facts_after_single_reader_is_dropped() {
     assert_eq!(scans, 1);
     assert!(dropped.get());
     assert_eq!(reads.get(), ORDINARY.len() + 1);
-    let (_, expected) = crate::compile_source_with_facts(ORDINARY).unwrap().into_parts();
+    let (_, expected) = crate::compile_source_with_facts(ORDINARY)
+        .unwrap()
+        .into_parts();
     assert_eq!(facts, expected);
-    let legacy = prepare_execution_from_reader(ORDINARY.as_bytes(), AdmissionLimits::default())
-        .unwrap();
+    let legacy =
+        prepare_execution_from_reader(ORDINARY.as_bytes(), AdmissionLimits::default()).unwrap();
     assert_eq!(e.program, legacy.program);
     assert_eq!(e.mir, legacy.mir);
     assert_eq!(e.origins, legacy.origins);
@@ -411,7 +423,9 @@ fn bounded_and_ordinary_companions_agree_for_comments_locations_and_empty_units(
         )
         .unwrap()
         .into_parts();
-        let (_, expected) = crate::compile_source_with_facts(source).unwrap().into_parts();
+        let (_, expected) = crate::compile_source_with_facts(source)
+            .unwrap()
+            .into_parts();
         assert_eq!(facts, expected, "{source:?}");
     }
 }
@@ -479,12 +493,27 @@ fn selected_reader_companion_matches_legacy_approval_without_retaining_input() {
         &selection,
     )
     .unwrap();
-    let (_, expected) = crate::compile_source_with_facts(ORDINARY).unwrap().into_parts();
+    let (_, expected) = crate::compile_source_with_facts(ORDINARY)
+        .unwrap()
+        .into_parts();
     assert!(facts.parsed_nonempty());
     assert!(!facts.has_comment());
     assert_eq!(facts.first_code_token(), expected.first_code_token());
-    assert_eq!(new.program, old.program);
-    assert_eq!(new.mir, old.mir);
-    assert_eq!(new.trusted, old.trusted);
-    assert_eq!(new.domain, old.domain);
+    // Independent selected preparations intentionally have fresh nominal catalog
+    // and approval identities. Compare validated behavior, never normalize or
+    // overwrite those identities to manufacture raw HIR/MIR equality.
+    assert!(!Rc::ptr_eq(&new.approval, &old.approval));
+    for artifact in [&old, &new] {
+        artifact.validate().unwrap();
+        let mut session = ExecutionSession::new(
+            artifact,
+            artifact.entry("demo").unwrap(),
+            ExecutionLimits::default(),
+        )
+        .unwrap();
+        let result = session.advance().unwrap();
+        assert_eq!(artifact.render_result(result, 4096).unwrap(), "Ok(Reading(42))");
+        assert_eq!(session.live_sensors(), 0);
+        assert!(!session.events().is_empty());
+    }
 }

@@ -178,7 +178,12 @@ fn record(
             0..=31 | 127 => {
                 const HEX: &[u8; 16] = b"0123456789ABCDEF";
                 sink.append(
-                    &[b'\\', b'x', HEX[(byte >> 4) as usize], HEX[(byte & 15) as usize]],
+                    &[
+                        b'\\',
+                        b'x',
+                        HEX[(byte >> 4) as usize],
+                        HEX[(byte & 15) as usize],
+                    ],
                     work,
                 )?;
             }
@@ -192,11 +197,7 @@ fn record(
     frame(sink, work, HELP)
 }
 
-fn render(
-    facts: &SourceFacts,
-    path: &str,
-    settings: Settings,
-) -> Result<Record, Failure> {
+fn render(facts: &SourceFacts, path: &str, settings: Settings) -> Result<Record, Failure> {
     if settings.report_bytes == 0 || settings.report_bytes > MAX_REPORT_BYTES {
         return Err(Failure::Limit);
     }
@@ -213,7 +214,14 @@ fn render(
             return Err(Failure::Limit);
         }
     }
-    record(&mut sizing, &mut work, path, span.line, span.column, settings)?;
+    record(
+        &mut sizing,
+        &mut work,
+        path,
+        span.line,
+        span.column,
+        settings,
+    )?;
     let mut result = Record {
         bytes: Vec::new(),
         demand: sizing.length,
@@ -245,7 +253,14 @@ fn render(
             return Err(Failure::Host);
         }
     }
-    record(&mut result, &mut work, path, span.line, span.column, settings)?;
+    record(
+        &mut result,
+        &mut work,
+        path,
+        span.line,
+        span.column,
+        settings,
+    )?;
     #[cfg(test)]
     if fault(Fault::Mismatch) {
         result.bytes.pop();
@@ -380,18 +395,19 @@ pub(crate) fn fixed_layout_bytes() -> usize {
     // Conservative separate fixed-state ledger: all new state simultaneously
     // live along collection, sizing, rendering and delivery, including scalar
     // cursors, slices, formatting scratch and the owned buffer's fixed header.
-    let wrapper = [
-        std::mem::size_of::<crate::source_facts::SourcePrepared<crate::ast::Program>>()
-            - std::mem::size_of::<crate::ast::Program>(),
-        std::mem::size_of::<crate::source_facts::SourcePrepared<crate::hir::Program>>()
-            - std::mem::size_of::<crate::hir::Program>(),
-        std::mem::size_of::<
-            crate::source_facts::SourcePrepared<crate::execution::CheckedExecutable>,
-        >() - std::mem::size_of::<crate::execution::CheckedExecutable>(),
-    ]
-    .into_iter()
-    .max()
-    .unwrap();
+    let wrapper =
+        [
+            std::mem::size_of::<crate::source_facts::SourcePrepared<crate::ast::Program>>()
+                - std::mem::size_of::<crate::ast::Program>(),
+            std::mem::size_of::<crate::source_facts::SourcePrepared<crate::hir::Program>>()
+                - std::mem::size_of::<crate::hir::Program>(),
+            std::mem::size_of::<
+                crate::source_facts::SourcePrepared<crate::execution::CheckedExecutable>,
+            >() - std::mem::size_of::<crate::execution::CheckedExecutable>(),
+        ]
+        .into_iter()
+        .max()
+        .unwrap();
     wrapper
         // The lexer collector plus the CLI's level-seen/capacity-seen flags.
         + 2 * std::mem::size_of::<bool>()
@@ -416,7 +432,10 @@ mod tests {
     use std::io;
 
     fn facts(source: &str) -> SourceFacts {
-        crate::parse_source_with_facts(source).unwrap().into_parts().1
+        crate::parse_source_with_facts(source)
+            .unwrap()
+            .into_parts()
+            .1
     }
 
     fn eligible() -> SourceFacts {
@@ -837,7 +856,12 @@ mod tests {
 
     #[test]
     fn allow_leaves_every_reporter_fault_and_writer_unused() {
-        for injected in [Fault::Sizing, Fault::Allocation, Fault::Rendering, Fault::Mismatch] {
+        for injected in [
+            Fault::Sizing,
+            Fault::Allocation,
+            Fault::Rendering,
+            Fault::Mismatch,
+        ] {
             with_fault(injected, || {
                 let mut writer = Writer {
                     fail_at: 0,
@@ -864,15 +888,30 @@ mod tests {
 
     #[test]
     fn empty_and_commented_units_leave_reporter_and_writer_unused() {
-        for source in ["", " \t\r\n", "// only", "// header\ntype Percent = range 0..100;"] {
-            for injected in [Fault::Sizing, Fault::Allocation, Fault::Rendering, Fault::Mismatch] {
+        for source in [
+            "",
+            " \t\r\n",
+            "// only",
+            "// header\ntype Percent = range 0..100;",
+        ] {
+            for injected in [
+                Fault::Sizing,
+                Fault::Allocation,
+                Fault::Rendering,
+                Fault::Mismatch,
+            ] {
                 with_fault(injected, || {
                     let mut writer = Writer {
                         fail_at: 0,
                         ..Writer::default()
                     };
                     assert_eq!(
-                        report(&facts(source), "charge.bow", Settings::default(), &mut writer),
+                        report(
+                            &facts(source),
+                            "charge.bow",
+                            Settings::default(),
+                            &mut writer
+                        ),
                         Outcome::NoFinding
                     );
                     assert_eq!(writer.calls, 0);
@@ -903,7 +942,11 @@ mod tests {
 
     #[test]
     fn structured_exit_statuses_retain_host_and_limit_distinction() {
-        for outcome in [Outcome::NoFinding, Outcome::Suppressed, Outcome::ReportedWarning] {
+        for outcome in [
+            Outcome::NoFinding,
+            Outcome::Suppressed,
+            Outcome::ReportedWarning,
+        ] {
             assert_eq!(outcome.exit_code(), None);
         }
         assert_eq!(Outcome::ReportedDenial.exit_code(), Some(1));

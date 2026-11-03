@@ -491,21 +491,22 @@ fn prepare_selected_with_facts(
         return Err(ResourceFailure::limit("lexing work", START).into());
     }
     let context = Context::new(limits);
-    let (tokens, has_comment) = crate::lexer::lex_with_comments(source, Some(&context)).map_err(|e| {
-        context
-            .failure
-            .get()
-            .map(ExecutionError::from)
-            .unwrap_or_else(|| {
-                ExecutionError::new(
-                    ErrorKind::Frontend {
-                        phase: "lex",
-                        message: e.message,
-                    },
-                    e.span,
-                )
-            })
-    })?;
+    let (tokens, has_comment) =
+        crate::lexer::lex_with_comments(source, Some(&context)).map_err(|e| {
+            context
+                .failure
+                .get()
+                .map(ExecutionError::from)
+                .unwrap_or_else(|| {
+                    ExecutionError::new(
+                        ErrorKind::Frontend {
+                            phase: "lex",
+                            message: e.message,
+                        },
+                        e.span,
+                    )
+                })
+        })?;
     context.reserve_frontend(tokens.len(), source.len())?;
     let ast = crate::parser::parse_bounded(&tokens, &context).map_err(|e| {
         context

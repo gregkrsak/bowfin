@@ -1,11 +1,11 @@
 use std::{env, fs, process};
 
+#[cfg(test)]
+use bowfin_compiler::{ast, hir, lexer, parse_source_with_facts};
 use bowfin_compiler::{
     compile_source_with_facts, diagnostics::Diagnostic, execution, source_facts, verify,
     FrontendError,
 };
-#[cfg(test)]
-use bowfin_compiler::{ast, hir, lexer, parse_source_with_facts};
 mod lint_reporting;
 mod run_reporting;
 
@@ -69,7 +69,13 @@ fn run() -> Result<(), i32> {
             eprintln!("error: missing lint option value");
             2
         })?;
-        if !lint_option(&flag, &value, &mut lint, &mut level_seen, &mut capacity_seen)? {
+        if !lint_option(
+            &flag,
+            &value,
+            &mut lint,
+            &mut level_seen,
+            &mut capacity_seen,
+        )? {
             eprintln!("error: unknown check/verify option");
             return Err(2);
         }
@@ -215,7 +221,13 @@ fn run_execution(mut args: impl Iterator<Item = String>, audit: bool) -> Result<
             eprintln!("error: missing run option value");
             return Err(2);
         };
-        if lint_option(&flag, &value, &mut lint, &mut level_seen, &mut capacity_seen)? {
+        if lint_option(
+            &flag,
+            &value,
+            &mut lint,
+            &mut level_seen,
+            &mut capacity_seen,
+        )? {
             continue;
         }
         if matches!(
@@ -382,11 +394,8 @@ fn run_execution(mut args: impl Iterator<Item = String>, audit: bool) -> Result<
             return Err(2);
         }
     };
-    let prepared = execution::prepare_execution_from_reader_with_facts(
-        file,
-        admission,
-        selection.as_ref(),
-    );
+    let prepared =
+        execution::prepare_execution_from_reader_with_facts(file, admission, selection.as_ref());
     let (artifact, facts) = match prepared {
         Ok(e) => e.into_parts(),
         Err(e) => {
@@ -399,9 +408,9 @@ fn run_execution(mut args: impl Iterator<Item = String>, audit: bool) -> Result<
     };
     if selection.is_some() {
         if audit {
-            return match artifact.render_authority_with_gate(execution, || {
-                lint_gate(&facts, &path, lint)
-            }) {
+            return match artifact
+                .render_authority_with_gate(execution, || lint_gate(&facts, &path, lint))
+            {
                 Ok(text) => execution::write_output(std::io::stdout().lock(), &text).map_err(|_| 2),
                 Err(e) => report_gated_error(&artifact, e, execution.rendered_output),
             };
@@ -496,9 +505,10 @@ fn lint_option(
             eprintln!("error: invalid or repeated lint reporting ceiling");
             return Err(2);
         }
-        let n = value.parse::<usize>().ok().filter(|n| {
-            *n > 0 && *n <= lint_reporting::MAX_REPORT_BYTES
-        });
+        let n = value
+            .parse::<usize>()
+            .ok()
+            .filter(|n| *n > 0 && *n <= lint_reporting::MAX_REPORT_BYTES);
         let Some(n) = n else {
             eprintln!("error: invalid or overflowing lint reporting ceiling");
             return Err(2);
@@ -535,12 +545,7 @@ fn report_gated_error(
     match error {
         execution::GatedError::Gate(outcome) => Err(lint_status(outcome)),
         execution::GatedError::Primary(error) | execution::GatedError::Operation(error) => {
-            run_reporting::execution_error(
-                artifact,
-                &error,
-                allowance,
-                std::io::stderr().lock(),
-            )
+            run_reporting::execution_error(artifact, &error, allowance, std::io::stderr().lock())
         }
     }
 }

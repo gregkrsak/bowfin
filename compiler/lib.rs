@@ -70,7 +70,8 @@ pub fn parse_source(source: &str) -> Result<Program, FrontendError> {
 /// CLI-support companion obtained from the same successful lexical/parser pass.
 /// This carries no lint policy and never prints.
 pub fn parse_source_with_facts(source: &str) -> Result<SourcePrepared<Program>, FrontendError> {
-    let (tokens, has_comment) = lexer::lex_with_comments(source, None).map_err(FrontendError::Lex)?;
+    let (tokens, has_comment) =
+        lexer::lex_with_comments(source, None).map_err(FrontendError::Lex)?;
     let first = tokens
         .first()
         .filter(|token| token.kind != lexer::TokenKind::Eof)
