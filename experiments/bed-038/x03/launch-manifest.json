@@ -1,0 +1,60 @@
+{
+  "package": "B38-X03",
+  "stage": "admission-and-inventory-only",
+  "authorization_comment": 6609874959,
+  "assignment_comment": 6609513223,
+  "assignment_sha256": "04eabdb1c83bbf736b88d7fc633744df91736ca34cfebb6838230522c6d6260c",
+  "baseline_commit": "fb67a7608ab75d9b6721e91b58dbf61e8edaace1",
+  "baseline_tree": "c9e5047eaec9430698cd7a82c1d05205d729994f",
+  "design_head": "efb636de48c7b7b6c412aa30520e112329baed80",
+  "design_tree": "5e2376650d6306e127cfe107c98e7f286aa652e8",
+  "draft_sha256": "31abb5a224a8c877d64749cc548588a3910d7df400bf99c7411b58e60c53dd85",
+  "branch": "bed-038-x03-workload-inventory",
+  "target": "staging",
+  "launch_identity": "GITHUB_SHA and its tree; exact workflow SHA-256 and observed runner are retained before Rust compilation",
+  "fixture_sha256": {
+    "companion-suffix.bow": "ba74eceee3661196f85e89d21aebc41c52a009fe6bc876822cb353abfbfaa055",
+    "computational.bow": "1c9a863981ec28467de4f1850ba797a6ad19652fb6613897d94ceae402d4fe42"
+  },
+  "combined_sha256": "c0c3725889590b60a1df713f4d25a252f0774b1eab4373a7e8256cbb4ca02934",
+  "roots": [
+    "compute",
+    "trap",
+    "short",
+    "wide_trap",
+    "monitor",
+    "b38_probe"
+  ],
+  "profile": "sensor-demo only for custody",
+  "grants": "ALL; open/read/finish/release",
+  "live_sensor_limit": 1,
+  "admission": {
+    "tokens": 4096,
+    "frontend_work": 10000000000000000,
+    "working_storage": 1073741824,
+    "diagnostic_storage": 4194304
+  },
+  "scenarios": "See EXPECTATIONS.md; no scenario execution in this stage",
+  "process": {
+    "cpus": 2,
+    "memory_bytes": 4294967296,
+    "swap_bytes": 0,
+    "scratch_bytes": 4294967296,
+    "runtime_seconds": 720,
+    "job_minutes": 20,
+    "output_file_bytes": 8388608
+  },
+  "enforcement": "systemd cgroup v2 + two-CPU cpuset, CPUQuota=200%, MemoryMax, MemorySwapMax=0; fixed ext4 scratch; ProtectSystem=strict; verify effective state first",
+  "schema": "bounded UTF-8 static inventory; canonical Debug IDs/origins/plans and labeled schedule quantities; no primary execution history",
+  "comparison_gate": "No interpreter execution before separately committed exact independent schedules",
+  "retention_days": 30,
+  "budget": {
+    "handwritten_lines": 600,
+    "unsafe_ffi_lines": 0,
+    "new_cargo_dependencies": 0,
+    "cpu_minutes_total": 120,
+    "human_engineer_days": 2
+  },
+  "cost_method": "All automatic and experiment jobs/attempts; allocation times elapsed as proxy; actual experimental allocation recorded; baseline allocation must be resolved, not silently assumed",
+  "baseline_inventory_sha256": "d19fea5f852d74c6c3552e0c3e52d8c195da5a39419c0a77df04b4878bcde36a"
+}

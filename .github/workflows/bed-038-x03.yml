@@ -1,0 +1,37 @@
+name: bed-038-x03
+on:
+  push:
+    branches: [bed-038-x03-workload-inventory]
+    paths:
+      - 'experiments/bed-038/x03/**'
+      - 'compiler/execution/machine/conformance/b38_x03_tests.rs'
+      - '.github/workflows/bed-038-x03.yml'
+permissions:
+  contents: read
+jobs:
+  baseline-runner-account:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    outputs:
+      cpus: ${{ steps.resources.outputs.cpus }}
+    steps:
+      - id: resources
+        run: |
+          python3 -c 'import os; print("observed allocation",os.cpu_count()); print("image",os.getenv("ImageOS"),os.getenv("ImageVersion")); open(os.environ["GITHUB_OUTPUT"],"a").write("cpus="+str(os.cpu_count())+"\n")'
+  admission-inventory:
+    needs: baseline-runner-account
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: Verify resources and run bounded admission only
+        env:
+          B38_BASELINE_CPUS: ${{ needs.baseline-runner-account.outputs.cpus }}
+        run: sudo --preserve-env=GITHUB_ACTIONS,GITHUB_SHA,ImageOS,ImageVersion,B38_BASELINE_CPUS python3 experiments/bed-038/x03/launch.py
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: b38-x03-admission-${{ github.sha }}
+          path: b38-x03-results/
+          retention-days: 30
+          if-no-files-found: error
