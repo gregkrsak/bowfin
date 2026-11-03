@@ -1640,7 +1640,8 @@ proof nor native execution evidence. Stage N remains separately unauthorized.
 ## BED-038 — Backend architecture direction
 
 **Status:** Direction Accepted by Greg for backend families, downstream C compiler,
-and first target only. Detailed specification: PROPOSED Draft 1, not frozen.
+first target, and safety-first target eligibility. Detailed specification:
+PROPOSED Draft 2, not frozen; prototype investigations are separately unauthorized.
 
 [BED-038 / Issue #117](https://github.com/gregkrsak/bowfin/issues/117) selects direct
 LLVM and a first-class approved-MIR C emitter compiled with GCC. The initial target
@@ -1651,7 +1652,22 @@ LLVM-versus-Cranelift selection proposal; Issue #87 is closed as superseded.
 
 This records an implementation direction under BD-012, not a new source-language
 rule or Accepted BD number. BED-035 Stage I remains accepted on its original terms.
-Exact versions, modes, data layout, private runtime ABI, native production and
-installation, helper boundaries, workload closure, evidence, and numerical budgets
-require review and freeze before separate implementation authorization. No public
-C ABI, FFI, portable export, platform-support, or new verification claim is implied.
+
+Greg explicitly directed that safety, reliability and verification take priority
+over fitting the smallest target. Target reach, footprint or performance cannot
+justify weakening accepted semantics, applicable guarantees or required evidence.
+Assess the generated program and required target runtime together; unsupported
+target/profile combinations reject before native entry. Evidence-preserving
+representation changes remain possible, and development/conformance tooling need
+not reside on every target. This priority preserves existing assurance boundaries;
+it grants no universal correctness or comparative reliability claim (DP-009,
+BD-017), and does not reinterpret Accepted decisions.
+
+Draft 2 treats the borrowed actual-state evidence view, external-tool integration,
+restricted existing-loader mechanism, candidate sources/toolchains and numerical
+limits as proposals requiring independent review and bounded investigation.
+B38-O01 and B38-P01 through B38-P06 are not closed by the new prose. Exact builds,
+modes, data layout, private ABI, production/installation, helper boundaries,
+approved closures, independent schedules and budgets must be resolved before
+freeze and separate full implementation authorization. No public C ABI, FFI,
+portable export, platform-support, or new verification claim is implied.

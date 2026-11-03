@@ -1337,16 +1337,40 @@ backend emits program-specific control/data flow and explicit approved behavior,
 not a surface-syntax translation or an interpreter-dispatch wrapper. No Clang
 substitution is permitted in the C route.
 
-[BED-038 Draft 1](https://github.com/gregkrsak/bowfin/issues/117) proposes a bounded
+[BED-038 Draft 2](https://github.com/gregkrsak/bowfin/issues/117) proposes a bounded
 common computational/custody slice, with Sentinel 0 as the custody foundation,
 then unoptimized and optimized evidence for both routes. Shared lowering must
-retain correspondence to approved MIR. Retained state, private runtime helpers,
-production/installation authority, dependency diversity, and future target costs
-are explicit review questions. GCC supplies downstream compiler diversity, not
-complete independence from shared Bowfin or LLVM-based host/runtime components.
+retain correspondence to approved MIR. Generated code owns decisive execution;
+bounded runtime helpers cannot dispatch arbitrary MIR. Retained custody, logical
+compatibility ledgers, physical runtime storage and observation remain distinct.
 
-Exact toolchains, layout/ABI, C dialect, mechanism, modes, budgets, and public
-backend-selection interface remain unfrozen. No implementation or additional
-platform is authorized by this record. KED-036 / Issue #87 is superseded, with
-its historical review and specification preserved. The initial mechanism proposal
-and full obligations are in Issue #117; they are not implemented architecture.
+The proposed evidence view borrows the actual engine session's approval, input
+controller, limits, outcome, capture and final census. It cannot create custody,
+repair evidence or run an interpreter to supply native observations. Preserve the
+existing public interpreter wrapper, independent validation before correspondence,
+all operand/queue/reference protections, and version-one accounting geometry.
+Native state mutations, disabled interpreter entry and actual-token censuses must
+discriminate substitution. B38-O01 remains open pending confirmation and evidence.
+
+The hosted mechanism candidate uses external LLVM tools or GCC, GNU assembly/link,
+a private fixed-layout runtime table, and restricted ELF validation on immutable
+sealed bytes before existing-loader execution. Initializers/imports/IFUNC/TLS and
+unsupported policy reject before loading. Stopped sessions retain module lifetime.
+Exact ABI signatures, loader resource assumptions and a justified real runtime
+failure seam remain unresolved; no general custom loader is permitted.
+
+Safety, reliability, verification and required evidence govern target eligibility.
+Measure generated code and required runtime together; do not shrink guarantees to
+fit a target. Compiler-host tooling and conformance support can be separated from
+target execution without removing applicable obligations. Hosted installation is
+a target adapter, not proof of constrained-target readiness. GCC supplies
+downstream diversity, not complete independence from shared Bowfin or LLVM-built
+host/runtime components.
+
+Four proposed pre-freeze investigations cover toolchain/ABI compatibility,
+installation, approved workload inventories and a minimal actual-state evidence
+path. They are bounded prototype implementation, separately authorized after
+review, with early cost gates and no automatic production adoption. Exact builds,
+layout/ABI, C dialect, mechanism, modes, schedules, budgets and public selection
+remain unfrozen. No implementation or additional platform is authorized here.
+KED-036 / Issue #87 and the original Draft 1 review records remain preserved.

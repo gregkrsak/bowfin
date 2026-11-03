@@ -966,14 +966,33 @@ translate surface syntax, bypass semantic checks, or delegate decisive execution
 to the interpreter. Clang is excluded from this C route; Cranelift is outside the
 selected work.
 
-[BED-038 Draft 1](https://github.com/gregkrsak/bowfin/issues/117) starts the new
-specification/review track and supersedes closed KED-036 / Issue #87. Backend
-families, GCC, and first target are owner-selected direction; exact toolchains,
-private ABI, lowering/runtime split, installation, workloads/cuts, and budgets
-remain unfrozen. Sentinel 0 is the custody-workload foundation. BED-035 semantics,
-independent expectations, retained custody, and optimized/unoptimized evidence
-apply to both routes. GCC diversifies downstream compilation without eliminating
-shared frontend, lowering, runtime, or host-toolchain failure points.
+[BED-038 Draft 2](https://github.com/gregkrsak/bowfin/issues/117) continues the
+specification/review track and supersedes closed KED-036 / Issue #87. Greg also
+directed that target coverage, small footprint, and performance must not weaken
+Bowfin's accepted safety, reliability, verification, or evidence requirements.
+Assess generated code and all required target-runtime support together. A target
+that cannot satisfy the applicable contract is unsupported; host-side tooling may
+be separated from target execution without dropping any assurance obligation.
+Public claims remain limited by DP-009 and BD-017.
 
-No backend is implemented or implementation-authorized by this direction record.
+Sarah's Draft 1 review permitted implementation-pressure review and raised B38-O01
+about the native evidence interface. Arnold's pressure review returned NOT READY
+TO FREEZE. Draft 2 proposes an actual-state borrowed evidence view, retained state
+and private ABI, external LLVM/C-GCC production, restricted sealed loading, exact
+candidate fixtures, and four bounded pre-freeze investigations. B38-O01 and
+B38-P01 through B38-P06 remain unresolved pending their required evidence/review.
+The proposed toolchains, ABI, mechanisms, schedules, and caps are not frozen.
+
+Sentinel 0 remains the custody foundation. BED-035 semantics, independent
+expectations, retained custody, accounting geometry, and optimized/unoptimized
+evidence apply to both routes. GCC diversifies downstream compilation without
+eliminating shared frontend, lowering, runtime, or host-toolchain failure points.
+The investigation plan has early stop points and does not adopt Arnold's proposed
+80-engineer-day/28,000-line full-stage ceilings. No target may gain support by
+reducing required evidence to fit a resource cap.
+
+Draft 2 publication authorizes neither prototype investigations nor backend
+implementation. Independent review, explicit experiment assignments, result
+reconciliation, strategic assessment, freeze and full implementation remain
+separate gates. No native feasibility or additional platform support is claimed.
 Historical BED-035 statements that it selected no backend remain true of Stage I.

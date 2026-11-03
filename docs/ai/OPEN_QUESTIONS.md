@@ -747,9 +747,25 @@ review.
 [BED-038 / Issue #117](https://github.com/gregkrsak/bowfin/issues/117) records Greg's
 selection of direct LLVM plus a first-class approved-MIR C emitter compiled with
 GCC, first targeting baseline x86-64 Linux System V AMD64. KED-036 / Issue #87 is
-closed as superseded. Backend-family selection is settled for this work; exact
-versions, configurations, runtime/ABI, lowering granularity, installation,
-workload/cut matrices, and numerical budgets remain open before freeze.
+closed as superseded. Backend-family selection is settled for this work. Greg's
+safety-first target-eligibility direction is also settled: footprint and platform
+reach cannot justify weakening accepted guarantees or required evidence.
+
+Draft 2 remains PROPOSED and NOT READY TO FREEZE. B38-O01/B38-P02 require confirmed
+actual-state evidence access without interpreter substitution or accounting drift;
+B38-P01 requires reproducible builds and executed compatibility; B38-P03 requires
+approved workload inventories and independently derived exact cut/storage tables;
+B38-P04 requires pre-load validation, lifetime and resource-contract evidence;
+B38-P05 requires measurements and ratified budgets; B38-P06 requires independent
+semantic and strategic assessment of the shared infrastructure and successor costs.
+
+Candidate external LLVM tools, C17/GNU extensions, sealed existing-loader design,
+native ABI and physical-failure seams are not accepted implementations. Four
+bounded investigation proposals address these questions, with an early checkpoint
+before native evidence prototyping. Publication launches none of them. The
+80-engineer-day/28,000-line full-stage proposal is not adopted. Exact configurations,
+helper signatures, lowering manifests, complete matrices and numerical budgets
+remain open before a separate freeze and implementation decision.
 
 OQ-012, OQ-013, OQ-016, and OQ-026 are engaged only for the proposed private backend
 boundary. Public FFI/layout, stable C export, runtime layering for freestanding

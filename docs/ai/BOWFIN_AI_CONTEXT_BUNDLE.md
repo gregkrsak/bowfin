@@ -979,16 +979,35 @@ translate surface syntax, bypass semantic checks, or delegate decisive execution
 to the interpreter. Clang is excluded from this C route; Cranelift is outside the
 selected work.
 
-[BED-038 Draft 1](https://github.com/gregkrsak/bowfin/issues/117) starts the new
-specification/review track and supersedes closed KED-036 / Issue #87. Backend
-families, GCC, and first target are owner-selected direction; exact toolchains,
-private ABI, lowering/runtime split, installation, workloads/cuts, and budgets
-remain unfrozen. Sentinel 0 is the custody-workload foundation. BED-035 semantics,
-independent expectations, retained custody, and optimized/unoptimized evidence
-apply to both routes. GCC diversifies downstream compilation without eliminating
-shared frontend, lowering, runtime, or host-toolchain failure points.
+[BED-038 Draft 2](https://github.com/gregkrsak/bowfin/issues/117) continues the
+specification/review track and supersedes closed KED-036 / Issue #87. Greg also
+directed that target coverage, small footprint, and performance must not weaken
+Bowfin's accepted safety, reliability, verification, or evidence requirements.
+Assess generated code and all required target-runtime support together. A target
+that cannot satisfy the applicable contract is unsupported; host-side tooling may
+be separated from target execution without dropping any assurance obligation.
+Public claims remain limited by DP-009 and BD-017.
 
-No backend is implemented or implementation-authorized by this direction record.
+Sarah's Draft 1 review permitted implementation-pressure review and raised B38-O01
+about the native evidence interface. Arnold's pressure review returned NOT READY
+TO FREEZE. Draft 2 proposes an actual-state borrowed evidence view, retained state
+and private ABI, external LLVM/C-GCC production, restricted sealed loading, exact
+candidate fixtures, and four bounded pre-freeze investigations. B38-O01 and
+B38-P01 through B38-P06 remain unresolved pending their required evidence/review.
+The proposed toolchains, ABI, mechanisms, schedules, and caps are not frozen.
+
+Sentinel 0 remains the custody foundation. BED-035 semantics, independent
+expectations, retained custody, accounting geometry, and optimized/unoptimized
+evidence apply to both routes. GCC diversifies downstream compilation without
+eliminating shared frontend, lowering, runtime, or host-toolchain failure points.
+The investigation plan has early stop points and does not adopt Arnold's proposed
+80-engineer-day/28,000-line full-stage ceilings. No target may gain support by
+reducing required evidence to fit a resource cap.
+
+Draft 2 publication authorizes neither prototype investigations nor backend
+implementation. Independent review, explicit experiment assignments, result
+reconciliation, strategic assessment, freeze and full implementation remain
+separate gates. No native feasibility or additional platform support is claimed.
 Historical BED-035 statements that it selected no backend remain true of Stage I.
 
 <!-- END BOWFIN_CONTEXT.md -->
@@ -2775,7 +2794,8 @@ proof nor native execution evidence. Stage N remains separately unauthorized.
 ## BED-038 — Backend architecture direction
 
 **Status:** Direction Accepted by Greg for backend families, downstream C compiler,
-and first target only. Detailed specification: PROPOSED Draft 1, not frozen.
+first target, and safety-first target eligibility. Detailed specification:
+PROPOSED Draft 2, not frozen; prototype investigations are separately unauthorized.
 
 [BED-038 / Issue #117](https://github.com/gregkrsak/bowfin/issues/117) selects direct
 LLVM and a first-class approved-MIR C emitter compiled with GCC. The initial target
@@ -2786,10 +2806,25 @@ LLVM-versus-Cranelift selection proposal; Issue #87 is closed as superseded.
 
 This records an implementation direction under BD-012, not a new source-language
 rule or Accepted BD number. BED-035 Stage I remains accepted on its original terms.
-Exact versions, modes, data layout, private runtime ABI, native production and
-installation, helper boundaries, workload closure, evidence, and numerical budgets
-require review and freeze before separate implementation authorization. No public
-C ABI, FFI, portable export, platform-support, or new verification claim is implied.
+
+Greg explicitly directed that safety, reliability and verification take priority
+over fitting the smallest target. Target reach, footprint or performance cannot
+justify weakening accepted semantics, applicable guarantees or required evidence.
+Assess the generated program and required target runtime together; unsupported
+target/profile combinations reject before native entry. Evidence-preserving
+representation changes remain possible, and development/conformance tooling need
+not reside on every target. This priority preserves existing assurance boundaries;
+it grants no universal correctness or comparative reliability claim (DP-009,
+BD-017), and does not reinterpret Accepted decisions.
+
+Draft 2 treats the borrowed actual-state evidence view, external-tool integration,
+restricted existing-loader mechanism, candidate sources/toolchains and numerical
+limits as proposals requiring independent review and bounded investigation.
+B38-O01 and B38-P01 through B38-P06 are not closed by the new prose. Exact builds,
+modes, data layout, private ABI, production/installation, helper boundaries,
+approved closures, independent schedules and budgets must be resolved before
+freeze and separate full implementation authorization. No public C ABI, FFI,
+portable export, platform-support, or new verification claim is implied.
 
 <!-- END LANGUAGE_DECISIONS.md -->
 
@@ -4136,19 +4171,43 @@ backend emits program-specific control/data flow and explicit approved behavior,
 not a surface-syntax translation or an interpreter-dispatch wrapper. No Clang
 substitution is permitted in the C route.
 
-[BED-038 Draft 1](https://github.com/gregkrsak/bowfin/issues/117) proposes a bounded
+[BED-038 Draft 2](https://github.com/gregkrsak/bowfin/issues/117) proposes a bounded
 common computational/custody slice, with Sentinel 0 as the custody foundation,
 then unoptimized and optimized evidence for both routes. Shared lowering must
-retain correspondence to approved MIR. Retained state, private runtime helpers,
-production/installation authority, dependency diversity, and future target costs
-are explicit review questions. GCC supplies downstream compiler diversity, not
-complete independence from shared Bowfin or LLVM-based host/runtime components.
+retain correspondence to approved MIR. Generated code owns decisive execution;
+bounded runtime helpers cannot dispatch arbitrary MIR. Retained custody, logical
+compatibility ledgers, physical runtime storage and observation remain distinct.
 
-Exact toolchains, layout/ABI, C dialect, mechanism, modes, budgets, and public
-backend-selection interface remain unfrozen. No implementation or additional
-platform is authorized by this record. KED-036 / Issue #87 is superseded, with
-its historical review and specification preserved. The initial mechanism proposal
-and full obligations are in Issue #117; they are not implemented architecture.
+The proposed evidence view borrows the actual engine session's approval, input
+controller, limits, outcome, capture and final census. It cannot create custody,
+repair evidence or run an interpreter to supply native observations. Preserve the
+existing public interpreter wrapper, independent validation before correspondence,
+all operand/queue/reference protections, and version-one accounting geometry.
+Native state mutations, disabled interpreter entry and actual-token censuses must
+discriminate substitution. B38-O01 remains open pending confirmation and evidence.
+
+The hosted mechanism candidate uses external LLVM tools or GCC, GNU assembly/link,
+a private fixed-layout runtime table, and restricted ELF validation on immutable
+sealed bytes before existing-loader execution. Initializers/imports/IFUNC/TLS and
+unsupported policy reject before loading. Stopped sessions retain module lifetime.
+Exact ABI signatures, loader resource assumptions and a justified real runtime
+failure seam remain unresolved; no general custom loader is permitted.
+
+Safety, reliability, verification and required evidence govern target eligibility.
+Measure generated code and required runtime together; do not shrink guarantees to
+fit a target. Compiler-host tooling and conformance support can be separated from
+target execution without removing applicable obligations. Hosted installation is
+a target adapter, not proof of constrained-target readiness. GCC supplies
+downstream diversity, not complete independence from shared Bowfin or LLVM-built
+host/runtime components.
+
+Four proposed pre-freeze investigations cover toolchain/ABI compatibility,
+installation, approved workload inventories and a minimal actual-state evidence
+path. They are bounded prototype implementation, separately authorized after
+review, with early cost gates and no automatic production adoption. Exact builds,
+layout/ABI, C dialect, mechanism, modes, schedules, budgets and public selection
+remain unfrozen. No implementation or additional platform is authorized here.
+KED-036 / Issue #87 and the original Draft 1 review records remain preserved.
 
 <!-- END ARCHITECTURE.md -->
 
@@ -4905,9 +4964,25 @@ review.
 [BED-038 / Issue #117](https://github.com/gregkrsak/bowfin/issues/117) records Greg's
 selection of direct LLVM plus a first-class approved-MIR C emitter compiled with
 GCC, first targeting baseline x86-64 Linux System V AMD64. KED-036 / Issue #87 is
-closed as superseded. Backend-family selection is settled for this work; exact
-versions, configurations, runtime/ABI, lowering granularity, installation,
-workload/cut matrices, and numerical budgets remain open before freeze.
+closed as superseded. Backend-family selection is settled for this work. Greg's
+safety-first target-eligibility direction is also settled: footprint and platform
+reach cannot justify weakening accepted guarantees or required evidence.
+
+Draft 2 remains PROPOSED and NOT READY TO FREEZE. B38-O01/B38-P02 require confirmed
+actual-state evidence access without interpreter substitution or accounting drift;
+B38-P01 requires reproducible builds and executed compatibility; B38-P03 requires
+approved workload inventories and independently derived exact cut/storage tables;
+B38-P04 requires pre-load validation, lifetime and resource-contract evidence;
+B38-P05 requires measurements and ratified budgets; B38-P06 requires independent
+semantic and strategic assessment of the shared infrastructure and successor costs.
+
+Candidate external LLVM tools, C17/GNU extensions, sealed existing-loader design,
+native ABI and physical-failure seams are not accepted implementations. Four
+bounded investigation proposals address these questions, with an early checkpoint
+before native evidence prototyping. Publication launches none of them. The
+80-engineer-day/28,000-line full-stage proposal is not adopted. Exact configurations,
+helper signatures, lowering manifests, complete matrices and numerical budgets
+remain open before a separate freeze and implementation decision.
 
 OQ-012, OQ-013, OQ-016, and OQ-026 are engaged only for the proposed private backend
 boundary. Public FFI/layout, stable C export, runtime layering for freestanding
