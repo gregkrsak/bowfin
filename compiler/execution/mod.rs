@@ -15,11 +15,12 @@ use crate::{
     hir::{self, FunctionId, ValueType},
     lexer::Span,
     mir::{self, Origin},
+    source_facts::{SourceFacts, SourcePrepared},
 };
 pub use machine::conformance;
 pub use machine::trusted::{Event as TrustedEvent, ExecutionSession};
 pub use render::write_output;
-use std::{io::Read, rc::Rc};
+use std::{convert::Infallible, io::Read, rc::Rc};
 pub fn render_admission_error(
     error: &ExecutionError,
     allowance: usize,
@@ -232,6 +233,16 @@ impl CheckedExecutable {
     /// Static rooted authority, requiring no binding invocation or source lookup.
     pub fn render_authority(&self, limits: ExecutionLimits) -> Result<String, ExecutionError> {
         audit::render(self, limits, 0)
+    }
+
+    /// CLI-support sequencing: retain the audit preflight across one policy gate.
+    /// The gate receives no artifact or authority and creates no execution token.
+    pub fn render_authority_with_gate<E>(
+        &self,
+        limits: ExecutionLimits,
+        gate: impl FnOnce() -> Result<(), E>,
+    ) -> Result<String, GatedError<E>> {
+        audit::render_with_gate(self, limits, 0, gate)
     }
     pub fn entry(&self, name: &str) -> Result<FunctionId, ExecutionError> {
         let f = self
@@ -456,6 +467,14 @@ fn prepare_selected(
     limits: AdmissionLimits,
     selection: Option<&crate::trusted::Selection>,
 ) -> Result<CheckedExecutable, ExecutionError> {
+    prepare_selected_with_facts(source, limits, selection).map(|prepared| prepared.into_parts().0)
+}
+
+fn prepare_selected_with_facts(
+    source: &str,
+    limits: AdmissionLimits,
+    selection: Option<&crate::trusted::Selection>,
+) -> Result<SourcePrepared<CheckedExecutable>, ExecutionError> {
     limits.validate()?;
     if source.len() > limits.source_bytes {
         return Err(ResourceFailure::limit("source bytes", START).into());
@@ -472,21 +491,22 @@ fn prepare_selected(
         return Err(ResourceFailure::limit("lexing work", START).into());
     }
     let context = Context::new(limits);
-    let tokens = crate::lexer::lex_bounded(source, &context).map_err(|e| {
-        context
-            .failure
-            .get()
-            .map(ExecutionError::from)
-            .unwrap_or_else(|| {
-                ExecutionError::new(
-                    ErrorKind::Frontend {
-                        phase: "lex",
-                        message: e.message,
-                    },
-                    e.span,
-                )
-            })
-    })?;
+    let (tokens, has_comment) =
+        crate::lexer::lex_with_comments(source, Some(&context)).map_err(|e| {
+            context
+                .failure
+                .get()
+                .map(ExecutionError::from)
+                .unwrap_or_else(|| {
+                    ExecutionError::new(
+                        ErrorKind::Frontend {
+                            phase: "lex",
+                            message: e.message,
+                        },
+                        e.span,
+                    )
+                })
+        })?;
     context.reserve_frontend(tokens.len(), source.len())?;
     let ast = crate::parser::parse_bounded(&tokens, &context).map_err(|e| {
         context
@@ -503,6 +523,11 @@ fn prepare_selected(
                 )
             })
     })?;
+    let first_code_token = tokens
+        .first()
+        .filter(|token| token.kind != crate::lexer::TokenKind::Eof)
+        .map(|token| token.span);
+    let facts = SourceFacts::from_parsed(has_comment, first_code_token, &ast);
     let resolved = match selection {
         Some(selection) => crate::resolve::resolve_profile(&ast, &context, selection),
         None => crate::resolve::resolve_bounded(&ast, &context),
@@ -518,6 +543,7 @@ fn prepare_selected(
     crate::effects::custody::check(&program, &cleanup_sites)
         .map_err(|e| frontend("effects", e, &context))?;
     seal(program, limits, cleanup_sites, outcomes)
+        .map(|executable| SourcePrepared::new(executable, facts))
 }
 impl From<hir::resources::PlanError> for ExecutionError {
     fn from(error: hir::resources::PlanError) -> Self {
@@ -653,7 +679,7 @@ pub fn prepare_execution_from_reader(
     input: impl Read,
     limits: AdmissionLimits,
 ) -> Result<CheckedExecutable, ExecutionError> {
-    prepare_from_reader(input, limits, None)
+    prepare_from_reader(input, limits, None).map(|prepared| prepared.into_parts().0)
 }
 
 /// The same bounded input path with one explicit immutable profile selection.
@@ -662,13 +688,24 @@ pub fn prepare_execution_from_reader_with_profile(
     limits: AdmissionLimits,
     selection: &crate::trusted::Selection,
 ) -> Result<CheckedExecutable, ExecutionError> {
-    prepare_from_reader(input, limits, Some(selection))
+    prepare_from_reader(input, limits, Some(selection)).map(|prepared| prepared.into_parts().0)
 }
+
+/// Same bounded reader and preparation, with owned source-only companion facts.
+/// The input buffer is dropped before return; no source text or path is retained.
+pub fn prepare_execution_from_reader_with_facts(
+    input: impl Read,
+    limits: AdmissionLimits,
+    selection: Option<&crate::trusted::Selection>,
+) -> Result<SourcePrepared<CheckedExecutable>, ExecutionError> {
+    prepare_from_reader(input, limits, selection)
+}
+
 fn prepare_from_reader(
     mut input: impl Read,
     limits: AdmissionLimits,
     selection: Option<&crate::trusted::Selection>,
-) -> Result<CheckedExecutable, ExecutionError> {
+) -> Result<SourcePrepared<CheckedExecutable>, ExecutionError> {
     limits.validate()?;
     let mut source = Vec::new();
     let mut buffer = [0u8; 4096];
@@ -700,9 +737,37 @@ fn prepare_from_reader(
     }
     let source = std::str::from_utf8(&source)
         .map_err(|_| ExecutionError::new(ErrorKind::Host("source UTF-8 decoding"), START))?;
-    match selection {
-        Some(selection) => prepare_execution_with_profile(source, limits, selection),
-        None => prepare_execution(source, limits),
+    prepare_selected_with_facts(source, limits, selection)
+}
+
+/// Phase distinction for the minimal CLI-support gate orchestration.
+/// This is not a source outcome, frontend error, or reusable approval token.
+#[derive(Debug)]
+pub enum GatedError<E> {
+    Primary(ExecutionError),
+    Gate(E),
+    Operation(ExecutionError),
+}
+
+impl GatedError<Infallible> {
+    fn without_gate(self) -> ExecutionError {
+        match self {
+            Self::Primary(error) | Self::Operation(error) => error,
+            Self::Gate(never) => match never {},
+        }
+    }
+}
+
+// Retains precisely the admitted entry, limits and immutable artifact borrow.
+// Consuming it starts the machine directly; admission cannot be re-entered here.
+struct AdmittedOrdinary<'a> {
+    executable: &'a CheckedExecutable,
+    entry: FunctionId,
+    limits: ExecutionLimits,
+}
+impl AdmittedOrdinary<'_> {
+    fn run(self) -> Result<ExecutionResult, ExecutionError> {
+        machine::Machine::new(self.executable, self.limits).run(self.entry)
     }
 }
 
@@ -711,19 +776,39 @@ pub fn execute(
     entry: FunctionId,
     limits: ExecutionLimits,
 ) -> Result<ExecutionResult, ExecutionError> {
-    checked_entry(executable, entry, limits)?;
+    execute_with_gate(executable, entry, limits, || Ok::<(), Infallible>(()))
+        .map_err(GatedError::without_gate)
+}
+
+/// Admit once, run one external policy gate, then consume the admitted state.
+/// Existing semantic execution callers can continue to use `execute` unchanged.
+pub fn execute_with_gate<E>(
+    executable: &CheckedExecutable,
+    entry: FunctionId,
+    limits: ExecutionLimits,
+    gate: impl FnOnce() -> Result<(), E>,
+) -> Result<ExecutionResult, GatedError<E>> {
+    checked_entry(executable, entry, limits).map_err(GatedError::Primary)?;
     if executable.program.trusted.is_some() {
-        return Err(ExecutionError::integrity(
+        return Err(GatedError::Primary(ExecutionError::integrity(
             "selected profile execution requires persistent session custody",
-        ));
+        )));
     }
-    machine::Machine::new(executable, limits).run(entry)
+    let admitted = AdmittedOrdinary {
+        executable,
+        entry,
+        limits,
+    };
+    gate().map_err(GatedError::Gate)?;
+    admitted.run().map_err(GatedError::Operation)
 }
 fn checked_entry(
     executable: &CheckedExecutable,
     entry: FunctionId,
     limits: ExecutionLimits,
 ) -> Result<(), ExecutionError> {
+    #[cfg(test)]
+    ENTRY_CHECKS.with(|count| count.set(count.get() + 1));
     limits.validate()?;
     executable.validate()?;
     let f = executable
@@ -1520,3 +1605,31 @@ mod result_authority_tests {
         }
     }
 }
+
+#[cfg(test)]
+thread_local! {
+    static ENTRY_CHECKS: std::cell::Cell<usize> = const { std::cell::Cell::new(0) };
+    static MACHINE_STARTS: std::cell::Cell<usize> = const { std::cell::Cell::new(0) };
+}
+
+#[cfg(test)]
+fn record_machine_start() {
+    MACHINE_STARTS.with(|count| count.set(count.get() + 1));
+}
+
+#[cfg(test)]
+pub(crate) fn reset_execution_observations() {
+    ENTRY_CHECKS.with(|count| count.set(0));
+    MACHINE_STARTS.with(|count| count.set(0));
+}
+
+#[cfg(test)]
+pub(crate) fn execution_observations() -> (usize, usize) {
+    (
+        ENTRY_CHECKS.with(std::cell::Cell::get),
+        MACHINE_STARTS.with(std::cell::Cell::get),
+    )
+}
+
+#[cfg(test)]
+mod commentless_tests;

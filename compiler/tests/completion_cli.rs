@@ -36,7 +36,11 @@ fn defining_sample_cli_delivers_success_and_both_completion_error_scenarios() {
             String::from_utf8(output.stdout).unwrap(),
             format!("{expected}\n")
         );
-        assert!(output.stderr.is_empty());
+        let path = format!(
+            "{}/../examples/sensor_finish.bow",
+            env!("CARGO_MANIFEST_DIR")
+        );
+        assert_eq!(output.stderr, format!("warning[commentless-source]: this source file contains no comments\n  --> {path}:1:1\nhelp: explain the file's purpose, domain meaning, or important assumptions\n").as_bytes());
     }
 }
 

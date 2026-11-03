@@ -15,6 +15,16 @@ fn run(args: &[&str]) -> std::process::Output {
         .unwrap()
 }
 
+fn assert_commentless_warning(stderr: &[u8], path: &str) {
+    assert_eq!(
+        stderr,
+        format!(
+            "warning[commentless-source]: this source file contains no comments\n  --> {path}:1:1\nhelp: explain the file's purpose, domain meaning, or important assumptions\n"
+        )
+        .as_bytes()
+    );
+}
+
 #[test]
 fn explicit_effect_contracts_check_transitively_without_changing_proof_scope() {
     for command in ["check", "verify"] {
@@ -62,7 +72,7 @@ fn success_reports_only_supported_proofs() {
     for (command, status) in [("verify", "verified"), ("check", "checked")] {
         let output = run(&[command, &example("battery_ok.bow")]);
         assert!(output.status.success());
-        assert!(output.stderr.is_empty());
+        assert_commentless_warning(&output.stderr, &example("battery_ok.bow"));
         let text = String::from_utf8(output.stdout).unwrap();
         assert!(text.starts_with(&format!("{status} supported integer contracts:")));
         assert!(text.contains("function bodies proven: 1"));
@@ -464,7 +474,7 @@ fn ordinary_record_cli_checks_preserve_the_proof_boundary() {
     for command in ["check", "verify"] {
         let output = run(&[command, &example("ordinary_records.bow")]);
         assert!(output.status.success());
-        assert!(output.stderr.is_empty());
+        assert_commentless_warning(&output.stderr, &example("ordinary_records.bow"));
         let text = String::from_utf8(output.stdout).unwrap();
         assert!(text.contains("ordinary MIR control-flow lowering passed: 6 functions"));
         assert!(text.contains("function bodies proven: 0"));
@@ -559,7 +569,7 @@ fn exclusive_reference_field_write_cli_preserves_proof_scope_and_final_gate_diag
     for command in ["check", "verify"] {
         let output = run(&[command, &example("reference_field_assignment.bow")]);
         assert!(output.status.success());
-        assert!(output.stderr.is_empty());
+        assert_commentless_warning(&output.stderr, &example("reference_field_assignment.bow"));
         let text = String::from_utf8(output.stdout).unwrap();
         assert!(text.contains("ordinary MIR control-flow lowering passed: 3 functions"));
         assert!(text.contains("function bodies proven: 0"));

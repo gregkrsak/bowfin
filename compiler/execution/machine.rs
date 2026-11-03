@@ -1488,6 +1488,8 @@ impl<'a> Machine<'a> {
         Ok(())
     }
     fn start(&mut self, entry: FunctionId) -> Result<(), ExecutionError> {
+        #[cfg(test)]
+        super::record_machine_start();
         self.control_check_entry(entry)?;
         if self
             .executable

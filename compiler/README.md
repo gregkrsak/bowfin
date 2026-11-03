@@ -1905,3 +1905,36 @@ Sensor identity. Reads of each Sensor remain stable; later acquisitions return
 Error(1) after the two values. Live-limit precedence, nominal types, operation
 contracts, effects, grants, custody and every predecessor scenario remain intact.
 This adds no general script/input facility or native execution.
+
+## BED-037 — Commentless-source documentation lint
+
+The CLI warns by default when its successfully processed, nonempty parsed source
+unit contains no lexer-recognized `//` comment. This coarse presence check does
+not assess comment quality or change source semantics. Any recognized line comment
+satisfies it, including bare, inline, trailing, EOF, `///` and `//!` comments.
+
+After the explicit input path, `check`, `verify`, `run` and `audit` accept one of
+`--allow commentless-source`, `--warn commentless-source` or
+`--deny commentless-source`. Repeated or conflicting levels are usage errors.
+There is no path-based exemption, source directive or manifest discovery. The
+`klyxr` compatibility executable uses the same policy. Library parsing and
+compilation remain nonprinting and do not enforce CLI lint policy.
+
+Lint reporting has an independent 65,536-byte default and 1,048,576-byte maximum
+ceiling, selected with `--max-lint-report-bytes N`. The ceiling includes escaped
+path bytes, coordinates, framing and final LF. Sizing precedes one exact-demand
+allocation; a short record never requests the full available ceiling. Existing
+compiler, execution, result and audit accounts are unchanged.
+
+Primary command failures suppress the lint. A successful warning is fully written
+and flushed before continuation. A denied finding or failed required report stops
+the command before its prohibited operation. Ordinary execution retains admitted
+entry state; selected execution retains its real session; audit retains preflight
+scratch and remaining work. None repeats admission across the lint gate. `run`
+does not gain specialized harness verification, and `check` and `verify` retain
+their existing distinct output and assurance claims.
+
+Lint denial and reporting-limit exhaustion exit 1; detected lint host-reporting
+failures exit 2 under the bounded CLI convention. Partial or emergency output does
+not count as warning delivery. The fixed emergency emission reserve is 70 bytes;
+its success never permits execution after reporting failure.
