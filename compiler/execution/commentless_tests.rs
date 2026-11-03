@@ -512,7 +512,10 @@ fn selected_reader_companion_matches_legacy_approval_without_retaining_input() {
         )
         .unwrap();
         let result = session.advance().unwrap();
-        assert_eq!(artifact.render_result(result, 4096).unwrap(), "Ok(Reading(42))");
+        assert_eq!(
+            artifact.render_result(result, 4096).unwrap(),
+            "Ok(Reading(42))"
+        );
         assert_eq!(session.live_sensors(), 0);
         assert!(!session.events().is_empty());
     }

@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Reconcile a complete Cargo profile through M3's source-extension controls.
+"""Reconcile complete BED-037 profiles and their exact retained predecessor subset.
 
 Historical manifests remain unchanged. Only the named crate doctest identity is
 mapped; target inventory also accounts for both zero-test command binaries.
 """
+import hashlib
 import json
 from pathlib import Path
 import re
@@ -50,6 +51,59 @@ for target, group in zip(targets, groups):
         assert identity not in actual, "duplicate identity: " + identity
         assert outcome == "ok", identity + ": " + outcome
         actual[identity] = outcome
+# BED-037 adds only its explicitly enumerated identities. Preserve the complete
+# observations before projecting the old manifests' exact predecessor subset.
+# Unknown identities and targets remain visible to the full-profile checks below.
+bed037 = json.loads((root / "docs/engineering/bed-037-evidence.json").read_text())
+assert bed037["decision"] == "BED-037"
+assert bed037["baseline_commit"] == "ac0382ea2299388a3557839316a8feeeed6d6990"
+assert bed037["baseline_tree"] == "6dd15d9a15e510095ac1c112eba756de1cb128d0"
+assert bed037["frozen_specification"] == {
+    "issue": "https://github.com/gregkrsak/bowfin/issues/115",
+    "utf8_bytes": 43689,
+    "sha256": "75afb99f6c2075d9225d86fd11da5fda0253254aed279750cf457b54f838e888",
+}
+assert bed037["migrations"] == {}, "BED-037 may not migrate identities"
+lint_additions = bed037["additions"]
+assert lint_additions == sorted(set(lint_additions)) and len(lint_additions) == 119
+assert set(bed037["classifications"]) == set(lint_additions)
+assert set(bed037["classifications"].values()) == {
+    "bounded_lint_reporting", "retained_command_admission",
+    "same_preparation_metadata", "reporting_execution_gate", "public_cli",
+}
+for identity, classification in bed037["classifications"].items():
+    if identity.startswith(("lib.rs::lint_reporting::tests::", "main.rs::lint_reporting::tests::", "compat_main.rs::lint_reporting::tests::")):
+        expected_class = "bounded_lint_reporting"
+    elif identity.startswith("lib.rs::execution::commentless_tests::"):
+        expected_class = "retained_command_admission"
+    elif identity.startswith("lib.rs::source_facts::tests::"):
+        expected_class = "same_preparation_metadata"
+    elif identity.startswith("lib.rs::bed037_tests::"):
+        expected_class = "reporting_execution_gate"
+    elif identity.startswith("tests/commentless_source.rs::"):
+        expected_class = "public_cli"
+    else:
+        raise AssertionError("unknown BED-037 source role: " + identity)
+    assert classification == expected_class, "misclassified BED-037 source role: " + identity
+complete_actual = actual
+complete_targets = targets
+complete_groups = groups
+assert all(complete_actual.get(identity) == "ok" for identity in lint_additions), "missing or changed BED-037 addition"
+new_target = bed037["new_target"]
+assert new_target == "tests/commentless_source.rs"
+assert {identity for identity in complete_actual if identity.startswith(new_target + "::")} == {
+    identity for identity in lint_additions if identity.startswith(new_target + "::")
+}, "unclassified identity in new BED-037 target"
+actual = {identity: outcome for identity, outcome in complete_actual.items() if identity not in lint_additions}
+targets = []
+groups = []
+for target, group in zip(complete_targets, complete_groups):
+    if target == new_target:
+        continue
+    targets.append(target)
+    groups.append([(name, outcome) for name, outcome in group if target + "::" + name not in lint_additions])
+summaries = [len(group) for group in groups]
+
 # M2 changes only this predecessor's Cargo crate target, not its test body or
 # compile-fail authority assertion. Never normalize arbitrary prefixes or names.
 identity_migrations = {
@@ -190,22 +244,44 @@ if manifest["stage"] == "M9":
         assert adaptation["reason"] and adaptation["affected_identities"]
         assert set(adaptation["affected_identities"]) <= set(expected) | set(additions)
     print("Frozen BED-034 map: 26 semantic obligations, 12 malformed families, P01-P09, M0-M9; production symbols and exact assertions present")
-print(f"BED-034 {manifest['stage']} reconciliation: 1,981 exact predecessors + {len(additions)} additions = {manifest['expected_per_profile']} retained")
-print("BED-033 retained: 1,875 predecessors + 106 additions = 1,981")
-print("Historical KED manifest migrations: 0; failed/ignored/filtered: 0/0/0")
-print("compile-fail authority doctest: passed; affine cross-check: 1,800 cases passed")
+print(f"Retained predecessor subset — BED-034 {manifest['stage']} reconciliation: 1,981 exact predecessors + {len(additions)} additions = {manifest['expected_per_profile']} retained")
+print("Retained predecessor subset — BED-033 retained: 1,875 predecessors + 106 additions = 1,981")
+print("Retained predecessor subset — Historical KED manifest migrations: 0; failed/ignored/filtered: 0/0/0")
+print("Retained predecessor subset — compile-fail authority doctest: passed; affine cross-check: 1,800 cases passed")
 
-print(f"BED-035 {k35['stage']} reconciliation: 2045 exact predecessors + {len(new)} additions = {2045 + len(new)} retained")
+print(f"Retained predecessor subset — BED-035 {k35['stage']} reconciliation: 2045 exact predecessors + {len(new)} additions = {2045 + len(new)} retained")
 
 assert len(actual) - len(m1) - len(m2) - len(m3) == sentinel["expected_per_profile"]
-print(f"Sentinel 0 reconciliation: 2112 exact predecessors + {len(application)} classified additions = {len(historical)} retained; migrations: 0")
+print(f"Retained predecessor subset — Sentinel 0 reconciliation: 2112 exact predecessors + {len(application)} classified additions = {len(historical)} retained; migrations: 0")
 assert len(actual) - len(m2) - len(m3) == sentinel["expected_per_profile"] + len(m1) == 2131
-print(f"Bowfin M1 reconciliation: {len(historical)} retained predecessors + {len(m1)} machine-identity controls = 2131 retained through the explicit M2 map")
+print(f"Retained predecessor subset — Bowfin M1 reconciliation: {len(historical)} retained predecessors + {len(m1)} machine-identity controls = 2131 retained through the explicit M2 map")
 assert len(actual) - len(m3) == 2131 + len(m2) == 2137
-print("Bowfin M2 reconciliation: 2131 predecessors retained; one exact crate-doctest identity migration; all 6 command controls retained; 2137 predecessor identities")
+print("Retained predecessor subset — Bowfin M2 reconciliation: 2131 predecessors retained; one exact crate-doctest identity migration; all 6 command controls retained; 2137 predecessor identities")
 for legacy, successor in identity_migrations.items():
-    print(f"M2 one-to-one identity: {legacy} -> {successor}")
+    print(f"Retained predecessor subset — M2 one-to-one identity: {legacy} -> {successor}")
 assert len(actual) == len(observed) == 2137 + len(m3) == 2143
-print("Bowfin M3 reconciliation: all 2137 predecessors retained; no new identity migrations; 6 classified source-extension controls; 2143 passed across 39 distinct Cargo targets (two empty binaries)")
+print("Retained predecessor subset — Bowfin M3 reconciliation: all 2137 predecessors retained; no new identity migrations; 6 classified source-extension controls; 2143 passed across 39 distinct Cargo targets (two empty binaries)")
 for identity, classification in m3.items():
-    print(f"M3 control: {identity}; class={classification}")
+    print(f"Retained predecessor subset — M3 control: {identity}; class={classification}")
+
+# The preceding unchanged historical assertions establish the exact old set.
+# Reconstruct its canonical M2 spelling, then require the complete union exactly.
+canonical_predecessors = {identity_migrations.get(identity, identity) for identity in actual}
+assert canonical_predecessors == set(observed), "predecessor projection changed identity"
+assert len(canonical_predecessors) == bed037["predecessor_count"] == 2143
+assert len(targets) == bed037["predecessor_targets"] == 39
+assert not canonical_predecessors & set(lint_additions), "BED-037 addition substitutes a predecessor"
+assert set(complete_actual) == canonical_predecessors | set(lint_additions), "unexpected or missing complete-profile identity"
+assert len(complete_actual) == bed037["expected_per_profile"] == 2262
+assert len(complete_targets) == len(set(complete_targets)) == bed037["expected_targets"] == 40
+assert set(complete_targets) == expected_targets | {new_target}, "unexpected or missing complete-profile target"
+assert sum(len(group) for group in complete_groups) == len(complete_actual)
+
+def inventory_digest(identities):
+    return hashlib.sha256(("\n".join(sorted(identities)) + "\n").encode("utf-8")).hexdigest()
+
+assert inventory_digest(canonical_predecessors) == bed037["predecessor_sha256"] == "791376f66a84df706ee2ef7c5a66ec19c8e2bc5a2ff371a54e3466b18887ad62"
+assert inventory_digest(complete_actual) == bed037["expected_sha256"] == "d19fea5f852d74c6c3552e0c3e52d8c195da5a39419c0a77df04b4878bcde36a"
+print("BED-037 complete-profile reconciliation: 2143 exact predecessors across 39 targets + 119 classified additions = 2262 passed across 40 distinct Cargo targets; no new migrations")
+print(f"BED-037 predecessor inventory SHA-256: {inventory_digest(canonical_predecessors)}")
+print(f"BED-037 complete inventory SHA-256: {inventory_digest(complete_actual)}")
