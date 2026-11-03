@@ -189,45 +189,89 @@ fn authoritative_locations_preserve_tabs_crlf_and_alias_spelling() {
 #[test]
 fn usage_rejects_duplicates_conflicts_missing_unknown_and_capacity_errors() {
     let input = Input::new(ORDINARY, "options.bow");
-    let cases: &[&[&str]] = &[
-        &["--warn"],
-        &["--warn", "unknown"],
-        &["--warn", "--function"],
-        &[
-            "--warn",
-            "commentless-source",
-            "--warn",
-            "commentless-source",
-        ],
-        &[
-            "--allow",
-            "commentless-source",
-            "--deny",
-            "commentless-source",
-        ],
-        &["--warn=commentless-source"],
-        &["--max-lint-report-bytes"],
-        &["--max-lint-report-bytes", "0"],
-        &["--max-lint-report-bytes", "1048577"],
-        &["--max-lint-report-bytes", "184467440737095516160"],
-        &["--max-lint-report-bytes", "+1"],
-        &[
-            "--max-lint-report-bytes",
-            "1",
-            "--max-lint-report-bytes",
-            "1",
-        ],
+    let selected = Input::new(SELECTED, "audit-options.bow");
+    let cases: &[(&[&str], &str)] = &[
+        (&["--warn"], "missing run option value"),
+        (
+            &["--warn", "unknown"],
+            "invalid or repeated commentless-source setting",
+        ),
+        (
+            &["--warn", "--function"],
+            "invalid or repeated commentless-source setting",
+        ),
+        (
+            &[
+                "--warn",
+                "commentless-source",
+                "--warn",
+                "commentless-source",
+            ],
+            "invalid or repeated run option",
+        ),
+        (
+            &[
+                "--allow",
+                "commentless-source",
+                "--deny",
+                "commentless-source",
+            ],
+            "invalid or repeated commentless-source setting",
+        ),
+        (&["--warn=commentless-source"], "missing run option value"),
+        (&["--max-lint-report-bytes"], "missing run option value"),
+        (
+            &["--max-lint-report-bytes", "0"],
+            "invalid or overflowing lint reporting ceiling",
+        ),
+        (
+            &["--max-lint-report-bytes", "1048577"],
+            "invalid or overflowing lint reporting ceiling",
+        ),
+        (
+            &["--max-lint-report-bytes", "184467440737095516160"],
+            "invalid or overflowing lint reporting ceiling",
+        ),
+        (
+            &["--max-lint-report-bytes", "+1"],
+            "invalid or repeated lint reporting ceiling",
+        ),
+        (
+            &[
+                "--max-lint-report-bytes",
+                "1",
+                "--max-lint-report-bytes",
+                "1",
+            ],
+            "invalid or repeated run option",
+        ),
     ];
     for binary in BINARIES {
         for command in ["check", "verify", "run", "audit"] {
-            for case in cases {
-                let mut options = if command == "run" || command == "audit" {
-                    vec!["--function", "demo"]
-                } else {
-                    vec![]
-                };
+            let source = if command == "audit" {
+                &selected
+            } else {
+                &input
+            };
+            let surrounding = match command {
+                "audit" => vec!["--function", "demo", "--profile", "sensor-demo"],
+                "run" => vec!["--function", "demo"],
+                _ => vec![],
+            };
+            if command == "audit" {
+                let mut valid = surrounding.clone();
+                valid.extend(["--warn", "commentless-source"]);
+                let output = invoke(binary, command, source, &valid);
+                assert_eq!(output.status.code(), Some(0), "{}", stderr(&output));
+                assert!(std::str::from_utf8(&output.stdout)
+                    .unwrap()
+                    .starts_with("authority account v1\n"));
+                assert_eq!(output.stderr, warning(source.path(), 1, 1));
+            }
+            for &(case, diagnostic) in cases {
+                let mut options = surrounding.clone();
                 options.extend_from_slice(case);
-                let output = invoke(binary, command, &input, &options);
+                let output = invoke(binary, command, source, &options);
                 assert_eq!(
                     output.status.code(),
                     Some(2),
@@ -236,6 +280,15 @@ fn usage_rejects_duplicates_conflicts_missing_unknown_and_capacity_errors() {
                 );
                 assert!(output.stdout.is_empty());
                 assert!(!stderr(&output).contains("warning[commentless-source]"));
+                if command == "audit" {
+                    assert_eq!(
+                        stderr(&output),
+                        format!("error: {diagnostic}\n"),
+                        "{command} {case:?} must fail for the malformed option"
+                    );
+                    assert!(!stderr(&output)
+                        .contains("profile options and audit require --profile sensor-demo"));
+                }
             }
         }
     }
