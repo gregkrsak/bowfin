@@ -1640,8 +1640,9 @@ proof nor native execution evidence. Stage N remains separately unauthorized.
 ## BED-038 — Backend architecture direction
 
 **Status:** Direction Accepted by Greg for backend families, downstream C compiler,
-first target, and safety-first target eligibility. Detailed specification:
-PROPOSED Draft 2, not frozen; prototype investigations are separately unauthorized.
+first target, safety-first target eligibility, and modular target architecture.
+Detailed specification: PROPOSED Draft 2 with the owner-direction addendum below,
+not frozen; investigation execution requires its separate current authorization.
 
 [BED-038 / Issue #117](https://github.com/gregkrsak/bowfin/issues/117) selects direct
 LLVM and a first-class approved-MIR C emitter compiled with GCC. The initial target
@@ -1671,3 +1672,26 @@ modes, data layout, private ABI, production/installation, helper boundaries,
 approved closures, independent schedules and budgets must be resolved before
 freeze and separate full implementation authorization. No public C ABI, FFI,
 portable export, platform-support, or new verification claim is implied.
+
+### Modular targets — Direction Accepted
+
+Greg explicitly adopted [modular targets as decided design direction](https://github.com/gregkrsak/bowfin/issues/117#issuecomment-6614337703).
+Bowfin will use built-in target modules with explicit internal contracts, beginning
+with the selected x86-64 Linux target. Backend selection and target selection are
+separate. A target describes architecture/features, data layout, ABI, object
+format, operating environment and required runtime capabilities; an architecture
+name alone does not establish target compatibility.
+
+Shared frontend checks, original approved MIR and the sealed execution contract
+remain semantic authority. Target-specific generation and platform/runtime
+adapters implement that authority without redefining it. Each supported
+backend/target/profile combination requires evidence for generated code and all
+required target-runtime support together. Unsupported combinations reject
+explicitly; smaller targets receive no weakened semantics or evidence obligations.
+Sealed logical charges remain distinct from physical target storage and layout.
+
+Exact internal interfaces evolve through implementation and review. No public
+plugin API is promised. This accepts structure, not additional target support or
+an assembly backend. LLVM plus C/GCC remains the selected direction. Existing
+review scopes, open findings, investigation stop boundaries and separate freeze,
+implementation and human merge gates remain intact.

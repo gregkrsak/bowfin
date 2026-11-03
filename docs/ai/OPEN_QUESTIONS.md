@@ -772,3 +772,20 @@ boundary. Public FFI/layout, stable C export, runtime layering for freestanding
 targets, generalized MIR redesign, and OQ-011 realtime claims remain unresolved.
 The BED-035 Stage I boundary above remains historical and authoritative; its
 original lack of a backend selection is not a claim that no later direction exists.
+
+### Modular targets: settled direction, open mechanisms
+
+[Greg accepted modular target architecture](https://github.com/gregkrsak/bowfin/issues/117#issuecomment-6614337703).
+Built-in target modules, separation of backend from target selection, shared
+approved-MIR authority, distinct platform/runtime adapters and qualification of
+supported backend/target/profile combinations are settled direction. These are
+not open alternatives to a monolithic target design.
+
+OQ-012/OQ-013/OQ-016/OQ-026 retain the exact target-description schema, internal
+lowering and adapter interfaces, capability validation, registration mechanism,
+runtime composition and per-combination qualification details. Public CLI
+selection and any future plugin API remain unsettled. Only baseline x86-64 Linux
+System V AMD64 is selected initially; LLVM plus C/GCC remains the backend direction.
+An assembly backend, additional targets, public FFI/export and freestanding or
+realtime support require separate decisions and evidence. Existing findings and
+investigation stop boundaries are not closed by accepting this structure.

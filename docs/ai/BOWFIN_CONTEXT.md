@@ -966,6 +966,17 @@ translate surface syntax, bypass semantic checks, or delegate decisive execution
 to the interpreter. Clang is excluded from this C route; Cranelift is outside the
 selected work.
 
+Greg subsequently accepted [modular target architecture](https://github.com/gregkrsak/bowfin/issues/117#issuecomment-6614337703)
+as decided direction: built-in target modules with explicit contracts, separate
+backend and target selections, shared approved-MIR semantic authority, and
+distinct target generation and platform/runtime adapters. Begin with the selected
+x86-64 Linux target; qualify supported backend/target/profile combinations using
+generated code plus required runtime support. Exact interfaces remain open, with
+no public plugin API promise. No assembly backend or additional target is selected.
+The existing frontend, MIR and execution contract provide foundations; a modular
+native-target implementation does not yet exist. This direction does not resume
+stopped investigations or change their independent authorization gates.
+
 [BED-038 Draft 2](https://github.com/gregkrsak/bowfin/issues/117) continues the
 specification/review track and supersedes closed KED-036 / Issue #87. Greg also
 directed that target coverage, small footprint, and performance must not weaken

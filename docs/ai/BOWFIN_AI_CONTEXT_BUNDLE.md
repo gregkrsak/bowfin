@@ -979,6 +979,17 @@ translate surface syntax, bypass semantic checks, or delegate decisive execution
 to the interpreter. Clang is excluded from this C route; Cranelift is outside the
 selected work.
 
+Greg subsequently accepted [modular target architecture](https://github.com/gregkrsak/bowfin/issues/117#issuecomment-6614337703)
+as decided direction: built-in target modules with explicit contracts, separate
+backend and target selections, shared approved-MIR semantic authority, and
+distinct target generation and platform/runtime adapters. Begin with the selected
+x86-64 Linux target; qualify supported backend/target/profile combinations using
+generated code plus required runtime support. Exact interfaces remain open, with
+no public plugin API promise. No assembly backend or additional target is selected.
+The existing frontend, MIR and execution contract provide foundations; a modular
+native-target implementation does not yet exist. This direction does not resume
+stopped investigations or change their independent authorization gates.
+
 [BED-038 Draft 2](https://github.com/gregkrsak/bowfin/issues/117) continues the
 specification/review track and supersedes closed KED-036 / Issue #87. Greg also
 directed that target coverage, small footprint, and performance must not weaken
@@ -2794,8 +2805,9 @@ proof nor native execution evidence. Stage N remains separately unauthorized.
 ## BED-038 — Backend architecture direction
 
 **Status:** Direction Accepted by Greg for backend families, downstream C compiler,
-first target, and safety-first target eligibility. Detailed specification:
-PROPOSED Draft 2, not frozen; prototype investigations are separately unauthorized.
+first target, safety-first target eligibility, and modular target architecture.
+Detailed specification: PROPOSED Draft 2 with the owner-direction addendum below,
+not frozen; investigation execution requires its separate current authorization.
 
 [BED-038 / Issue #117](https://github.com/gregkrsak/bowfin/issues/117) selects direct
 LLVM and a first-class approved-MIR C emitter compiled with GCC. The initial target
@@ -2825,6 +2837,29 @@ modes, data layout, private ABI, production/installation, helper boundaries,
 approved closures, independent schedules and budgets must be resolved before
 freeze and separate full implementation authorization. No public C ABI, FFI,
 portable export, platform-support, or new verification claim is implied.
+
+### Modular targets — Direction Accepted
+
+Greg explicitly adopted [modular targets as decided design direction](https://github.com/gregkrsak/bowfin/issues/117#issuecomment-6614337703).
+Bowfin will use built-in target modules with explicit internal contracts, beginning
+with the selected x86-64 Linux target. Backend selection and target selection are
+separate. A target describes architecture/features, data layout, ABI, object
+format, operating environment and required runtime capabilities; an architecture
+name alone does not establish target compatibility.
+
+Shared frontend checks, original approved MIR and the sealed execution contract
+remain semantic authority. Target-specific generation and platform/runtime
+adapters implement that authority without redefining it. Each supported
+backend/target/profile combination requires evidence for generated code and all
+required target-runtime support together. Unsupported combinations reject
+explicitly; smaller targets receive no weakened semantics or evidence obligations.
+Sealed logical charges remain distinct from physical target storage and layout.
+
+Exact internal interfaces evolve through implementation and review. No public
+plugin API is promised. This accepts structure, not additional target support or
+an assembly backend. LLVM plus C/GCC remains the selected direction. Existing
+review scopes, open findings, investigation stop boundaries and separate freeze,
+implementation and human merge gates remain intact.
 
 <!-- END LANGUAGE_DECISIONS.md -->
 
@@ -4209,6 +4244,38 @@ layout/ABI, C dialect, mechanism, modes, schedules, budgets and public selection
 remain unfrozen. No implementation or additional platform is authorized here.
 KED-036 / Issue #87 and the original Draft 1 review records remain preserved.
 
+### Modular target architecture — Direction Accepted
+
+[Greg's recorded decision](https://github.com/gregkrsak/bowfin/issues/117#issuecomment-6614337703)
+requires built-in target modules with explicit internal contracts. Backend and
+target are separate selections; supported combinations must be explicit.
+
+| Boundary | Responsibility |
+|---|---|
+| Shared semantic core | Frontend checks, original approved MIR, sealed execution contract, and any common lowering with validated correspondence; no new semantic authority. |
+| Target description and generation | Instruction set/features, data layout/word sizes, byte order, alignment, calling convention/ABI, object format and target-specific emission requirements. LLVM/GCC supply machine lowering where delegated by their routes. |
+| Platform and required runtime | Execution environment, memory provisioning, loading/linking assumptions, required services, retained-state lifetime and physical resource bounds; isolate platform adapters from reusable runtime logic where valid. |
+| Qualification | Evidence for each supported backend/target/profile combination, including generated code and every required runtime component, data, stack and service. |
+
+Compiler-host and conformance tooling may remain off-target without removing
+applicable obligations. Target representations and instruction sequences may
+differ while preserving mathematical values, checks, outcomes, custody and the
+accepted contract. Preserve sealed logical charges independently of physical
+target layout; do not derive new logical charges from a target's representation.
+Unsupported combinations reject explicitly before native entry without fallback.
+
+The first implementation remains baseline x86-64 Linux System V AMD64. Refine
+internal interfaces through implementation and review before promising any public
+plugin API. Exact types, module paths, registration and public selection syntax
+are not settled here. This establishes no additional architecture, bare-metal or
+realtime support. The existing codegen placeholder is not an implementation of
+these modules. A possible assembly emitter would need its own target-specific
+instructions, registers, stack and ABI implementation, but has not been selected;
+the selected routes remain direct LLVM and C/GCC.
+
+This direction adds no implementation authorization and extends no earlier review
+to unreviewed artifacts. BED-038's open findings and investigation gates remain.
+
 <!-- END ARCHITECTURE.md -->
 
 ---
@@ -4989,5 +5056,22 @@ boundary. Public FFI/layout, stable C export, runtime layering for freestanding
 targets, generalized MIR redesign, and OQ-011 realtime claims remain unresolved.
 The BED-035 Stage I boundary above remains historical and authoritative; its
 original lack of a backend selection is not a claim that no later direction exists.
+
+### Modular targets: settled direction, open mechanisms
+
+[Greg accepted modular target architecture](https://github.com/gregkrsak/bowfin/issues/117#issuecomment-6614337703).
+Built-in target modules, separation of backend from target selection, shared
+approved-MIR authority, distinct platform/runtime adapters and qualification of
+supported backend/target/profile combinations are settled direction. These are
+not open alternatives to a monolithic target design.
+
+OQ-012/OQ-013/OQ-016/OQ-026 retain the exact target-description schema, internal
+lowering and adapter interfaces, capability validation, registration mechanism,
+runtime composition and per-combination qualification details. Public CLI
+selection and any future plugin API remain unsettled. Only baseline x86-64 Linux
+System V AMD64 is selected initially; LLVM plus C/GCC remains the backend direction.
+An assembly backend, additional targets, public FFI/export and freestanding or
+realtime support require separate decisions and evidence. Existing findings and
+investigation stop boundaries are not closed by accepting this structure.
 
 <!-- END OPEN_QUESTIONS.md -->

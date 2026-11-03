@@ -1374,3 +1374,35 @@ review, with early cost gates and no automatic production adoption. Exact builds
 layout/ABI, C dialect, mechanism, modes, schedules, budgets and public selection
 remain unfrozen. No implementation or additional platform is authorized here.
 KED-036 / Issue #87 and the original Draft 1 review records remain preserved.
+
+### Modular target architecture — Direction Accepted
+
+[Greg's recorded decision](https://github.com/gregkrsak/bowfin/issues/117#issuecomment-6614337703)
+requires built-in target modules with explicit internal contracts. Backend and
+target are separate selections; supported combinations must be explicit.
+
+| Boundary | Responsibility |
+|---|---|
+| Shared semantic core | Frontend checks, original approved MIR, sealed execution contract, and any common lowering with validated correspondence; no new semantic authority. |
+| Target description and generation | Instruction set/features, data layout/word sizes, byte order, alignment, calling convention/ABI, object format and target-specific emission requirements. LLVM/GCC supply machine lowering where delegated by their routes. |
+| Platform and required runtime | Execution environment, memory provisioning, loading/linking assumptions, required services, retained-state lifetime and physical resource bounds; isolate platform adapters from reusable runtime logic where valid. |
+| Qualification | Evidence for each supported backend/target/profile combination, including generated code and every required runtime component, data, stack and service. |
+
+Compiler-host and conformance tooling may remain off-target without removing
+applicable obligations. Target representations and instruction sequences may
+differ while preserving mathematical values, checks, outcomes, custody and the
+accepted contract. Preserve sealed logical charges independently of physical
+target layout; do not derive new logical charges from a target's representation.
+Unsupported combinations reject explicitly before native entry without fallback.
+
+The first implementation remains baseline x86-64 Linux System V AMD64. Refine
+internal interfaces through implementation and review before promising any public
+plugin API. Exact types, module paths, registration and public selection syntax
+are not settled here. This establishes no additional architecture, bare-metal or
+realtime support. The existing codegen placeholder is not an implementation of
+these modules. A possible assembly emitter would need its own target-specific
+instructions, registers, stack and ABI implementation, but has not been selected;
+the selected routes remain direct LLVM and C/GCC.
+
+This direction adds no implementation authorization and extends no earlier review
+to unreviewed artifacts. BED-038's open findings and investigation gates remain.
