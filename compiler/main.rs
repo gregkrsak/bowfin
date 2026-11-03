@@ -1,6 +1,12 @@
 use std::{env, fs, process};
 
-use bowfin_compiler::{compile_source, diagnostics::Diagnostic, execution, verify, FrontendError};
+use bowfin_compiler::{
+    compile_source_with_facts, diagnostics::Diagnostic, execution, source_facts, verify,
+    FrontendError,
+};
+#[cfg(test)]
+use bowfin_compiler::{ast, hir, lexer, parse_source_with_facts};
+mod lint_reporting;
 mod run_reporting;
 
 // Compile-time target identity; argv[0] cannot select a different implementation.
@@ -55,10 +61,18 @@ fn run() -> Result<(), i32> {
         return Err(2);
     };
 
-    if args.next().is_some() {
-        eprintln!("error: too many arguments");
-        print_usage();
-        return Err(2);
+    let mut lint = lint_reporting::Settings::default();
+    let mut level_seen = false;
+    let mut capacity_seen = false;
+    while let Some(flag) = args.next() {
+        let value = args.next().ok_or_else(|| {
+            eprintln!("error: missing lint option value");
+            2
+        })?;
+        if !lint_option(&flag, &value, &mut lint, &mut level_seen, &mut capacity_seen)? {
+            eprintln!("error: unknown check/verify option");
+            return Err(2);
+        }
     }
 
     let source = match fs::read_to_string(&path) {
@@ -69,8 +83,8 @@ fn run() -> Result<(), i32> {
         }
     };
 
-    let program = match compile_source(&source) {
-        Ok(program) => program,
+    let (program, facts) = match compile_source_with_facts(&source) {
+        Ok(prepared) => prepared.into_parts(),
         Err(error) => {
             let (span, message) = match error {
                 FrontendError::Lex(error) => (error.span, error.message),
@@ -102,6 +116,7 @@ fn run() -> Result<(), i32> {
     let report = verify::verify_report(&program);
 
     if report.diagnostics.is_empty() {
+        lint_gate(&facts, &path, lint).map_err(lint_status)?;
         let ordinary = program
             .functions()
             .iter()
@@ -184,6 +199,9 @@ fn run_execution(mut args: impl Iterator<Item = String>, audit: bool) -> Result<
     let mut scenario = None;
     let mut grants = None;
     let mut sensor_limit = None;
+    let mut lint = lint_reporting::Settings::default();
+    let mut level_seen = false;
+    let mut capacity_seen = false;
     let mut flags = std::collections::BTreeSet::new();
     for _ in 0..32 {
         let Some(flag) = args.next() else {
@@ -197,6 +215,9 @@ fn run_execution(mut args: impl Iterator<Item = String>, audit: bool) -> Result<
             eprintln!("error: missing run option value");
             return Err(2);
         };
+        if lint_option(&flag, &value, &mut lint, &mut level_seen, &mut capacity_seen)? {
+            continue;
+        }
         if matches!(
             flag.as_str(),
             "--profile" | "--scenario" | "--grants" | "--sensor-limit"
@@ -361,14 +382,13 @@ fn run_execution(mut args: impl Iterator<Item = String>, audit: bool) -> Result<
             return Err(2);
         }
     };
-    let prepared = match &selection {
-        Some(selection) => {
-            execution::prepare_execution_from_reader_with_profile(file, admission, selection)
-        }
-        None => execution::prepare_execution_from_reader(file, admission),
-    };
-    let artifact = match prepared {
-        Ok(e) => e,
+    let prepared = execution::prepare_execution_from_reader_with_facts(
+        file,
+        admission,
+        selection.as_ref(),
+    );
+    let (artifact, facts) = match prepared {
+        Ok(e) => e.into_parts(),
         Err(e) => {
             return run_reporting::preparation_error(
                 &e,
@@ -379,14 +399,11 @@ fn run_execution(mut args: impl Iterator<Item = String>, audit: bool) -> Result<
     };
     if selection.is_some() {
         if audit {
-            return match artifact.render_authority(execution) {
+            return match artifact.render_authority_with_gate(execution, || {
+                lint_gate(&facts, &path, lint)
+            }) {
                 Ok(text) => execution::write_output(std::io::stdout().lock(), &text).map_err(|_| 2),
-                Err(e) => run_reporting::execution_error(
-                    &artifact,
-                    &e,
-                    execution.rendered_output,
-                    std::io::stderr().lock(),
-                ),
+                Err(e) => report_gated_error(&artifact, e, execution.rendered_output),
             };
         }
         let mut session = match artifact
@@ -403,6 +420,7 @@ fn run_execution(mut args: impl Iterator<Item = String>, audit: bool) -> Result<
                 )
             }
         };
+        lint_gate(&facts, &path, lint).map_err(lint_status)?;
         // The session owns binding state and all terminal custody through result,
         // diagnostic rendering and the final writer operation.
         return match session.advance() {
@@ -423,17 +441,106 @@ fn run_execution(mut args: impl Iterator<Item = String>, audit: bool) -> Result<
             ),
         };
     }
-    let result = artifact
-        .entry(&entry)
-        .and_then(|entry| execution::execute(&artifact, entry, execution))
-        .and_then(|r| artifact.render_result(&r, execution.rendered_output));
+    let entry = match artifact.entry(&entry) {
+        Ok(entry) => entry,
+        Err(error) => {
+            return run_reporting::execution_error(
+                &artifact,
+                &error,
+                execution.rendered_output,
+                std::io::stderr().lock(),
+            );
+        }
+    };
+    let result = execution::execute_with_gate(&artifact, entry, execution, || {
+        lint_gate(&facts, &path, lint)
+    });
     match result {
-        Ok(text) => execution::write_output(std::io::stdout().lock(), &text).map_err(|_| 2),
-        Err(e) => run_reporting::execution_error(
-            &artifact,
-            &e,
-            execution.rendered_output,
-            std::io::stderr().lock(),
-        ),
+        Ok(result) => match artifact.render_result(&result, execution.rendered_output) {
+            Ok(text) => execution::write_output(std::io::stdout().lock(), &text).map_err(|_| 2),
+            Err(error) => run_reporting::execution_error(
+                &artifact,
+                &error,
+                execution.rendered_output,
+                std::io::stderr().lock(),
+            ),
+        },
+        Err(error) => report_gated_error(&artifact, error, execution.rendered_output),
+    }
+}
+
+// These controls are CLI policy only; semantic preparation never parses them.
+fn lint_option(
+    flag: &str,
+    value: &str,
+    settings: &mut lint_reporting::Settings,
+    level_seen: &mut bool,
+    capacity_seen: &mut bool,
+) -> Result<bool, i32> {
+    use lint_reporting::Severity;
+    if matches!(flag, "--allow" | "--warn" | "--deny") {
+        if *level_seen || value != "commentless-source" {
+            eprintln!("error: invalid or repeated commentless-source setting");
+            return Err(2);
+        }
+        *level_seen = true;
+        settings.severity = match flag {
+            "--allow" => Severity::Allow,
+            "--deny" => Severity::Deny,
+            _ => Severity::Warn,
+        };
+        return Ok(true);
+    }
+    if flag == "--max-lint-report-bytes" {
+        if *capacity_seen || value.is_empty() || !value.bytes().all(|b| b.is_ascii_digit()) {
+            eprintln!("error: invalid or repeated lint reporting ceiling");
+            return Err(2);
+        }
+        let n = value.parse::<usize>().ok().filter(|n| {
+            *n > 0 && *n <= lint_reporting::MAX_REPORT_BYTES
+        });
+        let Some(n) = n else {
+            eprintln!("error: invalid or overflowing lint reporting ceiling");
+            return Err(2);
+        };
+        *capacity_seen = true;
+        settings.report_bytes = n;
+        return Ok(true);
+    }
+    Ok(false)
+}
+
+fn lint_gate(
+    facts: &source_facts::SourceFacts,
+    path: &str,
+    settings: lint_reporting::Settings,
+) -> Result<(), lint_reporting::Outcome> {
+    let outcome = lint_reporting::report(facts, path, settings, std::io::stderr().lock());
+    if outcome.exit_code().is_some() {
+        Err(outcome)
+    } else {
+        Ok(())
+    }
+}
+
+fn lint_status(outcome: lint_reporting::Outcome) -> i32 {
+    outcome.exit_code().unwrap_or(2)
+}
+
+fn report_gated_error(
+    artifact: &execution::CheckedExecutable,
+    error: execution::GatedError<lint_reporting::Outcome>,
+    allowance: usize,
+) -> Result<(), i32> {
+    match error {
+        execution::GatedError::Gate(outcome) => Err(lint_status(outcome)),
+        execution::GatedError::Primary(error) | execution::GatedError::Operation(error) => {
+            run_reporting::execution_error(
+                artifact,
+                &error,
+                allowance,
+                std::io::stderr().lock(),
+            )
+        }
     }
 }

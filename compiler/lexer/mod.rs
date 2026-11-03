@@ -86,26 +86,42 @@ impl fmt::Display for LexError {
 
 impl std::error::Error for LexError {}
 
+#[cfg(test)]
+thread_local! {
+    static SCANS: std::cell::Cell<usize> = const { std::cell::Cell::new(0) };
+}
+
+#[cfg(test)]
+pub(crate) fn with_scan_count<T>(f: impl FnOnce() -> T) -> (T, usize) {
+    struct Restore(usize);
+    impl Drop for Restore {
+        fn drop(&mut self) {
+            SCANS.with(|scans| scans.set(self.0));
+        }
+    }
+    let _restore = Restore(SCANS.with(|scans| scans.replace(0)));
+    let value = f();
+    (value, SCANS.with(std::cell::Cell::get))
+}
+
 pub fn lex(source: &str) -> Result<Vec<Token>, LexError> {
-    lex_impl(source, None)
+    lex_with_comments(source, None).map(|(tokens, _)| tokens)
 }
 pub(crate) fn reserved_result_family(name: &str) -> Option<&'static str> {
     ["Result", "Ok", "Error", "Err", "match"]
         .into_iter()
         .find(|canonical| name.eq_ignore_ascii_case(canonical))
 }
-pub(crate) fn lex_bounded(
-    source: &str,
-    context: &crate::bounded::Context,
-) -> Result<Vec<Token>, LexError> {
-    lex_impl(source, Some(context))
-}
-fn lex_impl(
+/// Shared lexical scan; the companion boolean never retains comment text.
+pub(crate) fn lex_with_comments(
     source: &str,
     context: Option<&crate::bounded::Context>,
-) -> Result<Vec<Token>, LexError> {
+) -> Result<(Vec<Token>, bool), LexError> {
+    #[cfg(test)]
+    SCANS.with(|scans| scans.set(scans.get() + 1));
     let bytes = source.as_bytes();
     let mut tokens = Vec::new();
+    let mut has_comment = false;
     let mut i = 0usize;
     let mut line = 1usize;
     let mut column = 1usize;
@@ -158,6 +174,7 @@ fn lex_impl(
                 column = 1;
             }
             b'/' if i + 1 < bytes.len() && bytes[i + 1] == b'/' => {
+                has_comment = true;
                 while i < bytes.len() && bytes[i] != b'\n' {
                     i += 1;
                     column += 1;
@@ -486,7 +503,7 @@ fn lex_impl(
         },
     });
 
-    Ok(tokens)
+    Ok((tokens, has_comment))
 }
 
 fn push_one(

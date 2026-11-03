@@ -81,7 +81,7 @@ fn m2_normal_check_verify_and_run_streams_are_identical() {
     let path = example("battery_ok.bow");
     for (command, verb) in [("check", "checked"), ("verify", "verified")] {
         let output = equivalent(&[command, &path], 0);
-        assert!(output.stderr.is_empty());
+        assert_eq!(output.stderr, format!("warning[commentless-source]: this source file contains no comments\n  --> {path}:1:1\nhelp: explain the file's purpose, domain meaning, or important assumptions\n").as_bytes());
         assert_eq!(String::from_utf8(output.stdout).unwrap(), format!("{verb} supported integer contracts: {path}\n  function bodies proven: 1 (subtraction safety, field ranges, postconditions)\n  calls checked: 1 (argument ranges, mutable access, preconditions)\n  scope: ordinary control flow with loop-stable Copy state and iteration-local Move/borrowing plus stable carried references and specialized signed i64 contract prototype; general ownership, effects, and code generation are not implemented\n"));
     }
     let path = example("ordinary_run.bow");

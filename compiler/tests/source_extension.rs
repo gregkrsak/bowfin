@@ -258,6 +258,16 @@ fn assert_result(output: &Output, expected: &str) {
     assert!(output.stderr.is_empty());
 }
 
+fn assert_commentless_warning(output: &Output, path: &Path) {
+    assert_eq!(output.stderr, format!("warning[commentless-source]: this source file contains no comments\n  --> {}:1:1\nhelp: explain the file's purpose, domain meaning, or important assumptions\n", path.to_str().unwrap()).as_bytes());
+}
+
+fn assert_result_with_warning(output: &Output, expected: &str, path: &Path) {
+    assert_eq!(output.status.code(), Some(0), "{:?}", output);
+    assert_eq!(output.stdout, expected.as_bytes());
+    assert_commentless_warning(output, path);
+}
+
 fn selected_options<'a>(root: &'a str, scenario: &'a str) -> Vec<&'a str> {
     vec![
         "--function",
@@ -446,7 +456,15 @@ fn m3_corpus_runs_and_audits_have_independent_outcomes() {
                 &examples().join(format!("{name}.bow")),
                 &["--function", root],
             );
-            assert_result(&output, expected);
+            if matches!(name, "contextual_range_literals" | "owned_replacement") {
+                assert_result_with_warning(
+                    &output,
+                    expected,
+                    &examples().join(format!("{name}.bow")),
+                );
+            } else {
+                assert_result(&output, expected);
+            }
         }
     }
     for (name, root, extra, cause) in [
@@ -494,7 +512,15 @@ fn m3_corpus_runs_and_audits_have_independent_outcomes() {
             ("sentinel", "monitor", "critical", "Ok(Report { observations: Count(2), warnings: Count(1), critical: Count(1), peak: Reading(90), disposition: Disposition(2), completed: Count(2) })\n"),
         ] {
             let output = invoke(binary, "run", &examples().join(format!("{name}.bow")), &selected_options(root, scenario));
-            assert_result(&output, expected);
+            if name == "sensor_finish" {
+                assert_result_with_warning(
+                    &output,
+                    expected,
+                    &examples().join("sensor_finish.bow"),
+                );
+            } else {
+                assert_result(&output, expected);
+            }
         }
         for (name, root, finish) in [
             ("trusted_sensor", "sample", false),
@@ -508,7 +534,11 @@ fn m3_corpus_runs_and_audits_have_independent_outcomes() {
                 &selected_options(root, "sample"),
             );
             assert_eq!(output.status.code(), Some(0));
-            assert!(output.stderr.is_empty());
+            if name == "sensor_finish" {
+                assert_commentless_warning(&output, &examples().join("sensor_finish.bow"));
+            } else {
+                assert!(output.stderr.is_empty());
+            }
             let text = String::from_utf8(output.stdout).unwrap();
             assert!(text.starts_with("authority account v1\ntarget=bowfin.ordinary-mir.v1\ncompiler=bowfin-compiler/0.0.1\n"));
             assert!(text.contains(&format!("name={root}")));
@@ -560,7 +590,7 @@ fn m3_legacy_and_canonical_paths_preserve_both_commands() {
             for command in ["check", "verify"] {
                 let output = invoke(binary, command, &path, &[]);
                 assert_eq!(output.status.code(), Some(0));
-                assert!(output.stderr.is_empty());
+                assert_commentless_warning(&output, &path);
                 let text = String::from_utf8(output.stdout).unwrap();
                 assert!(text.contains(path.to_str().unwrap()));
                 assert!(text.contains("function bodies proven: 1"));
@@ -584,9 +614,10 @@ fn m3_same_stem_and_other_explicit_paths_select_actual_bytes() {
             (&other, "Bool(false)\n"),
             (&no_suffix, "Bool(true)\n"),
         ] {
-            assert_result(
+            assert_result_with_warning(
                 &invoke(binary, "run", path, &["--function", "demo"]),
                 expected,
+                path,
             );
         }
     }

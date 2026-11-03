@@ -934,3 +934,25 @@ actual optimized/unoptimized comparisons and native physical-failure evidence
 remain mandatory deferred Stage N work requiring a separately authorized BED.
 Stage I acceptance and merge do not authorize Stage N. See
 `docs/engineering/BED-035-STAGE-I-LEDGER.md` and its evidence manifest.
+
+## BED-037 — Commentless-source documentation lint implementation candidate
+
+BED-037 Draft 2 is frozen in Issue #115 at baseline
+`ac0382ea2299388a3557839316a8feeeed6d6990`. This candidate implements a default
+`commentless-source` warning from lexer-authoritative comment presence and parsed
+source eligibility, with explicit allow/warn/deny controls. It makes no comment
+quality or new language-semantics claim and creates no new BD.
+
+The independent lint-report ceiling defaults to 65,536 bytes, supports at most
+1,048,576 bytes and uses `--max-lint-report-bytes`. It is a ceiling rather than an
+up-front allocation: the complete record is sized before requesting only its
+actual payload. Facts remain owned fixed metadata outside semantic and opaque
+execution artifacts. Existing semantic APIs remain nonprinting.
+
+Command-specific primary checks precede the lint gate. Ordinary entry admission,
+selected-profile session state and authority-audit preflight are retained across
+the gate without duplicate admission. Denial or incomplete required-warning
+delivery prevents the prohibited operation; partial and emergency output never
+authorize execution. Existing result/audit accounts and run/verify distinctions
+remain unchanged. Independent implementation review and Greg's separate
+acceptance remain required; this candidate does not authorize a merge.
