@@ -1,0 +1,25 @@
+--- a/.github/workflows/bed-038-x03.yml
++++ b/.github/workflows/bed-038-x03.yml
+@@ -19,10 +19,10 @@
+     if: ${{ true }}
+     needs: baseline-runner-account
+     runs-on: ubuntu-24.04
+-    timeout-minutes: 10
++    timeout-minutes: 20
+     env:
+-      B38_PHASE: preflight
+-      B38_PREFLIGHT: none
++      B38_PHASE: admission
++      B38_PREFLIGHT: confirmed:REVIEW_ID:ARTIFACT_SHA256:MECHANISM_SHA256:RUNTIME_SHA256
+       PYTHONDONTWRITEBYTECODE: '1'
+     steps:
+       - name: Bounded bootstrap before any checkout or action acquisition
+@@ -461,7 +461,7 @@
+       - name: Audited lifecycle; no progression on success
+         id: b38_parent
+         run: |
+-          sudo --preserve-env=GITHUB_ACTIONS,GITHUB_WORKSPACE,GITHUB_SHA,GITHUB_RUN_ATTEMPT,GITHUB_RUN_ID,GITHUB_SERVER_URL,GITHUB_REPOSITORY,ImageVersion,B38_PHASE,B38_PREFLIGHT timeout --kill-after=5s 295s systemd-run --quiet --pipe --wait --slice=b38-x03.slice --unit=b38-x03-parent --working-directory="$GITHUB_WORKSPACE" -p RuntimeMaxSec=285 -p TimeoutStartSec=5 -p TimeoutStopSec=2 -p KillMode=control-group -p LimitCORE=0 -p CPUQuota=200% -p AllowedCPUs=0,1 -p MemoryMax=4G -p MemorySwapMax=0 --setenv=GITHUB_ACTIONS --setenv=GITHUB_WORKSPACE --setenv=GITHUB_SHA --setenv=GITHUB_RUN_ATTEMPT --setenv=GITHUB_RUN_ID --setenv=GITHUB_SERVER_URL --setenv=GITHUB_REPOSITORY --setenv=ImageVersion --setenv=B38_PHASE --setenv=B38_PREFLIGHT python3 -B source/experiments/bed-038/x03/launch.py run &
++          sudo --preserve-env=GITHUB_ACTIONS,GITHUB_WORKSPACE,GITHUB_SHA,GITHUB_RUN_ATTEMPT,GITHUB_RUN_ID,GITHUB_SERVER_URL,GITHUB_REPOSITORY,ImageVersion,B38_PHASE,B38_PREFLIGHT timeout --kill-after=5s 775s systemd-run --quiet --pipe --wait --slice=b38-x03.slice --unit=b38-x03-parent --working-directory="$GITHUB_WORKSPACE" -p RuntimeMaxSec=765 -p TimeoutStartSec=5 -p TimeoutStopSec=2 -p KillMode=control-group -p LimitCORE=0 -p CPUQuota=200% -p AllowedCPUs=0,1 -p MemoryMax=4G -p MemorySwapMax=0 --setenv=GITHUB_ACTIONS --setenv=GITHUB_WORKSPACE --setenv=GITHUB_SHA --setenv=GITHUB_RUN_ATTEMPT --setenv=GITHUB_RUN_ID --setenv=GITHUB_SERVER_URL --setenv=GITHUB_REPOSITORY --setenv=ImageVersion --setenv=B38_PHASE --setenv=B38_PREFLIGHT python3 -B source/experiments/bed-038/x03/launch.py run &
+           b38_client=$!
+           b38_ticks=''
+           if { IFS= read -r b38_proc < "/proc/$b38_client/stat"; } 2>/dev/null; then

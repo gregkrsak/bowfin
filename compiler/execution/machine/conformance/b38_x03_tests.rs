@@ -24,11 +24,16 @@ mod investigation {
     }
     fn limits() -> AdmissionLimits {
         AdmissionLimits {
+            source_bytes: 65_536,
             tokens: 4096,
+            identifier_bytes: 128,
             frontend_work: 10_000_000_000_000_000,
+            traversal_depth: 22,
+            alias_depth: 48,
+            alias_work: 1_000_000,
             working_storage: 1_073_741_824,
             diagnostic_storage: 4_194_304,
-            ..AdmissionLimits::default()
+            rendered_output: 65_536,
         }
     }
     fn inventory(
@@ -54,11 +59,24 @@ mod investigation {
         writeln!(out, "CLEANUP_EFFECTS {:#?}", executable.cleanup_effects)?;
         writeln!(out, "RESULT_PLANS {:#?}", executable.result_plans)?;
         for (root, expected) in roots {
+            writeln!(out, "STAGE {label} root={root} extraction-start")?;
             let entry = executable.entry(root).expect("admitted root");
-            let contract =
-                contract::Contract::extract(&executable, entry, contract::Limits::default())
-                    .expect("contract extraction");
-            contract.validate().expect("unchanged contract validation");
+            let contract = match contract::Contract::extract(
+                &executable,
+                entry,
+                contract::Limits::default(),
+            ) {
+                Ok(value) => value,
+                Err(error) => {
+                    writeln!(out, "EXTRACTION_FAILURE root={root} {error:#?}")?;
+                    return Err(io::Error::other("contract extraction"));
+                }
+            };
+            if let Err(error) = contract.validate() {
+                writeln!(out, "VALIDATION_FAILURE root={root} {error:#?}")?;
+                return Err(io::Error::other("unchanged contract validation"));
+            }
+            writeln!(out, "STAGE {label} root={root} extraction-validated")?;
             let mut names: Vec<_> = contract
                 .functions()
                 .iter()
@@ -92,6 +110,14 @@ mod investigation {
             left: 8 * 1024 * 1024,
         };
         writeln!(out, "B38-X03 static-v1\nADMISSION_LIMITS {:?}", limits())?;
+        let completion_geometry = (
+            std::mem::size_of::<crate::trusted::approval::CompletionPlan>(),
+            std::mem::size_of::<crate::trusted::approval::Invocation>(),
+        );
+        writeln!(
+            out,
+            "BUILD_GEOMETRY CompletionPlan,Invocation={completion_geometry:?} unit=bytes"
+        )?;
         writeln!(
             out,
             "SCHEDULE_UNITS representation/capacity=bytes fuel_unit=logical-actions"
@@ -119,6 +145,7 @@ mod investigation {
             ("short", &["short", "step"]),
             ("wide_trap", &["wide_trap", "wide_seed"]),
         ];
+        writeln!(out, "STAGE computational admission-start")?;
         inventory(
             &mut out,
             "computational",
@@ -144,6 +171,7 @@ mod investigation {
             ("monitor", &["monitor", "failed", "read_code"]),
             ("b38_probe", &["b38_probe", "b38_read", "b38_relay"]),
         ];
+        writeln!(out, "STAGE sentinel-companion admission-start")?;
         let admitted = prepare_execution_with_profile(combined, limits(), &selection);
         inventory(&mut out, "sentinel-companion", admitted, roots)?;
         let (_, starts) = crate::execution::execution_observations();

@@ -1,21 +1,26 @@
 {
   "package": "B38-X03",
-  "stage": "admission-and-inventory-only",
+  "stage": "prepared-source-only; experimental jobs disabled; no new execution evidence",
   "authorization_comment": 6609874959,
   "assignment_comment": 6609513223,
   "assignment_sha256": "04eabdb1c83bbf736b88d7fc633744df91736ca34cfebb6838230522c6d6260c",
+  "amendment_1_comment": 6612836370,
+  "amendment_2_adoption_comment": 6617794326,
   "baseline_commit": "fb67a7608ab75d9b6721e91b58dbf61e8edaace1",
   "baseline_tree": "c9e5047eaec9430698cd7a82c1d05205d729994f",
+  "resume_commit": "975a4f0277203f5b795305f22e5c23b4dace1053",
+  "resume_tree": "13dd9fae2bf837835e1ce3d2cfcb5caf383cb90b",
   "design_head": "efb636de48c7b7b6c412aa30520e112329baed80",
   "design_tree": "5e2376650d6306e127cfe107c98e7f286aa652e8",
   "draft_sha256": "31abb5a224a8c877d64749cc548588a3910d7df400bf99c7411b58e60c53dd85",
   "branch": "bed-038-x03-workload-inventory",
   "target": "staging",
-  "launch_identity": "GITHUB_SHA and its tree; exact workflow SHA-256 and observed runner are retained before Rust compilation",
+  "launch_identity": "Require exact source/tree, workflow, policy, argv/environment, runner and effective controls before any future protected launch",
   "fixture_sha256": {
     "companion-suffix.bow": "ba74eceee3661196f85e89d21aebc41c52a009fe6bc876822cb353abfbfaa055",
     "computational.bow": "1c9a863981ec28467de4f1850ba797a6ad19652fb6613897d94ceae402d4fe42"
   },
+  "sentinel_git_blob": "7fbd56a828e3110c60f31c1d879644befe085526",
   "combined_sha256": "c0c3725889590b60a1df713f4d25a252f0774b1eab4373a7e8256cbb4ca02934",
   "roots": [
     "compute",
@@ -25,43 +30,72 @@
     "monitor",
     "b38_probe"
   ],
-  "profile": "sensor-demo only for custody",
-  "grants": "ALL; open/read/finish/release",
+  "profile": "sensor-demo only for custody; Sample; roots monitor and b38_probe",
+  "grants": "ALL; open/read/finish/release; unchanged public resource-egress restrictions",
   "live_sensor_limit": 1,
+  "admission_change": "Traversal depth 24 to 22 is the sole admission-setting change; all other values below are unchanged",
   "admission": {
+    "source_bytes": 65536,
     "tokens": 4096,
+    "identifier_bytes": 128,
     "frontend_work": 10000000000000000,
+    "traversal_depth": 22,
+    "alias_depth": 48,
+    "alias_work": 1000000,
     "working_storage": 1073741824,
-    "diagnostic_storage": 4194304
+    "diagnostic_storage": 4194304,
+    "rendered_output": 65536
   },
-  "scenarios": "See EXPECTATIONS.md; no scenario execution in this stage",
+  "geometry_prediction": {
+    "status": "Unexecuted, representation-dependent initial reservation prediction; not observed allocation or admission success",
+    "inputs": "n=689 including EOF; B=7866; I=128; K=10; H=34; D=22; completion descriptor quantity=1320 bytes",
+    "initial_bytes": 1067126480,
+    "headroom_bytes": 6615344,
+    "unresolved": "Actual build geometry, parser depth and later ownership/effect/plan/lowering/correspondence/extraction gates; changed geometry is a finding"
+  },
   "process": {
     "cpus": 2,
     "memory_bytes": 4294967296,
     "swap_bytes": 0,
-    "scratch_bytes": 4294967296,
-    "runtime_seconds": 720,
-    "job_minutes": 20,
-    "output_file_bytes": 8388608
+    "total_task_disk_bytes": 4294967296,
+    "external_partition_bytes": 134217728,
+    "scratch_backing_bytes": 4160749568,
+    "preflight_active_parent_job": "240 seconds / 300 seconds / 10 minutes",
+    "admission_active_parent_job": "720 seconds / 780 seconds / 20 minutes",
+    "inventory_output_file_bytes": 8388608
   },
-  "enforcement": "systemd cgroup v2 + two-CPU cpuset, CPUQuota=200%, MemoryMax, MemorySwapMax=0; fixed ext4 scratch; ProtectSystem=strict; verify effective state first",
-  "schema": "bounded UTF-8 static inventory; canonical Debug IDs/origins/plans and labeled schedule quantities; no primary execution history",
-  "comparison_gate": "No interpreter execution before separately committed exact independent schedules",
+  "storage_account": "The unchanged 4 GiB includes acquired inputs, checkout, parent records, scratch/backing, caches, logs, outputs, copies, archive and failure evidence; the external partition reduces scratch",
+  "enforcement_gate": "Future launches require independently reviewed complete confinement and effective mount/IPC/descriptor/resource audits; no corrected mechanism protected either historical run",
+  "phases": "A disabled prepared source requires Sarah review before push; B one inert preflight; C one debug admission only after Sarah confirms actual preflight and actual runner repeats full audit; D disabled closeout",
+  "schema": "Bounded static Debug inventory with original IDs/origins/plans and labeled schedule quantities; no primary execution history or complete workload oracle",
+  "comparison_gate": "This amendment permits no interpreter/session construction or advancement; complete independent schedules and comparison authorization remain later gates",
   "retention_days": 30,
   "budget": {
-    "handwritten_lines": 600,
+    "historical_handwritten_lines": 595,
     "unsafe_ffi_lines": 0,
     "new_cargo_dependencies": 0,
-    "cpu_minutes_total": 120,
-    "human_engineer_days": 2
+    "historical_cpu_proxy_minutes": 94.4,
+    "cpu_proxy_minutes_total": 2250,
+    "protected_closeout_cpu_proxy_minutes": 440,
+    "retired_handwritten_ceiling": 1700,
+    "handwritten_account": "Informational; preserve historical corrected1815 and all subsequent gross work. No line-count readiness gate."
   },
-  "cost_method": "All automatic and experiment jobs/attempts; allocation times elapsed as proxy; actual experimental allocation recorded; baseline allocation must be resolved, not silently assumed",
+  "cost_method": "Retain all earlier costs; charge all attempts/automatic CI and complete observable allocation; no human-hours gate; provider ten-minute tail is an adopted assumption, never a proven bound",
   "baseline_inventory_sha256": "d19fea5f852d74c6c3552e0c3e52d8c195da5a39419c0a77df04b4878bcde36a",
-  "attempt_1": {
-    "run": 41678693408,
-    "artifact": 13252635601,
-    "sha256": "39c0660cd4128c16d66d8f88104fedde1bbc842425573bda2a4c213cfbce94b9",
-    "result": "Resource confinement verified; rustup self-update attempted protected home write and exited before compilation. No expectations changed.",
-    "repair": "--no-self-update prevents tool self-update; preserve all confinement. Exact two rustfmt corrections from existing Actions log."
-  }
+  "historical_correction": {
+    "incorrect_attempt_1_claim": "Resource confinement verified",
+    "correction": "That historical claim was incorrect: complete whole-task confinement was not established. The protected-home write rejection did not prove the omitted mount/storage/IPC/descriptor/lifecycle guarantees",
+    "attempt_1": "commit ee7b4a17ef95d78bf560f86af706694360da9718; tree 1b5649dcca4a66be32e863b6b58fc19594117997; run 41678693408; artifact 13252635601; ZIP SHA-256 39c0660cd4128c16d66d8f88104fedde1bbc842425573bda2a4c213cfbce94b9",
+    "attempt_1_result": "Stopped before Rust compilation when rustup attempted self-update in protected home; retain original manifest, artifact and report as historical evidence",
+    "attempt_2": "commit 7c01f0b9a998fe97ad665fef86b60f1118a6b2e5; tree cd992c6bb96062089d53d03b4651993b9c9627a4; run 41679108551; artifact 13251298236; ZIP SHA-256 d407dd7c22ac1a84e735bc872620ce9bd926a20de406cb6dcdb445b723279539",
+    "attempt_2_result": "Partial computational static inventory, then ConfiguredLimit(Result outcome storage reservation); complete disk confinement remained unestablished; no source execution"
+  },
+  "process_simplification_comment": 6619582603,
+  "source_repair_authorization": 6621867303,
+  "source_repair_review": 6621858052,
+  "reviewed_unpublished_start_tree": "e04859cf95c61ef322adf64f56864fc31cbc2d4a",
+  "repair_status": "Prepared source; all experimental jobs disabled; independent review required; no push or execution",
+  "source_completion_authorization": 6630789562,
+  "source_completion_start_tree": "9516c0017686d6d66e394c12bbe427e08ac7ecb7",
+  "investigation_trust_boundary": "GitHub ephemeral runner, Linux, systemd PID 1, Actions step sequencing, and absence of independent hostile host administrator or undisclosed external D-Bus launcher; retained per-unit cessation evidence remains distinct from final package hygiene; no universal no-reentry claim"
 }

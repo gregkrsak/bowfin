@@ -1,0 +1,214 @@
+{
+  "package": "B38-X03",
+  "disposition": "SOURCE_COMPLETION_PENDING_INDEPENDENT_REVIEW_NO_PUSH",
+  "process_simplification_comment": 6619582603,
+  "start_commit": "975a4f0277203f5b795305f22e5c23b4dace1053",
+  "start_tree": "13dd9fae2bf837835e1ce3d2cfcb5caf383cb90b",
+  "compiler_commit": "fb67a7608ab75d9b6721e91b58dbf61e8edaace1",
+  "compiler_tree": "c9e5047eaec9430698cd7a82c1d05205d729994f",
+  "pr": 119,
+  "pr_base": "staging",
+  "new_commit": null,
+  "charter_commit": "3d453e54a0d7be9c3435304b330d1212db6fc44f",
+  "charter_blob": "81d1fd62dba51875650f9412bf50c2e6111c018f",
+  "historical_cap_stop": {
+    "disposition": "STOPPED_SOURCE_COMPLETE_HANDWRITTEN_CAP",
+    "handwritten": {
+      "historical": 595,
+      "live_charge_including_reports": 960,
+      "discarded_or_conservative_rework": 74,
+      "future_phase_preparation": 13,
+      "index_schema_construction": 25,
+      "cumulative": 1815,
+      "ceiling": 1700,
+      "method": "ALL nonblank, including comments/headings; full replacement manifests/launcher bodies; Rust seam gross33; four ordinary additions; retained historical charges. Deleted original probe.sh was already historically charged and is not a new discarded draft. Generated patch/data rows excluded; phase logic and index construction explicitly charged.",
+      "previous_provisional_cumulative": 1667,
+      "separate_verification_and_handoff_helpers": 116,
+      "post_stop_reconciliation_and_reporting": 32,
+      "within_ceiling": false
+    },
+    "ffi": {
+      "cumulative": 0,
+      "ceiling": 0
+    }
+  },
+  "handwritten": {
+    "informational": true,
+    "preserved_corrected_prior": 1815,
+    "full_changed_receiving_files_nonblank": 1107,
+    "authoring_verification_packaging_helpers_gross": 662,
+    "retained_superseded_helper_versions_gross": 443,
+    "reporting_orchestration_allowance": 128,
+    "cumulative_conservative_account": 4155,
+    "retired_numerical_ceiling": 1700,
+    "method": "Carry corrected prior without subtraction; charge complete receiving files changed since old bundle, including replacement manifests and reports. Count all nonblank source/doc lines; generated patch/index rows excluded, their handwritten generation/helper logic fully charged to each package, with no copying credit. Charge preserved superseded helpers again conservatively plus128line allowance for reporting/orchestration. This is a conservative informational account, not a readiness or safety gate."
+  },
+  "ffi": {
+    "informational": false,
+    "retained_rust": 0,
+    "retained_native_inclusive": 0,
+    "cumulative_rust": 0,
+    "cumulative_native_inclusive": 0,
+    "status": "No added unsafe/FFI remains a binding scope restriction"
+  },
+  "cpu": {
+    "historical_proxy_minutes": 94.4,
+    "new_ci_jobs": 0,
+    "new_cpu_proxy_minutes": 0,
+    "ceiling": 2250,
+    "protected_closeout": 440,
+    "full_authorized_reservations_including_history": 2150.4,
+    "provider_tail_minutes_assumed": 10,
+    "operator": "Arnold; complete paginated attempt-specific settlement; one outstanding round across packages"
+  },
+  "changed_files_except_self": [
+    {
+      "path": ".github/workflows/bed-038-x03.yml",
+      "bytes": 110372,
+      "sha256": "d829fbefb217c407405033172b6a5e56fcea322c662775a027fe8bf4bb131aee",
+      "git_blob": "79889b6c818b600f8a8d2cf02b09e4e833b12dc8"
+    },
+    {
+      "path": ".github/workflows/build.yml",
+      "bytes": 780,
+      "sha256": "7a66b69784fdb1fb04639c727caaf0c2e7c2fa5a9f32cabe87207c08f1d4346f",
+      "git_blob": "7c7a14bc44b83b3b107824bf83be1e8ae6df728f"
+    },
+    {
+      "path": ".github/workflows/docs.yml",
+      "bytes": 4499,
+      "sha256": "d3b71d1ac3b4f0e7963e61f5b535c4de7e832f923d8575204a8aa9de1ec461e9",
+      "git_blob": "a7bf193aaa960c73d4a9608e3dfdd99d5638c748"
+    },
+    {
+      "path": ".github/workflows/tests.yml",
+      "bytes": 1230,
+      "sha256": "77740b71dcf30e244e62526b108e96fe70393180852773fc90baf1a7b0bbb675",
+      "git_blob": "725ded0dcf30bfab8dce07343c71886a7676c39f"
+    },
+    {
+      "path": ".github/workflows/verify.yml",
+      "bytes": 4922,
+      "sha256": "97dce7e63fafd6157c27e239def67dc804e43031736c09852f9af0f4cfb8e9a7",
+      "git_blob": "b9edd0a7b6e6b1a87b0555fa2a431c5023edc179"
+    },
+    {
+      "path": "compiler/execution/machine/conformance/b38_x03_tests.rs",
+      "bytes": 7694,
+      "sha256": "8752b6dcf99d6edcbdb302b943b6e227b3c17b038b8fb92b87375abe40f2230f",
+      "git_blob": "03080729dbcdaf7127faa7d2ec70765f86a92e31"
+    },
+    {
+      "path": "docs/engineering/BED-038-X03-AMENDMENT-1-REPORT.md",
+      "bytes": 31748,
+      "sha256": "ce25cd3527a1701dd199bc906636f910bbdb8cbba61b8cdeb33328ab8bc02f29",
+      "git_blob": "f210fa237d25ca782570fa29043803567b8ea83e"
+    },
+    {
+      "path": "experiments/bed-038/x03/PHASES.md",
+      "bytes": 2713,
+      "sha256": "94d08419d401db67acafc32c0d1c424b1fe5d3106dcb378f114a903f4f03cb8a",
+      "git_blob": "88440b58f39e20bdaf4bca12a00ff872a9cdae3c"
+    },
+    {
+      "path": "experiments/bed-038/x03/admission.py",
+      "bytes": 13640,
+      "sha256": "acf5a3fb889659e3ec0eb82c2002f6ca5783506f1ff934e9977691aa03467a0a",
+      "git_blob": "26ea4782bd86dbdf13f23dd1fdc9d3e8d790ffb2"
+    },
+    {
+      "path": "experiments/bed-038/x03/artifact/action.yml",
+      "bytes": 136,
+      "sha256": "e66c8a51cc118d30259d4ec7b54d9a12ca540c77bda92bec79989c3d8117a1d5",
+      "git_blob": "66295cc06e887e6f3d161502fd8b7a688450fe6b"
+    },
+    {
+      "path": "experiments/bed-038/x03/artifact/bridge.js",
+      "bytes": 22308,
+      "sha256": "6099ed2aa4710336a1bd427bcd1d619122c99249c79184b691bd28d6b37837e0",
+      "git_blob": "8c24fc60a23183e22641b673eabaa0fc5c9aeba8"
+    },
+    {
+      "path": "experiments/bed-038/x03/audit.py",
+      "bytes": 8682,
+      "sha256": "db9f5a2e4140854b7cd8b4e6f610c01ce85f33028efa7739eff153cb0e114748",
+      "git_blob": "f8a09c362ee5bb6fee7ff3557a547993788416e3"
+    },
+    {
+      "path": "experiments/bed-038/x03/closeout-preflight.patch",
+      "bytes": 679,
+      "sha256": "f1856d9a6d1c9dd2e09b56281fafc5e160aeedfe2b93b4e54679bc86b33345cf",
+      "git_blob": "8d3a73241a379f823fd37f794f80a81163c9d940"
+    },
+    {
+      "path": "experiments/bed-038/x03/controls.py",
+      "bytes": 7032,
+      "sha256": "c0e363a43db9fc462f246d4c185e3569e18a4f59bf7fa9a169af4054f22edf50",
+      "git_blob": "6ba74eb8eb020944851f4af3e27ccfaaef5021bc"
+    },
+    {
+      "path": "experiments/bed-038/x03/isolate.sh",
+      "bytes": 238,
+      "sha256": "b618cec85a616222aa4a207650caaf26e25d0a4c1a0001c5a14e13ac0ce9ce4e",
+      "git_blob": "4f9a4788683277916c98bc8716f6bfefcd9308e2"
+    },
+    {
+      "path": "experiments/bed-038/x03/launch-manifest.json",
+      "bytes": 6750,
+      "sha256": "96c1ae48fffb46793c992e949b007dbec67d5b223013afe28f3e7a9113debd4d",
+      "git_blob": "e5a825ab4d6152fa59650a76d400f2b1fe13672b"
+    },
+    {
+      "path": "experiments/bed-038/x03/launch.py",
+      "bytes": 113312,
+      "sha256": "05b5e16ec10778fbb999a7ad7a810a867efb0cae6371e78349e337bce068a157",
+      "git_blob": "f029012acb4b87d18165724e54b86b305f344ba1"
+    },
+    {
+      "path": "experiments/bed-038/x03/probe.sh",
+      "bytes": 97,
+      "sha256": "aa3876f150dae1f7faaa9c69cf136cada2551ed59ce507b2cc4a243ee43929a5",
+      "git_blob": "634a47a028a4eea19fe7302d179aa63ffe7df759"
+    },
+    {
+      "path": "experiments/bed-038/x03/round-b.patch",
+      "bytes": 679,
+      "sha256": "3fc9f00f940c553fa811c5c68917d296688ffb35500a4f440d55ebb192e723b2",
+      "git_blob": "9d59a9007ceecffd7e5951aa55709a96c8ac3ab3"
+    },
+    {
+      "path": "experiments/bed-038/x03/round-c.patch",
+      "bytes": 2391,
+      "sha256": "ec8230fbf59bdb253bcbf8bb1feaf1d6ef1d80d69c32e678ec33e1ed0b122526",
+      "git_blob": "f46611ea07ef4993fdb39e064eba5b271894383d"
+    },
+    {
+      "path": "experiments/bed-038/x03/round-d.patch",
+      "bytes": 2720,
+      "sha256": "5166b3eb73c0aea69aaa234ea16f0277078b9b0051ec7fa4b6fbafc4c34090a5",
+      "git_blob": "4c380660dc0c891dee8e7537a958d05a9b3fff2c"
+    }
+  ],
+  "execution": "Static/mechanical preparation only; no candidate module, controls, Rust/native, CI, push or ref update",
+  "evidence": "Primary ZIP plus bounded adapter/transport/final-teardown companion Actions logs required after future execution;30day artifact request, actual log/artifact availability/expiry must be read back. No new run/artifact exists.",
+  "next_gate": "Independent source review, then separate authority before any push or execution",
+  "reviewed_unpublished_start_tree": "e04859cf95c61ef322adf64f56864fc31cbc2d4a",
+  "repair_authorization_comment": 6621867303,
+  "sarah_review_comment": 6621858052,
+  "repair_account": {
+    "historical_corrected_conservative_handwritten": 4411,
+    "mechanical_delta_gross_added_and_deleted_lines_including_blank_and_generated": 1166,
+    "qualification": "Informational gross diff, not a complete handwritten total; repair authorship, reporting and helper work are additional and remain unmeasured. Earlier corrected accounts and superseded source preserved. Numerical counts are not a readiness gate.",
+    "new_ci_jobs": 0,
+    "new_cpu_proxy_minutes": 0
+  },
+  "source_completion": {
+    "owner_decision_comment": 6630789562,
+    "first_repair_tree": "9516c0017686d6d66e394c12bbe427e08ac7ecb7",
+    "trust_boundary": "GitHub ephemeral runner, Linux, systemd PID 1, Actions sequencing; no independent hostile host admin or undisclosed external D-Bus launcher",
+    "evidence": "Per-unit identity, terminal result and witness remain distinct from bounded package runner hygiene; no universal no-reentry claim",
+    "new_ci_jobs": 0,
+    "new_cpu_proxy_minutes": 0,
+    "executed": false
+  }
+}
