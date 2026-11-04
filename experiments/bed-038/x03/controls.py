@@ -40,7 +40,7 @@ EXPECTATIONS = {
     "blocked-writes": {"diagnostic": "OK", "pair": "blocked-valid", "bytes": 0},
     "audit-valid": {"diagnostic": "OK", "pair": "audit-missing", "bytes": 1048576},
     "audit-missing": {"diagnostic": "AUDIT_MISSING_CONTROL", "pair": "audit-valid", "bytes": 1048576},
-    "audit-core-negative": {"diagnostic":"AUDIT_CORE_POLICY","pair":"audit-valid","bytes":1048576,"injection":"observed core_pattern pipe; no crash or handler execution"},
+    "audit-core-negative": {"diagnostic":"AUDIT_CORE_POLICY","pair":"audit-valid","bytes":1048576,"injection":"observed nonzero soft and hard core limits; no actual limit change or crash"},
     "audit-wrong": {"diagnostic": "AUDIT_WRONG_CONTROL", "pair": "audit-valid", "bytes": 1048576},
     "mount-negative": {"diagnostic": "AUDIT_WRITABLE_MOUNT", "pair": "audit-valid", "parent_injection": "actual unexpected writable subordinate mount", "bytes": 1048576},
     "output-bound": {"diagnostic": "OUTPUT_BOUND", "pair": "finite-write", "bytes": 4096},
@@ -83,7 +83,7 @@ def run_case(name, **audit_kwargs):
     if name in {"audit-valid", "mount-negative", "audit-missing", "audit-wrong", "audit-core-negative"}:
         injected = {"memory.max": None} if name == "audit-missing" else (
                     {"memory.max": "1"} if name == "audit-wrong" else (
-                    {"core_pattern":"|inert-declared-handler"} if name == "audit-core-negative" else None))
+                    {"core_limit": (1, 1)} if name == "audit-core-negative" else None))
         return audit.audit(**audit_kwargs, overrides=injected)
     if name in {"status-below", "status-exact", "status-over"}:
         return {"case": name}

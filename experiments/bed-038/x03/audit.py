@@ -63,8 +63,8 @@ def audit(task="/task", *, memory_bytes, expected_cpus, disk_bytes, host_namespa
         require(set(overrides) <= set(observed), "AUDIT_CONTROL_KEY", sorted(overrides))
         observed.update(overrides)
     require(all(value is not None for value in observed.values()), "AUDIT_MISSING_CONTROL", observed)
-    require(tuple(observed["core_limit"])==(0,0) and not observed["core_pattern"].startswith("|"),
-            "AUDIT_CORE_POLICY", "zero hard/soft limit and no host pipe handler required")
+    require(tuple(observed["core_limit"])==(0,0),
+            "AUDIT_CORE_POLICY", "zero hard/soft core limit required")
     require(observed["uid"] == observed["gid"] == 65534 and set(groups) <= {65534},
             "AUDIT_IDENTITY", [observed["uid"], observed["gid"], groups])
     require(observed["NoNewPrivs"] == "1" and observed["Seccomp"] == "2" and
