@@ -4,6 +4,11 @@ const fs = require('node:fs');
 const crypto = require('node:crypto');
 const packageName = 'x01';
 const slice = 'b38-' + packageName + '.slice';
+const adapterSlice = 'b38-' + packageName + '-adapter.slice';
+const holdSlice = 'b38-' + packageName + '-hold.slice';
+const uploadSlice = 'b38-' + packageName + '-upload-parent.slice';
+const observerSlice = 'b38-' + packageName + '-observer.slice';
+const observerScope = 'b38-' + packageName + '-observer.scope';
 const scope = 'b38-' + packageName + '-adapter.scope';
 const memory = 6442450944;
 // Owned diagnostic codes are carried as data, never inferred from exception text.
@@ -47,6 +52,7 @@ function control(arguments_, timeoutMs=4000) {
   return cp.execFileSync('/usr/bin/timeout', ['--kill-after=0.250s',
     ((budget-500)/1000).toFixed(3)+'s','/usr/bin/sudo',...arguments_], {
     timeout: budget, maxBuffer: 16384, encoding: 'utf8',
+    env: {PATH:'/usr/sbin:/usr/bin:/sbin:/bin'},
     stdio: ['ignore', 'pipe', 'pipe']
   });
 }
@@ -113,9 +119,16 @@ async function relayChunks(chunks) {
 
 // Fixed bounded root-owned provenance is pre-created by bootstrap on W.
 // This writer is called only after this process has attached to its slice.
+let observerIdentity=null;
+try { observerIdentity=JSON.parse(process.env.B38_OBSERVER_IDENTITY || ''); } catch (_) {}
 const adapterInventory = {version:1,package:packageName,run_id:process.env.GITHUB_RUN_ID,
   commit:process.env.GITHUB_SHA,
   scope:{id:scope,invocation_id:null,control_group:null,job_id:null,state:'intent'},
+  observer_scope:observerIdentity && observerIdentity.scope,
+  owned_slices:{adapter:{id:adapterSlice,invocation_id:null,control_group:null,state:'intent'},
+    hold:{id:holdSlice,invocation_id:null,control_group:null,state:'intent'},
+    upload:{id:uploadSlice,invocation_id:null,control_group:null,state:'intent'},
+    observer:observerIdentity && observerIdentity.slice},
   adapter_pid:null,adapter_start_ticks:null,
   upload_client:{pid:null,start_ticks:null,status:null,signal:null,state:'not_started'},
   adapter_complete:false,incomplete:true};
@@ -127,7 +140,7 @@ lease='/mnt/b38-'+p+'-lease'
 lfd=os.open(lease,os.O_RDONLY|os.O_NOFOLLOW|os.O_CLOEXEC)
 try:
  i=os.fstat(lfd); content=os.read(lfd,129)
- if not stat.S_ISREG(i.st_mode) or i.st_uid!=0 or i.st_nlink!=1 or i.st_mode&0o022 or content.decode()!=run+':'+commit: raise SystemExit(1)
+ if not stat.S_ISREG(i.st_mode) or i.st_uid!=0 or i.st_nlink!=1 or i.st_mode&0o022 or content.decode()!=run+':'+commit+'\\nslice_start_attempted': raise SystemExit(1)
 finally: os.close(lfd)
 d=os.open(w,os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW|os.O_CLOEXEC)
 try:
@@ -146,6 +159,29 @@ try:
  current=json.loads(raw)
  if not isinstance(previous,dict) or not isinstance(current,dict): raise SystemExit(1)
  if any(previous.get(k)!=v or current.get(k)!=v for k,v in [('version',1),('package',p),('run_id',run),('commit',commit)]): raise SystemExit(1)
+ for role,suffix in (('adapter','adapter'),('hold','hold'),('upload','upload-parent'),('observer','observer')):
+  name='b38-'+p+'-'+suffix+'.slice'
+  for obj in (previous,current):
+   rows=obj.get('owned_slices'); row=rows.get(role) if isinstance(rows,dict) else None
+   if not isinstance(row,dict) or set(row)!={'id','invocation_id','control_group','state'} or row.get('id')!=name: raise SystemExit(1)
+   if row['state']=='intent':
+    if row['invocation_id'] is not None or row['control_group'] is not None: raise SystemExit(1)
+   elif row['state']=='observed':
+    if not isinstance(row['invocation_id'],str) or not re.fullmatch('[0-9a-f]{32}',row['invocation_id']): raise SystemExit(1)
+    group=row['control_group']
+    if not isinstance(group,str) or not group.startswith('/') or '..' in group or not group.endswith('/b38-'+p+'.slice/'+name): raise SystemExit(1)
+   else: raise SystemExit(1)
+  if previous['owned_slices'][role]['state']=='observed' and previous['owned_slices'][role]!=current['owned_slices'][role]: raise SystemExit(1)
+ old=previous.get('observer_scope'); new=current.get('observer_scope'); name='b38-'+p+'-observer.scope'
+ if not isinstance(old,dict) or not isinstance(new,dict) or set(old)!={'id','invocation_id','control_group','job_id','state'} or set(new)!=set(old) or old.get('id')!=name or new.get('id')!=name: raise SystemExit(1)
+ if old['state']=='intent':
+  if any(old[k] is not None for k in ('invocation_id','control_group','job_id')): raise SystemExit(1)
+ elif old['state']=='observed':
+  if old!=new: raise SystemExit(1)
+ else: raise SystemExit(1)
+ if (new['state']!='observed' or not isinstance(new['invocation_id'],str) or not re.fullmatch('[0-9a-f]{32}',new['invocation_id']) or
+     not isinstance(new['job_id'],str) or not re.fullmatch('[0-9]{1,20}',new['job_id']) or
+     not isinstance(new['control_group'],str) or not new['control_group'].endswith('/b38-'+p+'.slice/b38-'+p+'-observer.slice/'+name)): raise SystemExit(1)
  fd=os.open('.inventory-adapter.tmp',os.O_WRONLY|os.O_CREAT|os.O_EXCL|os.O_NOFOLLOW|os.O_CLOEXEC,0o600,dir_fd=d)
  try:
   os.fchmod(fd,0o600)
@@ -176,19 +212,45 @@ function pidStart(pid) {
   if (pos<0 || fields.length<20 || !/^[0-9]{1,20}$/.test(fields[19]) || /^0+$/.test(fields[19])) stop('ADAPTER_CLIENT_IDENTITY');
   return fields[19];
 }
+function observeOwnedSlice(name) {
+  const deadline=process.hrtime.bigint()+4000000000n;
+  const pause=new Int32Array(new SharedArrayBuffer(4));
+  while (process.hrtime.bigint()<deadline) {
+    const left=Number((deadline-process.hrtime.bigint())/1000000n);
+    if (left<600) break;
+    try {
+      const raw=control(['/usr/bin/systemctl','show',name,'--property=Id,InvocationID,ControlGroup,ActiveState'],Math.min(left,800));
+      const p=Object.fromEntries(raw.trim().split('\n').map(x=>x.split('=')));
+      if (p.Id!==name || !/^[0-9a-f]{32}$/.test(p.InvocationID || '') ||
+          !p.ControlGroup || !p.ControlGroup.startsWith('/') || p.ControlGroup.includes('..') ||
+          !p.ControlGroup.endsWith('/'+slice+'/'+name)) stop('ADAPTER_TERMINATION');
+      if (p.ActiveState==='active') return {id:name,invocation_id:p.InvocationID,control_group:p.ControlGroup,state:'observed'};
+      if (p.ActiveState!=='activating') stop('ADAPTER_TERMINATION');
+    } catch (error) { if (error instanceof AdapterStop && error.safeCode==='ADAPTER_TERMINATION') throw error; }
+    Atomics.wait(pause,0,0,50);
+  }
+  stop('ADAPTER_TERMINATION');
+}
 
 // Finite resource-allocation prelude. No task data collection before attachment.
 // StartTransientUnit/PIDs moves this existing Node process and all its threads.
 try {
+  if (!observerIdentity || !observerIdentity.scope || !observerIdentity.slice ||
+      observerIdentity.scope.id!==observerScope || observerIdentity.slice.id!==observerSlice) stop('ADAPTER_TERMINATION');
   const scopeDeadline=process.hrtime.bigint()+4000000000n;
   function remainingScopeMs() {
     const ns=scopeDeadline-process.hrtime.bigint();
     return ns>0n ? Number(ns/1000000n) : 0;
   }
+  // Keep an independently inspectable empty cgroup after the scope exits.
+  control(['/usr/bin/busctl','--system','call','org.freedesktop.systemd1',
+    '/org/freedesktop/systemd1','org.freedesktop.systemd1.Manager',
+    'StartTransientUnit','ssa(sv)a(sa(sv))',adapterSlice,'fail','1',
+    'StopWhenUnneeded','b','false','0'],remainingScopeMs());
   const scopeJob=control(['/usr/bin/busctl', '--system', 'call', 'org.freedesktop.systemd1',
     '/org/freedesktop/systemd1', 'org.freedesktop.systemd1.Manager',
     'StartTransientUnit', 'ssa(sv)a(sa(sv))', scope, 'fail', '12',
-    'PIDs', 'au', '1', String(process.pid), 'Slice', 's', slice,
+    'PIDs', 'au', '1', String(process.pid), 'Slice', 's', adapterSlice,
     'MemoryMax', 't', String(memory), 'MemorySwapMax', 't', '0',
     'CPUQuotaPerSecUSec', 't', '2000000', 'AllowedCPUs', 'ay', '1', '3',
     'TasksMax', 't', '64', 'RuntimeMaxUSec', 't', '130000000',
@@ -197,6 +259,27 @@ try {
   const jobMatch=/^o \"\/org\/freedesktop\/systemd1\/job\/([0-9]+)\"\s*$/.exec(scopeJob);
   if (!jobMatch || jobMatch[1].length>20) stop('ADAPTER_CLIENT_IDENTITY');
   adapterInventory.scope.job_id=jobMatch[1];
+  // A loaded unit's After= dependency retains the scope's terminal state.
+  // The hold unit is outside the adapter slice and survives scope-wide kills.
+  control(['/usr/bin/busctl','--system','call','org.freedesktop.systemd1',
+    '/org/freedesktop/systemd1','org.freedesktop.systemd1.Manager',
+    'StartTransientUnit','ssa(sv)a(sa(sv))',holdSlice,'fail','2',
+    'After','as','2',scope,observerScope,'StopWhenUnneeded','b','false','0'],remainingScopeMs());
+  let holdReady=false;
+  const holdPause=new Int32Array(new SharedArrayBuffer(4));
+  while (remainingScopeMs()>=600) {
+    try {
+      const holdProperties=control(['/usr/bin/systemctl','show',holdSlice,
+        '--property=Id,ActiveState,After'],Math.min(800,remainingScopeMs()));
+      const hold=Object.fromEntries(holdProperties.trim().split('\n').map(x=>x.split('=')));
+      if (hold.Id!==holdSlice || !String(hold.After || '').split(/\s+/).includes(scope) ||
+          !String(hold.After || '').split(/\s+/).includes(observerScope)) stop('ADAPTER_TERMINATION');
+      if (hold.ActiveState==='active') { holdReady=true; break; }
+      if (hold.ActiveState!=='activating') stop('ADAPTER_TERMINATION');
+    } catch (error) { if (error instanceof AdapterStop && error.safeCode==='ADAPTER_TERMINATION') throw error; }
+    Atomics.wait(holdPause,0,0,Math.min(50,Math.max(1,remainingScopeMs())));
+  }
+  if (!holdReady) stop('ADAPTER_TERMINATION');
   stage = 'core_limit';
   if (remainingScopeMs()<600) stop('ADAPTER_PRELUDE_TIMEOUT');
   control(['/usr/bin/prlimit','--pid',String(process.pid),'--core=0:0'],remainingScopeMs());
@@ -204,7 +287,7 @@ try {
   const coreLine=read('/proc/self/limits').split('\n').find(x=>x.startsWith('Max core file size'));
   safeObservation.core_pipe = corePattern.startsWith('|');
   safeObservation.core_limit_zero = Boolean(coreLine && /^Max core file size\s+0\s+0\s+bytes$/.test(coreLine));
-  if (corePattern.startsWith('|') || !coreLine || !/^Max core file size\s+0\s+0\s+bytes$/.test(coreLine)) stop('ADAPTER_CORE_POLICY');
+  if (!coreLine || !/^Max core file size\s+0\s+0\s+bytes$/.test(coreLine)) stop('ADAPTER_CORE_POLICY');
   stage = 'cgroup_identity';
   // StartTransientUnit returns a queued job; allow bounded creation latency.
   // Only actual attachment permits the following resource inspection or work.
@@ -214,7 +297,7 @@ try {
     let candidate='';
     if (remainingScopeMs()<600) break;
     try {
-      candidate=control(['/usr/bin/systemctl','show',slice,'--property=ControlGroup','--value'],
+      candidate=control(['/usr/bin/systemctl','show',adapterSlice,'--property=ControlGroup','--value'],
         Math.min(800,remainingScopeMs())).trim();
     } catch (error) { scopeLookupError=error; }
     if (candidate && (!candidate.startsWith('/') || candidate.includes('..'))) stop('ADAPTER_CGROUP');
@@ -251,12 +334,21 @@ try {
   if (!['2min 10s', '130s'].includes(effective.RuntimeMaxUSec) ||
       effective.TimeoutStopUSec !== '2s' || effective.KillMode !== 'control-group' ||
       effective.SendSIGKILL !== 'yes' || !['9', 'SIGKILL'].includes(effective.FinalKillSignal) ||
-      effective.ControlGroup !== relative || effective.Slice !== slice || effective.Id !== scope ||
+      effective.ControlGroup !== relative || effective.Slice !== adapterSlice || effective.Id !== scope ||
       !/^[0-9a-f]{32}$/.test(effective.InvocationID)) stop('ADAPTER_TERMINATION');
   stage='inventory_scope';
   adapterInventory.scope.invocation_id=effective.InvocationID;
   adapterInventory.scope.control_group=relative;adapterInventory.scope.state='observed';
   adapterInventory.adapter_pid=process.pid;adapterInventory.adapter_start_ticks=pidStart(process.pid);
+  adapterInventory.owned_slices.adapter=observeOwnedSlice(adapterSlice);
+  adapterInventory.owned_slices.hold=observeOwnedSlice(holdSlice);
+  const observedObserver=observeOwnedSlice(observerSlice);
+  if (JSON.stringify(observedObserver)!==JSON.stringify(adapterInventory.owned_slices.observer)) stop('ADAPTER_TERMINATION');
+  const observerProps=control(['/usr/bin/systemctl','show',observerScope,'--property=Id,InvocationID,ControlGroup,Slice,ActiveState']);
+  const observer=Object.fromEntries(observerProps.trim().split('\n').map(x=>x.split('=')));
+  if (observer.Id!==observerScope || observer.InvocationID!==adapterInventory.observer_scope.invocation_id ||
+      observer.ControlGroup!==adapterInventory.observer_scope.control_group || observer.Slice!==observerSlice ||
+      observer.ActiveState!=='active') stop('ADAPTER_TERMINATION');
   storeInventory();
   stage = 'node_identity';
   const executable = fs.realpathSync(process.execPath);
@@ -294,20 +386,34 @@ if (setupFailure !== null) {
 process.env.B38_NODE = process.execPath;
 const environmentNames = ['GITHUB_ACTIONS', 'GITHUB_WORKSPACE', 'GITHUB_SHA',
   'GITHUB_RUN_ATTEMPT', 'GITHUB_RUN_ID', 'GITHUB_SERVER_URL', 'GITHUB_REPOSITORY',
-  'ImageVersion', 'B38_PHASE', 'B38_NODE', 'ACTIONS_RUNTIME_TOKEN', 'ACTIONS_RESULTS_URL'];
+  'B38_PHASE', 'B38_NODE', 'ACTIONS_RUNTIME_TOKEN', 'ACTIONS_RESULTS_URL'];
 const source = require('node:path').resolve(__dirname, '../launch.py');
 async function relayUpload() {
   let child=null, original=null, result=null, completion=null, relayed=false;
   try {
     stage='inventory_upload';adapterInventory.upload_client.state='intent';storeInventory();
+    // Preserve a separately inspectable cgroup after the upload parent exits.
+    control(['/usr/bin/busctl','--system','call','org.freedesktop.systemd1',
+      '/org/freedesktop/systemd1','org.freedesktop.systemd1.Manager',
+      'StartTransientUnit','ssa(sv)a(sa(sv))',uploadSlice,'fail','1',
+      'StopWhenUnneeded','b','false','0']);
+    adapterInventory.owned_slices.upload=observeOwnedSlice(uploadSlice);
+    storeInventory();
+    // Only transport credentials and the execution identity needed by the
+    // upload parent and worker are forwarded to this subprocess.
+    const uploadEnvironment={PATH:'/usr/sbin:/usr/bin:/sbin:/bin'};
+    for (const name of environmentNames) {
+      if (Object.prototype.hasOwnProperty.call(process.env,name)) uploadEnvironment[name]=process.env[name];
+    }
     child=cp.spawn('/usr/bin/sudo',[
       '--preserve-env=' + environmentNames.join(','), '/usr/bin/systemd-run',
-      '--quiet','--pipe','--wait','--slice='+slice,'--unit=b38-'+packageName+'-upload-parent',
+      '--quiet','--pipe','--wait','--slice='+uploadSlice,'--unit=b38-'+packageName+'-upload-parent',
+      '-p','ExitType=cgroup','-p','RemainAfterExit=yes',
       '-p','RuntimeMaxSec=110','-p','TimeoutStartSec=5','-p','TimeoutStopSec=2',
       '-p','KillMode=control-group','-p','LimitCORE=0','-p','CPUQuota=200%',
       '-p','AllowedCPUs=0,1','-p','MemoryMax='+String(memory),'-p','MemorySwapMax=0',
       ...environmentNames.map(name=>'--setenv='+name),'/usr/bin/python3','-B',source,'upload'
-    ],{env:process.env,stdio:['ignore','pipe','pipe']});
+    ],{env:uploadEnvironment,stdio:['ignore','pipe','pipe']});
     let chunks=[],outBytes=0,errBytes=0,overflow=false,timedOut=false,spawnError=null,streamError=null,killError=null;
     function terminateClient() {
       try { if (!child.kill('SIGKILL') && !killError) killError=new AdapterStop('ADAPTER_CLIENT_KILL_FAILURE'); }

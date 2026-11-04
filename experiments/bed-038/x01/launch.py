@@ -25,7 +25,7 @@ UNITS, RECORDS = [], []
 SLICES, COMPLETED, WITNESSES = {}, {}, {}
 UPLOAD_EXPECTED, UPLOAD_OBJECT = None, None
 PROPS = ['RuntimeMaxUSec','TimeoutStartUSec','TimeoutStopUSec','KillMode','SendSIGKILL',
-         'Restart','FinalKillSignal','Id','InvocationID','LoadState','ControlGroup','Job','Result','ExecMainCode','ExecMainStatus','ActiveState','SubState','ExitType','RemainAfterExit',
+         'Restart','KillSignal','FinalKillSignal','Id','InvocationID','LoadState','ControlGroup','Job','Result','ExecMainCode','ExecMainStatus','ActiveState','SubState','ExitType','RemainAfterExit',
          'NoNewPrivileges','PrivateDevices','PrivateIPC','PrivateMounts','PrivateNetwork',
          'ProtectSystem','RootDirectory','RestrictAddressFamilies','RestrictNamespaces',
          'CapabilityBoundingSet','AmbientCapabilities','LimitCORE','LimitNOFILE','TasksMax','SystemCallFilter']
@@ -282,6 +282,11 @@ def props(unit, seconds=3):
     return dict(line.split('=',1) for line in command('systemctl','show',unit,
                 '--property='+','.join(PROPS),seconds=seconds).splitlines() if '=' in line)
 
+# Precommitted only for the fixed timeout control; the manager's recorded
+# main-process signal is evidence of that process, not of each descendant.
+CHILD_TIMEOUT_PLAN = {'kind':'systemd_runtime_timeout','runtime_seconds':3,
+                      'kill_signal':9,'expected_code':2,'expected_status':9,
+                      'readiness_absent':True}
 INVENTORY = None
 
 def inventory_write():
@@ -355,42 +360,116 @@ def launcher_start_time(pid):
     return int(fields[19])
 
 
-def finish_witness(unit):
+def child_timeout_evidence():
+    # These PIDs are local to the worker PID namespace, not host PIDs. The
+    # independently observed empty slice, not these numbers, proves cessation.
+    def read_owned(name):
+        fd=os.open(S/'work'/name,os.O_RDONLY|os.O_NOFOLLOW|os.O_NONBLOCK|os.O_CLOEXEC)
+        try:
+            before=os.fstat(fd)
+            if (not stat.S_ISREG(before.st_mode) or before.st_uid!=65534
+                or before.st_nlink!=1 or before.st_size>4096):
+                raise ValueError('identity')
+            chunks=[];size=0
+            while size<=4096:
+                chunk=os.read(fd,4097-size)
+                if not chunk: break
+                chunks.append(chunk);size+=len(chunk)
+            after=os.fstat(fd)
+            identity=lambda st:(st.st_dev,st.st_ino,st.st_uid,st.st_mode,st.st_nlink,
+                                st.st_size,st.st_mtime_ns,st.st_ctime_ns)
+            if size>4096 or size!=before.st_size or identity(before)!=identity(after):
+                raise ValueError('changed')
+            return b''.join(chunks).decode('ascii')
+        finally: close_fd_preserving(fd)
+    try:
+        ready=read_owned('child-ready'); raw=read_owned('child-pids.json')
+        pairs=json.loads(raw,object_pairs_hook=lambda value:value)
+        if (not isinstance(pairs,list) or len(pairs)!=2
+            or any(not isinstance(pair,tuple) or len(pair)!=2 for pair in pairs)
+            or {pair[0] for pair in pairs}!={'parent','child'}):
+            raise ValueError('pid fields')
+        pids=dict(pairs);parent=pids['parent'];child=pids['child']
+        if (type(parent) is not int or type(child) is not int
+            or not 0<parent<=2147483647 or not 0<child<=2147483647
+            or parent==child or ready!=str(child)):
+            raise ValueError('pid identity')
+        return {'pid_namespace':'worker','parent':parent,'child':child,
+                'ready':ready,'pids_json':raw}
+    except (OSError,UnicodeError,ValueError,TypeError) as error:
+        raise ControlError('CHILD_DISCRIMINATOR','pid evidence') from error
+
+def finish_witness(unit, require_valid_termination=True):
     try:
         record=WITNESSES[unit]
         # A failed stop is incomplete; retry only outstanding bounded cleanup, using
         # the already-captured result and cgroup witness. Never infer result/cessation
         # from a vanished unit or repeat a completed cleanup action.
+        def require_stop_identity(current, retained, expected):
+            invocation=retained.get('InvocationID')
+            if (retained.get('Id')!=expected or current.get('Id')!=expected
+                or not isinstance(invocation,str) or len(invocation)!=32
+                or invocation=='0'*32 or any(c not in '0123456789abcdef' for c in invocation)
+                or current.get('InvocationID')!=invocation
+                or not retained.get('ControlGroup') or current.get('ControlGroup')!=retained['ControlGroup']):
+                raise ControlError('UNIT_IDENTITY_LOST',current)
         if record['service_stop_required']:
+            current=props(unit)
+            require_stop_identity(current,record['terminal'],unit)
+            if current.get('ActiveState')!='active' or current.get('SubState')!='exited':
+                raise ControlError('UNIT_TERMINAL_UNPROVEN',current)
             command('systemctl','stop',unit,seconds=8)
             record['service_stop_required']=False
         if record['slice_stop_required']:
+            current=props(record['slice']['Id'])
+            require_stop_identity(current,record['slice'],record['slice']['Id'])
+            if current.get('ActiveState')!='active' or not current.get('ControlGroup'):
+                raise ControlError('UNIT_SLICE_UNPROVEN',record['slice']['Id'])
             command('systemctl','stop',record['slice']['Id'],seconds=8)
             record['slice_stop_required']=False
         record['cleanup_complete']=True
         inventory_worker(unit,stage='cleaned',cleanup_complete=True)
         COMPLETED[unit]=record['terminal']
-        return COMPLETED[unit]
     except BaseException as error:
         error.after_worker_cessation=True
         raise
+    if require_valid_termination and record.get('termination_error'):
+        raise ControlError(record['termination_error'],unit)
+    return COMPLETED[unit]
 
-def cease(unit, before):
+def cease(unit, before, require_valid_termination=True):
     # A cached qualification includes actual prior evidence, never mere absence.
     if unit in COMPLETED:
+        if require_valid_termination and WITNESSES[unit].get('termination_error'):
+            raise ControlError(WITNESSES[unit]['termination_error'],unit)
         return COMPLETED[unit]
     if unit in WITNESSES:
-        return finish_witness(unit)
+        return finish_witness(unit,require_valid_termination)
     slice_name=SLICES[unit]
     terminal=props(unit)
     state=terminal.get('ActiveState'); substate=terminal.get('SubState')
     if state not in ('failed','inactive') and not (state=='active' and substate=='exited'):
+        # A unit name alone does not authorize intervention on a replacement.
+        inventory_worker(unit,pre_stop_terminal=terminal)
+        invocation=(before or {}).get('InvocationID')
+        if ((before or {}).get('Id')!=unit or terminal.get('Id')!=unit
+            or not isinstance(invocation,str) or len(invocation)!=32 or invocation=='0'*32
+            or any(c not in '0123456789abcdef' for c in invocation)
+            or terminal.get('InvocationID')!=invocation
+            or not (before or {}).get('ControlGroup')
+            or terminal.get('ControlGroup')!=(before or {}).get('ControlGroup')):
+            raise ControlError('UNIT_IDENTITY_LOST',terminal)
+        # Persist the stop intent before it can influence the terminal result.
+        # A stop attempt always disqualifies the result, even if the command fails.
+        inventory_worker(unit,forced_stop=True)
         command('systemctl','stop',unit,seconds=8)
         terminal=props(unit)
         state=terminal.get('ActiveState');substate=terminal.get('SubState')
     if state not in ('failed','inactive') and not (state=='active' and substate=='exited'):
         raise ControlError('UNIT_TERMINAL_UNPROVEN',unit)
-    if terminal.get('Id')!=unit or not terminal.get('Result') or not terminal.get('InvocationID') or terminal.get('InvocationID')!=(before or {}).get('InvocationID') or not terminal.get('ExecMainCode') or not terminal.get('ExecMainStatus'):
+    # Retain even incomplete terminal data before validation or cleanup.
+    inventory_worker(unit,stage='terminal_observed',terminal=terminal)
+    if terminal.get('Id')!=unit or not terminal.get('Result') or not terminal.get('InvocationID') or terminal.get('InvocationID')!=(before or {}).get('InvocationID'):
         raise ControlError('UNIT_RESULT_UNPROVEN',terminal)
     parent=props(slice_name)
     group_name=parent.get('ControlGroup','')
@@ -408,26 +487,80 @@ def cease(unit, before):
     if 'populated 0' not in events.splitlines() or processes:
         raise ControlError('DESCENDANTS_REMAIN',[unit,events,processes[:256]])
     record={'unit':unit,'effective':before,'terminal':terminal,'slice':parent,
+            'forced_stop':INVENTORY['workers'][unit].get('forced_stop'),
+            'pre_stop_terminal':INVENTORY['workers'][unit].get('pre_stop_terminal'),
             'slice_events':events,'slice_processes':processes,'cgroup_empty':True,
             'cleanup_complete':False,'service_stop_required':state=='active',
-            'slice_stop_required':True}
+            'slice_stop_required':True,'termination_error':'UNIT_RESULT_UNPROVEN'}
     RECORDS.append(record)
     # Preserve result and witness *before* any fallible service/slice cleanup.
     inventory_worker(unit,stage='witness_captured',effective=before,terminal=terminal,
                      slice_evidence=parent,slice_events=events,slice_processes=processes)
     WITNESSES[unit]=record
-    return finish_witness(unit)
+    # systemd's ExecMainCode is the numeric siginfo CLD_* value. Only
+    # CLD_EXITED with a concrete exit status is normally admissible; in
+    # particular, CLD_DUMPED and absent or unknown statuses never qualify.
+    code=terminal.get('ExecMainCode'); status=terminal.get('ExecMainStatus')
+    valid_status=isinstance(status,str) and len(status)<=3 and status.isascii() and status.isdecimal() and 0<=int(status)<=255
+    info=INVENTORY['workers'][unit]
+    child_control=(PACKAGE=='x01' and PHASE=='preflight' and info['case']=='child-timeout'
+                   and info['role']=='control' and info['ordinal']==10
+                   and unit=='b38-'+PACKAGE+'-control-10.service'
+                   and info['timeout']==3 and not info['injected'])
+    termination_error=None; child_evidence=None
+    if child_control:
+        try: child_evidence=child_timeout_evidence()
+        except ControlError: termination_error='CHILD_DISCRIMINATOR'
+    if (info.get('forced_stop') is not False or info.get('pre_stop_terminal') is not None
+        or terminal['Result']=='core-dump' or code=='3' or not valid_status):
+        termination_error='UNIT_RESULT_UNPROVEN'
+    elif child_control:
+        if not (info.get('child_timeout_plan')==CHILD_TIMEOUT_PLAN
+                and (before or {}).get('KillSignal') in ('9','SIGKILL')
+                and (before or {}).get('KillMode')=='control-group'
+                and (before or {}).get('SendSIGKILL')=='yes'
+                and (before or {}).get('FinalKillSignal') in ('9','SIGKILL')
+                and duration((before or {}).get('RuntimeMaxUSec',''))==3
+                and duration((before or {}).get('TimeoutStopUSec',''))==2
+                and terminal['Result']=='timeout' and child_evidence is not None
+                and code=='2' and int(status)==signal.SIGKILL):
+            termination_error='CHILD_DISCRIMINATOR'
+    elif not (code=='1' and ((terminal['Result']=='success' and int(status)==0)
+                            or (terminal['Result']=='exit-code' and int(status)!=0))):
+        termination_error='UNIT_RESULT_UNPROVEN'
+    record['termination_error']=termination_error
+    record['child_timeout_plan']=info.get('child_timeout_plan')
+    record['child_timeout_evidence']=child_evidence
+    inventory_worker(unit,termination_error=termination_error,child_timeout_evidence=child_evidence)
+    if termination_error:
+        raise ControlError(termination_error,unit)
+    return finish_witness(unit,require_valid_termination)
 
 def run_unit(case, role='control', timeout=8, injected=False):
     global UPLOAD_OBJECT
     ordinal=len(UNITS)
     unit='b38-'+PACKAGE+'-'+role+'-'+str(ordinal)+'.service'
     slice_name='b38-'+PACKAGE+'-u'+str(ordinal)+'.slice'
+    child_control=(PACKAGE=='x01' and PHASE=='preflight' and case=='child-timeout'
+                   and role=='control' and ordinal==10 and timeout==3 and not injected)
+    if case=='child-timeout' and not child_control:
+        raise ControlError('CHILD_DISCRIMINATOR',case)
+    if child_control:
+        for name in ('child-ready','child-pids.json'):
+            try: os.lstat(S/'work'/name)
+            except FileNotFoundError: continue
+            except OSError as error:
+                raise ControlError('CHILD_DISCRIMINATOR','readiness unknown') from error
+            raise ControlError('CHILD_DISCRIMINATOR','stale readiness')
     UNITS.append(unit);SLICES[unit]=slice_name
-    INVENTORY['workers'][unit]={'case':case,'role':role,'ordinal':ordinal,'unit':unit,
+    INVENTORY['workers'][unit]={'case':case,'role':role,'timeout':timeout,'injected':injected,
+        'ordinal':ordinal,'unit':unit,
         'slice':slice_name,'stage':'slice_start_intent','launcher_pid':None,'launcher_start':None,
-        'invocation':None,'effective':None,'terminal':None,'slice_evidence':None,
-        'slice_events':None,'slice_processes':None,'cleanup_complete':False,
+        'invocation':None,'effective':None,'terminal':None,'pre_stop_terminal':None,'slice_evidence':None,
+        'slice_events':None,'slice_processes':None,'forced_stop':False,
+        'termination_error':'UNIT_RESULT_UNPROVEN',
+        'child_timeout_evidence':None,'child_timeout_plan':dict(CHILD_TIMEOUT_PLAN) if child_control else None,
+        'cleanup_complete':False,
         'client_reaped':False,'client_returncode':None}
     inventory_write()
     command('systemctl','start',slice_name,seconds=5)
@@ -449,6 +582,7 @@ def run_unit(case, role='control', timeout=8, injected=False):
       'RestrictAddressFamilies':'AF_INET AF_INET6','SystemCallFilter':'~@keyring @module @reboot @swap @raw-io @debug @obsolete shmget shmat shmdt shmctl semget semctl semop semtimedop msgget msgsnd msgrcv msgctl mq_open mq_unlink mq_timedsend mq_timedreceive mq_notify mq_getsetattr io_uring_setup io_uring_enter io_uring_register','RestrictSUIDSGID':'yes','LockPersonality':'yes',
       'ProtectKernelTunables':'yes','ProtectKernelModules':'yes','ProtectKernelLogs':'yes',
       'StandardInput':'null','WorkingDirectory':'/task','UMask':'0077'}
+    if child_control: settings['KillSignal']='SIGKILL'
     if injected:
         settings['BindPaths']+=' '+str(S/'injected')+':/surprise';settings['ReadWritePaths']+=' /surprise'
     if role=='upload': settings['BindReadOnlyPaths']+=' '+os.environ['B38_NODE']+':/node'
@@ -492,6 +626,8 @@ def run_unit(case, role='control', timeout=8, injected=False):
         if any(observed.get(k)!=v for k,v in required.items()): raise ControlError('UNIT_POLICY', observed)
         if duration(observed['RuntimeMaxUSec'])!=timeout or duration(observed['TimeoutStopUSec'])!=2 or duration(observed['TimeoutStartUSec'])!=5:
             raise ControlError('UNIT_DEADLINE', observed)
+        if child_control and observed.get('KillSignal') not in ('9','SIGKILL'):
+            raise ControlError('UNIT_POLICY','timeout intervention signal')
         if set(observed['RestrictAddressFamilies'].split())!={'AF_INET','AF_INET6'} or observed['LimitNOFILE']!='64' or observed['TasksMax']!='64' or observed['LimitCORE']!='0':
             raise ControlError('UNIT_POLICY', 'families/descriptors/processes')
         if set(observed['RestrictNamespaces'].split())!={'mnt','pid'} or not observed['SystemCallFilter']:
@@ -1348,7 +1484,7 @@ def run():
             error=ControlError('HOST_TOOL_BOUND',name);error.member=name
             error.observed=path.stat().st_size;error.limit=32*MIB;raise error
         identity[name]={'path':str(path),'sha256':hashlib.sha256(path.read_bytes()).hexdigest()}
-    for name in ('launch.py','audit.py','controls.py','isolate.sh','launch-manifest.json','metadata.py','artifact/action.yml','artifact/bridge.js'):
+    for name in ('launch.py','audit.py','controls.py','isolate.sh','launch-manifest.json','metadata.py','artifact/action.yml','artifact/bridge.js','artifact/supervisor.js'):
         path=Path(__file__).parent/name;identity[name]={'sha256':hashlib.sha256(path.read_bytes()).hexdigest()}
     # Bind bootstrap and teardown policy too. Exclude only the reviewed later
     # phase/qualification/deadline settings; every other workflow byte is bound.
@@ -1410,7 +1546,7 @@ def finish(scratch=None, image=None, units=None):
         try:
             if unit not in COMPLETED and unit not in WITNESSES:
                 raise ControlError('UNIT_CESSATION_UNPROVEN',unit)
-            cease(unit,None)
+            cease(unit,None,require_valid_termination=False)
         except BaseException as error:
             problems.append({'stop':getattr(error,'code','UNCLASSIFIED_FAILURE'),'operation':'unit.cleanup',
                              'kind':type(error).__name__,'errno':getattr(error,'errno',None)})
@@ -1539,7 +1675,7 @@ if __name__=='__main__':
             effective=item.get('effective')
             if isinstance(effective,dict):
                 names=('RuntimeMaxUSec','TimeoutStartUSec','TimeoutStopUSec','KillMode','SendSIGKILL',
-                       'Restart','FinalKillSignal','NoNewPrivileges','PrivateDevices','PrivateIPC',
+                       'Restart','KillSignal','FinalKillSignal','NoNewPrivileges','PrivateDevices','PrivateIPC',
                        'PrivateMounts','PrivateNetwork','ProtectSystem','RootDirectory',
                        'RestrictAddressFamilies','RestrictNamespaces','CapabilityBoundingSet',
                        'AmbientCapabilities','LimitCORE','LimitNOFILE','TasksMax','SystemCallFilter',
@@ -1617,9 +1753,19 @@ if __name__=='__main__':
     try:
         if mode not in ('run','upload'): raise ControlError('PHASE',mode)
         lease=Path('/mnt/b38-'+PACKAGE+'-lease')
-        expected=os.environ['GITHUB_RUN_ID']+':'+os.environ['GITHUB_SHA']
-        if lease.is_symlink() or lease.read_text()!=expected:
-            raise ControlError('UNIT_INVENTORY_LEASE','ownership')
+        expected=(os.environ['GITHUB_RUN_ID']+':'+os.environ['GITHUB_SHA']+'\nslice_start_attempted').encode('ascii')
+        if len(expected)>128: raise ControlError('UNIT_INVENTORY_LEASE','ownership')
+        try:
+            lease_fd=os.open(lease,os.O_RDONLY|os.O_NOFOLLOW|os.O_NONBLOCK|os.O_CLOEXEC)
+            try:
+                info=os.fstat(lease_fd)
+                if (not stat.S_ISREG(info.st_mode) or info.st_uid!=0 or info.st_nlink!=1
+                    or stat.S_IMODE(info.st_mode)!=0o600 or info.st_size!=len(expected)
+                    or os.read(lease_fd,129)!=expected):
+                    raise ControlError('UNIT_INVENTORY_LEASE','ownership')
+            finally: close_fd_preserving(lease_fd)
+        except OSError as error:
+            raise ControlError('UNIT_INVENTORY_LEASE','ownership') from error
         INVENTORY={'version':1,'package':PACKAGE,'run_id':os.environ['GITHUB_RUN_ID'],
                    'commit':os.environ['GITHUB_SHA'],'mode':mode,'workers':{},'parent_closed':False}
         inventory_parent_identity(mode)
@@ -1648,7 +1794,7 @@ if __name__=='__main__':
             try:
                 if unit not in COMPLETED and unit not in WITNESSES:
                     raise ControlError('UNIT_CESSATION_UNPROVEN',unit)
-                cease(unit,None)
+                cease(unit,None,require_valid_termination=False)
             except BaseException as error:
                 state['cessation_unproven']=True
                 absorb(error,'finalization','cease')
