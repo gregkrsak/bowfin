@@ -1,0 +1,5 @@
+name: Bounded B38 evidence
+description: Local pinned artifact adapter; no additional runner job
+runs:
+  using: node20
+  main: bridge.js

@@ -9,28 +9,1289 @@ permissions:
   contents: read
 jobs:
   baseline-runner-account:
+    if: ${{ false }}
     runs-on: ubuntu-latest
     timeout-minutes: 2
-    outputs:
-      cpus: ${{ steps.resources.outputs.cpus }}
     steps:
-      - id: resources
-        run: |
-          python3 -c 'import os; print("observed allocation",os.cpu_count()); print("image",os.getenv("ImageOS"),os.getenv("ImageVersion")); open(os.environ["GITHUB_OUTPUT"],"a").write("cpus="+str(os.cpu_count())+"\n")'
+      - run: python3 -c 'import os; print("B38 allocation",os.cpu_count(),os.getenv("ImageOS"),os.getenv("ImageVersion"))'
   resource-and-bootstrap-metadata:
+    if: ${{ false }}
     needs: baseline-runner-account
     runs-on: ubuntu-24.04
-    timeout-minutes: 5
+    timeout-minutes: 10
+    env:
+      B38_PHASE: disabled
+      B38_PREFLIGHT: none
+      PYTHONDONTWRITEBYTECODE: '1'
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-      - name: Verify resources and snapshot bootstrap metadata only
-        env:
-          B38_BASELINE_CPUS: ${{ needs.baseline-runner-account.outputs.cpus }}
-        run: sudo --preserve-env=GITHUB_ACTIONS,GITHUB_SHA,ImageOS,ImageVersion,B38_BASELINE_CPUS python3 experiments/bed-038/x01/launch.py
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      - name: Bounded bootstrap before any checkout or action acquisition
+        id: b38_bootstrap
+        run: |
+          b38_stage=lease
+          trap 'b38_rc=$?; printf "B38_BOOTSTRAP_FAILURE identity=secondary_or_unknown code=BOOTSTRAP_COMMAND_FAILURE stage=%s operation=%s exit=%s line=%s\n" "$b38_stage" "$b38_stage" "$b38_rc" "$LINENO" >&2' ERR
+          sudo --preserve-env=GITHUB_WORKSPACE,GITHUB_RUN_ID,GITHUB_SHA,GITHUB_EVENT_NAME,GITHUB_REF,GITHUB_RUN_ATTEMPT timeout --kill-after=2s 5s python3 -B - <<'PY'
+          try:
+              import json,os,pathlib,sys
+          except BaseException:
+              print('B38_BOOTSTRAP_DIAGNOSTIC {"identity":"primary","stop":"BOOTSTRAP","stage":"lease","operation":"import_stdlib","code":"BOOTSTRAP_IMPORT_FAILURE","kind":"Exception","errno":null,"incomplete":true,"qualification":"provisional"}',flush=True)
+              raise SystemExit(1)
+          class BootstrapStop(Exception):
+              def __init__(self,code): self.code=code
+          def require(condition,code):
+              if not condition: raise BootstrapStop(code)
+          def kind(error):
+              for cls in (BootstrapStop,PermissionError,FileNotFoundError,TimeoutError,OSError,ValueError,KeyError):
+                  if isinstance(error,cls): return cls.__name__
+              return 'Exception'
+          operation='validate_event'
+          try:
+              require(os.environ['GITHUB_RUN_ATTEMPT']=='1' and os.environ['GITHUB_EVENT_NAME']=='push','LEASE_EVENT')
+              require(os.environ['GITHUB_REF']=='refs/heads/bed-038-x01-toolchain-abi','LEASE_REF')
+              operation='validate_ownership'
+              lease=pathlib.Path('/mnt/b38-x01-lease');value=os.environ['GITHUB_RUN_ID']+':'+os.environ['GITHUB_SHA']
+              require(len(value)<128 and not lease.exists(),'LEASE_NOT_EMPTY')
+              require(not pathlib.Path('/mnt/b38-x01-scratch.ext4').exists() and not pathlib.Path('/mnt/b38-x01-external.ext4').exists(),'BACKING_NOT_EMPTY')
+              operation='create_lease'
+              with lease.open('x') as f: f.write(value)
+              operation='verify_core_policy'
+              require(not pathlib.Path('/proc/sys/kernel/core_pattern').read_text()[:4096].strip().startswith('|'),'HOST_CORE_PIPE_UNSUPPORTED')
+          except BaseException as e:
+              number=getattr(e,'errno',None)
+              record={'identity':'primary','stop':'BOOTSTRAP','stage':'lease','operation':operation,
+                      'code':e.code if isinstance(e,BootstrapStop) else 'BOOTSTRAP_OPERATION_FAILURE',
+                      'kind':kind(e),'errno':number if type(number) is int and -4096<=number<=4096 else None,
+                      'incomplete':True,'qualification':'provisional'}
+              print('B38_BOOTSTRAP_DIAGNOSTIC '+json.dumps(record,separators=(',',':')),file=sys.stderr,flush=True)
+              raise SystemExit(1)
+          PY
+          b38_stage=slice_start
+          sudo timeout --kill-after=2s 8s systemctl start b38-x01.slice
+          b38_stage=slice_limits
+          sudo timeout --kill-after=2s 8s systemctl set-property --runtime b38-x01.slice CPUQuota=200% AllowedCPUs=0,1 MemoryMax=6G MemorySwapMax=0 TasksMax=128
+          b38_stage=bootstrap_acquisition
+          sudo --preserve-env=GITHUB_WORKSPACE,GITHUB_SHA,GITHUB_REF,GITHUB_EVENT_NAME,GITHUB_RUN_ATTEMPT,GITHUB_RUN_ID,ImageVersion,B38_PHASE timeout --kill-after=5s 85s systemd-run --quiet --pipe --wait --slice=b38-x01.slice --unit=b38-x01-bootstrap -p RuntimeMaxSec=80 -p TimeoutStartSec=5 -p TimeoutStopSec=2 -p KillMode=control-group -p LimitCORE=0 -p CPUQuota=200% -p AllowedCPUs=0,1 -p MemoryMax=6G -p MemorySwapMax=0 --setenv=GITHUB_WORKSPACE --setenv=GITHUB_SHA --setenv=GITHUB_REF --setenv=GITHUB_EVENT_NAME --setenv=GITHUB_RUN_ATTEMPT --setenv=GITHUB_RUN_ID --setenv=ImageVersion --setenv=B38_PHASE --setenv=PYTHONDONTWRITEBYTECODE=1 python3 -B - <<'PY' &
+          try:
+              import hashlib,json,os,pathlib,re,stat,subprocess,sys,tarfile,urllib.request
+          except BaseException:
+              print('B38_BOOTSTRAP_DIAGNOSTIC {"identity":"primary","stop":"BOOTSTRAP","stage":"bootstrap","operation":"import_stdlib","code":"BOOTSTRAP_IMPORT_FAILURE","kind":"Exception","errno":null,"incomplete":true,"qualification":"provisional"}',flush=True)
+              raise SystemExit(1)
+          class BootstrapStop(Exception):
+              def __init__(self,code): self.code=code
+          def require(condition,code):
+              if not condition: raise BootstrapStop(code)
+          def kind(error):
+              for cls in (BootstrapStop,PermissionError,FileNotFoundError,TimeoutError,OSError,ValueError,KeyError):
+                  if isinstance(error,cls): return cls.__name__
+              return 'Exception'
+          def cmd(*a): subprocess.run(a,check=True,timeout=15,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+          class Redirect(urllib.request.HTTPRedirectHandler):
+              def redirect_request(self,req,fp,code,msg,headers,newurl):
+                  require(urllib.parse.urlparse(newurl).hostname in ('api.github.com','codeload.github.com','raw.githubusercontent.com') and newurl.startswith('https://'),'ACQUISITION_REDIRECT')
+                  return super().redirect_request(req,fp,code,msg,headers,newurl)
+          def get(url,cap,path):
+              with opener.open(url,timeout=15) as r, path.open('xb') as f:
+                  size=0
+                  while True:
+                      b=r.read(min(65536,cap-size+1))
+                      if not b: break
+                      size+=len(b)
+                      require(size<=cap,'ACQUISITION_CAP')
+                      f.write(b)
+              return path.read_bytes() if cap<=2*1024**2 else None
+          Path=pathlib.Path
+          PACKAGE='x01'
+          S=Path('/mnt/b38-'+PACKAGE+'-scratch')
+          IMAGE=Path(str(S)+'.ext4')
+          class ControlError(BootstrapStop):
+              def __init__(self,code,detail=None): super().__init__(code)
+          SAFE_KINDS={'BootstrapStop','ControlError','PermissionError','FileNotFoundError','FileExistsError','IsADirectoryError','NotADirectoryError','TimeoutError','OSError','ValueError','UnicodeDecodeError','KeyError','Exception'}
+          def close_fd_preserving(fd):
+              primary=sys.exc_info()[1]
+              try: os.close(fd)
+              except BaseException as failure:
+                  if primary is None: raise
+                  saved=getattr(primary,'secondary_errors',[])
+                  if len(saved)<4:
+                      number=getattr(failure,'errno',None)
+                      saved.append({'operation':'descriptor_close','code':'BOOTSTRAP_CLOSE_FAILURE',
+                                    'kind':kind(failure),'errno':number if type(number) is int and -4096<=number<=4096 else None,
+                                    'incomplete':True})
+                      primary.secondary_errors=saved
+                  else:
+                      primary.secondary_omitted=getattr(primary,'secondary_omitted',0)+1
+          class audit:
+              @staticmethod
+              def read(path,limit):
+                  fd=os.open(path,os.O_RDONLY|os.O_CLOEXEC)
+                  try:
+                      data=b''
+                      while len(data)<=limit:
+                          part=os.read(fd,min(65536,limit+1-len(data)))
+                          if not part: break
+                          data+=part
+                      if len(data)>limit: raise ControlError('MOUNT_STATE_UNKNOWN')
+                      return data.decode('utf8')
+                  finally: close_fd_preserving(fd)
+              @staticmethod
+              def mount_path(value):
+                  return re.sub(r"\\([0-7]{3})",lambda match:chr(int(match[1],8)),value)
+          class BoundedWriter:
+              def __init__(self,fd,limit): self.fd=fd;self.limit=limit
+              def write(self,data):
+                  if len(data)>self.limit: raise ControlError('MOUNT_PROVENANCE_BOUND')
+                  view=memoryview(data)
+                  while view:
+                      count=os.write(self.fd,view)
+                      if count<=0: raise ControlError('MOUNT_PROVENANCE_UNKNOWN')
+                      view=view[count:]
+
+          # Mount identity is derived only for the exact owned target and its source.
+          # All mount creation intents are durable before invoking mount(8).
+          MOUNT_RECORD = Path('/mnt/b38-' + PACKAGE + '-mounts.json')
+
+          def mount_graph(path):
+              path=Path(path)
+              allowed=(W,S,S/'control-fixtures'/'mount',S/'work')
+              if path not in allowed: raise ControlError('MOUNT_SCOPE','target outside owned paths')
+              try:
+                  fd=os.open(path,os.O_PATH|os.O_NOFOLLOW|os.O_CLOEXEC)
+                  try:
+                      info=os.fstat(fd)
+                      if not stat.S_ISDIR(info.st_mode): raise ValueError('not directory')
+                      lines=audit.read('/proc/self/fdinfo/'+str(fd),4096).splitlines()
+                      mids=[int(x.split(':',1)[1].strip()) for x in lines if x.startswith('mnt_id:')]
+                      if len(mids)!=1 or mids[0]<=0: raise ValueError('effective id')
+                      effective=mids[0]
+                  finally: close_fd_preserving(fd)
+                  lines=audit.read('/proc/self/mountinfo',524288).splitlines()
+                  if len(lines)>512: raise ValueError('mount count')
+                  matches=[];exact=[]
+                  for line in lines:
+                      left,right=line.split(' - ',1);fields=left.split();tail=right.split()
+                      if len(fields)<6 or len(tail)<3: raise ValueError('mount fields')
+                      mid=int(fields[0]);point=audit.mount_path(fields[4])
+                      if mid!=effective and point!=str(path): continue
+                      row={'id':mid,'parent':int(fields[1]),'device':fields[2],
+                           'root':audit.mount_path(fields[3]),'path':point,
+                           'filesystem':tail[0],'source':audit.mount_path(tail[1])}
+                      if mid<=0 or row['parent']<=0: raise ValueError('invalid id')
+                      if mid==effective: matches.append(row)
+                      if point==str(path): exact.append(row)
+                  if len(matches)!=1 or len(exact)>1 or exact and exact[0]!=matches[0]:
+                      raise ValueError('ambiguous or stacked graph')
+                  if matches[0]['device']!=str(os.major(info.st_dev))+':'+str(os.minor(info.st_dev)):
+                      raise ValueError('device mismatch')
+                  return {'effective':matches[0],'exact':exact,'stat':{'dev':info.st_dev,'ino':info.st_ino}}
+              except BaseException as cause:
+                  error=ControlError('MOUNT_STATE_UNKNOWN','mount identity unavailable or ambiguous')
+                  error.operation='mount.identity'
+                  number=getattr(cause,'errno',None)
+                  if type(number) is int and -4096<=number<=4096: error.errno=number
+                  error.origin_kind=type(cause).__name__ if type(cause).__name__ in SAFE_KINDS else 'Exception'
+                  error.origin_incomplete=(type(cause).__name__ not in SAFE_KINDS or
+                      (number is not None and not (type(number) is int and -4096<=number<=4096)))
+                  error.secondary_errors=getattr(cause,'secondary_errors',[])
+                  raise error from cause
+
+          def mount_record_read():
+              try:
+                  fd=os.open(MOUNT_RECORD,os.O_RDONLY|os.O_NOFOLLOW|os.O_CLOEXEC)
+                  try:
+                      info=os.fstat(fd)
+                      if (not stat.S_ISREG(info.st_mode) or info.st_uid!=0 or info.st_gid!=0
+                          or stat.S_IMODE(info.st_mode)!=0o600 or info.st_nlink!=1 or info.st_size>16384):
+                          raise ValueError('sidecar identity')
+                      raw=os.read(fd,16385)
+                      if len(raw)!=info.st_size: raise ValueError('sidecar size')
+                  finally: close_fd_preserving(fd)
+                  record=json.loads(raw)
+                  if (not isinstance(record,dict) or set(record)!={'version','token','entries'}
+                      or record['version']!=1 or record['token']!=os.environ['GITHUB_RUN_ID']+':'+os.environ['GITHUB_SHA']
+                      or not isinstance(record['entries'],dict) or not set(record['entries'])<={'external','scratch','fixture'}):
+                      raise ValueError('sidecar authority')
+                  return record
+              except BaseException as cause:
+                  error=ControlError('MOUNT_PROVENANCE_UNKNOWN','mount provenance unavailable')
+                  error.operation='mount.provenance'
+                  number=getattr(cause,'errno',None)
+                  if type(number) is int and -4096<=number<=4096: error.errno=number
+                  error.origin_kind=type(cause).__name__ if type(cause).__name__ in SAFE_KINDS else 'Exception'
+                  error.origin_incomplete=(type(cause).__name__ not in SAFE_KINDS or
+                      (number is not None and not (type(number) is int and -4096<=number<=4096)))
+                  error.secondary_errors=getattr(cause,'secondary_errors',[])
+                  raise error from cause
+
+          def mount_record_write(record):
+              data=json.dumps(record,sort_keys=True,separators=(',',':')).encode()
+              if len(data)>16384: raise ControlError('MOUNT_PROVENANCE_BOUND','record size')
+              tmp=Path(str(MOUNT_RECORD)+'.tmp')
+              fd=os.open(tmp,os.O_WRONLY|os.O_CREAT|os.O_EXCL|os.O_NOFOLLOW|os.O_CLOEXEC,0o600)
+              try:
+                  os.fchmod(fd,0o600)
+                  if os.fstat(fd).st_uid!=0 or os.fstat(fd).st_gid!=0: raise ValueError('sidecar owner')
+                  BoundedWriter(fd,16384).write(data);os.fsync(fd)
+              finally: close_fd_preserving(fd)
+              os.replace(tmp,MOUNT_RECORD)
+              directory=os.open('/mnt',os.O_RDONLY|os.O_DIRECTORY|os.O_CLOEXEC)
+              try: os.fsync(directory)
+              finally: close_fd_preserving(directory)
+
+          def mount_source_stat(path,mode):
+              info=os.stat(path,follow_symlinks=False)
+              if mode=='loop' and not stat.S_ISREG(info.st_mode) or mode=='bind' and not stat.S_ISDIR(info.st_mode):
+                  raise ControlError('MOUNT_SOURCE_UNKNOWN','source type')
+              return {'dev':info.st_dev,'ino':info.st_ino}
+
+          def mount_validate(name,entry,view):
+              expected={'external':(W,Path('/mnt/b38-'+PACKAGE+'-external.ext4'),'loop'),
+                        'scratch':(S,IMAGE,'loop'),
+                        'fixture':(S/'control-fixtures'/'mount',S/'work','bind')}
+              if name not in expected or not isinstance(entry,dict) or set(entry)!={'state','target','underlying','mount','source','source_stat','mode'}:
+                  raise ControlError('MOUNT_PROVENANCE_UNKNOWN','invalid entry')
+              target,source,mode=expected[name]
+              if entry['target']!=str(target) or entry['source']!=str(source) or entry['mode']!=mode:
+                  raise ControlError('MOUNT_PROVENANCE_UNKNOWN','unexpected path')
+              row=entry['mount'];underlying=entry['underlying']
+              row_keys={'id','parent','device','root','path','filesystem','source'}
+              if (not isinstance(row,dict) or set(row)!=row_keys or not isinstance(underlying,dict)
+                  or set(underlying)!=row_keys or row['path']!=str(target) or row['parent']!=underlying['id']
+                  or any(type(r[k]) is not int or r[k]<=0 for r in (row,underlying) for k in ('id','parent'))
+                  or any(not isinstance(r[k],str) for r in (row,underlying) for k in ('device','root','path','filesystem','source'))
+                  or not isinstance(entry['source_stat'],dict) or set(entry['source_stat'])!={'dev','ino'}
+                  or any(type(entry['source_stat'][k]) is not int for k in ('dev','ino'))
+                  or entry['source_stat']['dev']<0 or entry['source_stat']['ino']<=0 or row['id']==underlying['id']):
+                  raise ControlError('MOUNT_PROVENANCE_UNKNOWN','invalid mount identity')
+              if entry['state'] in ('removed','released'):
+                  if entry['state']=='released' and mode!='loop': raise ControlError('MOUNT_PROVENANCE_UNKNOWN','invalid released state')
+                  if view['exact'] or view['effective']!=underlying:
+                      raise ControlError('MOUNT_STATE_UNKNOWN','removed identity changed')
+                  return
+              if mount_source_stat(source,mode)!=entry['source_stat']:
+                  raise ControlError('MOUNT_OWNERSHIP_UNKNOWN','source changed')
+              if entry['state']!='mounted' or view['exact']!=[entry['mount']] or view['effective']!=entry['mount']:
+                  raise ControlError('MOUNT_OWNERSHIP_UNKNOWN','owned mount not established')
+              row=entry['mount'];underlying=entry['underlying']
+              if row['parent']!=underlying['id'] or row['id']==underlying['id']:
+                  raise ControlError('MOUNT_OWNERSHIP_UNKNOWN','mount parent changed')
+              if mode=='loop':
+                  if row['filesystem']!='ext4' or row['root']!='/': raise ControlError('MOUNT_OWNERSHIP_UNKNOWN','loop filesystem')
+                  backing=audit.read('/sys/dev/block/'+row['device']+'/loop/backing_file',4096).strip()
+                  if backing!=str(source): raise ControlError('MOUNT_OWNERSHIP_UNKNOWN','loop backing')
+              else:
+                  source_view=mount_graph(source);base=source_view['effective']
+                  try: relative=source.relative_to(Path(base['path']))
+                  except ValueError as cause: raise ControlError('MOUNT_SOURCE_UNKNOWN','source graph') from cause
+                  expected_root=str(Path(base['root'])/relative)
+                  if (view['stat']!=entry['source_stat'] or row['device']!=base['device'] or
+                      row['filesystem']!=base['filesystem'] or row['root']!=expected_root):
+                      raise ControlError('MOUNT_SOURCE_UNKNOWN','bind source identity')
+
+          def mount_begin(name,target,source,mode):
+              record=mount_record_read();previous=record['entries'].get(name)
+              if previous and previous.get('state')!='removed': raise ControlError('MOUNT_PREEXISTS','ownership unresolved')
+              view=mount_graph(target)
+              if view['exact']: raise ControlError('MOUNT_PREEXISTS','target mounted')
+              if previous: mount_validate(name,previous,view)
+              record['entries'][name]={'state':'pending','target':str(target),'underlying':view['effective'],
+                 'mount':None,'source':str(source),'source_stat':mount_source_stat(source,mode),'mode':mode}
+              mount_record_write(record)
+
+          def mount_commit(name):
+              record=mount_record_read();entry=record['entries'][name]
+              if entry.get('state')!='pending': raise ControlError('MOUNT_PROVENANCE_UNKNOWN','no intent')
+              view=mount_graph(Path(entry['target']))
+              if len(view['exact'])!=1: raise ControlError('MOUNT_CREATION_UNPROVEN','no exact mount')
+              prospective=dict(entry,state='mounted',mount=view['exact'][0])
+              mount_validate(name,prospective,view)
+              # Re-read graph before making the proof durable. A changed mount is unknown.
+              if mount_graph(Path(entry['target']))!=view: raise ControlError('MOUNT_STATE_UNKNOWN','mount changed')
+              record['entries'][name]=prospective;mount_record_write(record)
+              return prospective
+
+          stage='bootstrap';operation='workspace_identity';failure_ready=False;W=None
+          try:
+              operation='initialize_acquisition';opener=urllib.request.build_opener(urllib.request.ProxyHandler({}),Redirect())
+              operation='workspace_identity'
+              W=pathlib.Path(os.environ['GITHUB_WORKSPACE']);E=pathlib.Path('/mnt/b38-x01-external.ext4')
+              operation='resource_envelope'
+              cg=pathlib.Path('/sys/fs/cgroup')/pathlib.Path('/proc/self/cgroup').read_text().split('0:',1)[1].strip().lstrip('/')
+              effective={n:(cg/n).read_text().strip() for n in ('memory.max','memory.swap.max','cpu.max','cpuset.cpus.effective')}
+              quota,period=map(int,effective['cpu.max'].split());require(0<quota<=2*period,'BOOTSTRAP_CPU')
+              require(effective['memory.max']==str(6*1024**3) and effective['memory.swap.max']=='0' and os.sched_getaffinity(0)=={0,1},'BOOTSTRAP_ENVELOPE')
+              operation='validate_run'
+              require(os.uname().machine=='x86_64','HOST_ARCHITECTURE')
+              require(os.environ['GITHUB_RUN_ATTEMPT']=='1','RERUN_FORBIDDEN')
+              require(os.environ['GITHUB_EVENT_NAME']=='push' and os.environ['GITHUB_REF']=='refs/heads/bed-038-x01-toolchain-abi','BOOTSTRAP_EVENT')
+              require(os.environ['B38_PHASE']=='preflight','BOOTSTRAP_PHASE')
+              operation='verify_ownership'
+              L=pathlib.Path('/mnt/b38-x01-lease');owned=os.environ['GITHUB_RUN_ID']+':'+os.environ['GITHUB_SHA']
+              require(len(owned)<128 and L.read_text()==owned and not os.path.lexists(E) and not os.path.lexists('/mnt/b38-x01-scratch.ext4') and not list(W.iterdir()),'BOOTSTRAP_NOT_EMPTY')
+              operation='verify_headroom'
+              require(__import__('shutil').disk_usage(W).free>=12*1024**3,'DISK_HEADROOM')
+              require(int(next(x.split()[1] for x in pathlib.Path('/proc/meminfo').read_text().splitlines() if x.startswith('MemAvailable:')))*1024>=7*1024**3,'MEMORY_HEADROOM')
+              operation='allocate_external';cmd('fallocate','-l',str(120*1024**2),str(E))
+              operation='format_external';cmd('mkfs.ext4','-q','-m','2',str(E))
+              operation='mount_provenance_init'
+              require(not os.path.lexists(MOUNT_RECORD),'MOUNT_PROVENANCE_EXISTS')
+              entries={}
+              if PACKAGE=='x03' and os.environ['B38_PHASE']=='admission':
+                  entries['fixture']={'state':'not_requested'}
+              mount_record_write({'version':1,'token':owned,'entries':entries})
+              operation='mount_external_intent';mount_begin('external',W,E,'loop')
+              operation='mount_external';cmd('mount','-o','loop,nodev,nosuid',str(E),str(W))
+              operation='mount_external_capture';mount_commit('external');os.chmod(W,0o755)
+              operation='initialize_evidence';(W/'failure.json').write_bytes(b' '*65536);failure_ready=True
+              (W/'tmp').mkdir();(W/'out').mkdir()
+              operation='bootstrap_unit_identity'
+              invocation=os.environ.get('INVOCATION_ID','')
+              group=pathlib.Path('/proc/self/cgroup').read_text().split('0::',1)[1].strip()
+              require(re.fullmatch('[0-9a-f]{32}',invocation) is not None and
+                      group.endswith('/b38-'+PACKAGE+'.slice/b38-'+PACKAGE+'-bootstrap.service'),
+                      'BOOTSTRAP_UNIT_IDENTITY')
+              identity={'version':1,'package':PACKAGE,'run_id':os.environ['GITHUB_RUN_ID'],
+                        'commit':os.environ['GITHUB_SHA'],'unit':{'Id':'b38-'+PACKAGE+'-bootstrap.service',
+                        'InvocationID':invocation,'ControlGroup':group,'Job':None}}
+              identity_raw=json.dumps(identity,sort_keys=True,separators=(',',':')).encode()
+              identity_fd=os.open(W/'out/inventory-bootstrap.json',os.O_WRONLY|os.O_CREAT|os.O_EXCL|os.O_NOFOLLOW|os.O_CLOEXEC,0o600)
+              try:
+                  os.fchmod(identity_fd,0o600);BoundedWriter(identity_fd,16384).write(identity_raw);os.fsync(identity_fd)
+              finally: os.close(identity_fd)
+              operation='adapter_inventory_intent'
+              adapter={'version':1,'package':PACKAGE,'run_id':os.environ['GITHUB_RUN_ID'],
+                       'commit':os.environ['GITHUB_SHA'],
+                       'scope':{'id':'b38-'+PACKAGE+'-adapter.scope','invocation_id':None,
+                                'control_group':None,'job_id':None,'state':'intent'},
+                       'adapter_pid':None,'adapter_start_ticks':None,
+                       'upload_client':{'pid':None,'start_ticks':None,'status':None,'signal':None,'state':'not_started'},
+                       'adapter_complete':False,'incomplete':True}
+              raw=json.dumps(adapter,sort_keys=True,separators=(',',':')).encode()
+              fd=os.open(W/'inventory-adapter.json',os.O_WRONLY|os.O_CREAT|os.O_EXCL|os.O_NOFOLLOW|os.O_CLOEXEC,0o600)
+              try:
+                  os.fchmod(fd,0o600);BoundedWriter(fd,65536).write(raw);os.fsync(fd)
+              finally: os.close(fd)
+              stage='source';operation='fetch_tree'
+              sha=os.environ['GITHUB_SHA'];api='https://api.github.com/repos/gregkrsak/bowfin/'
+              tree=json.loads(get(api+'git/trees/'+sha+'?recursive=1',2*1024**2,W/'tree.json'))
+              require(not tree.get('truncated') and len(tree['tree'])<=2048,'SOURCE_TREE_CAP')
+              blobs={x['path']:x for x in tree['tree'] if x['type']=='blob'}
+              operation='fetch_archive';get(api+'tarball/'+sha,16*1024**2,W/'source.tgz')
+              operation='verify_archive';S=W/'source';S.mkdir();seen=set();total=0
+              with tarfile.open(W/'source.tgz','r|gz') as tar:
+                  count=0
+                  for m in tar:
+                      count+=1;require(count<=4096,'SOURCE_MEMBER_COUNT')
+                      parts=pathlib.PurePosixPath(m.name).parts[1:]
+                      require('..' not in parts and not m.name.startswith('/'),'SOURCE_PATH')
+                      if m.isdir(): continue
+                      name='/'.join(parts);row=blobs.get(name)
+                      require(row and m.isfile() and not m.issym() and not m.islnk() and name not in seen,'SOURCE_MEMBER')
+                      require(row['mode'] in ('100644','100755') and m.size<=4*1024**2,'SOURCE_FILE_CAP')
+                      total+=m.size;require(total<=32*1024**2,'SOURCE_TOTAL_CAP')
+                      b=tar.extractfile(m).read(m.size+1)
+                      require(len(b)==m.size and hashlib.sha1(b'blob '+str(len(b)).encode()+b'\0'+b).hexdigest()==row['sha'],'SOURCE_BLOB')
+                      p=S/name;p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes(b);p.chmod(int(row['mode'][-3:],8));seen.add(name)
+              operation='verify_completeness';require(seen==set(blobs),'SOURCE_COMPLETENESS')
+              stage='artifact';operation='fetch_vendor';V=S/'experiments/bed-038/x01/artifact/vendor.js'
+              get('https://raw.githubusercontent.com/actions/upload-artifact/ea165f8d65b6e75b540449e92b4886f43607fa02/dist/upload/index.js',6*1024**2,V)
+              operation='verify_vendor';b=V.read_bytes();require(len(b)==5051718 and hashlib.sha1(b'blob '+str(len(b)).encode()+b'\0'+b).hexdigest()=='89238fa3eb49937ea82c5d82006ee1fc6c6abaae','ARTIFACT_SOURCE')
+              operation='record_success';(W/'source.tgz').unlink()
+              record={'effective':effective,'commit':sha,'tree':tree['sha'],'vendor_blob':'89238fa3eb49937ea82c5d82006ee1fc6c6abaae','vendor_sha256':hashlib.sha256(b).hexdigest(),'source_bytes':total,'image':os.getenv('ImageVersion'),'kernel':os.uname().release,'cpus':os.cpu_count()}
+              (W/'out/bootstrap.json').write_text(json.dumps(record))
+          except BaseException as e:
+              number=getattr(e,'errno',None)
+              record={'identity':'primary','stop':'BOOTSTRAP','stage':stage,'operation':operation,
+                      'code':e.code if isinstance(e,BootstrapStop) else 'BOOTSTRAP_OPERATION_FAILURE',
+                      'kind':kind(e),'errno':number if type(number) is int and -4096<=number<=4096 else None,
+                      'incomplete':True,'qualification':'provisional'}
+              # Retain bounded safe wrapper origin and secondary close failures.
+              origin=getattr(e,'origin_kind',None)
+              if origin in SAFE_KINDS: record['origin_kind']=origin
+              record['classification_incomplete']=bool(getattr(e,'origin_incomplete',False) or getattr(e,'secondary_omitted',0))
+              if getattr(e,'secondary_omitted',0): record['secondary_omitted']=e.secondary_omitted
+              record['secondary']=list(getattr(e,'secondary_errors',[]))[:4]
+              # Retain the first failure before trying a fallible log transport.
+              retained=False
+              def retain():
+                  text=json.dumps(record,separators=(',',':')).encode()
+                  if len(text)>65536: raise ValueError('BOOTSTRAP_RECORD_BOUND')
+                  with (W/'failure.json').open('r+b') as f: f.write(text);f.write(b' '*(65536-len(text)))
+              def add_secondary(operation,code,error):
+                  n=getattr(error,'errno',None)
+                  record['secondary'].append({'identity':'secondary','stage':'bootstrap','operation':operation,
+                      'code':code,'kind':kind(error),'errno':n if type(n) is int and -4096<=n<=4096 else None,'incomplete':True})
+              if failure_ready:
+                  try: retain();retained=True
+                  except BaseException as write_error: add_secondary('retain_failure','BOOTSTRAP_EVIDENCE_WRITE_FAILURE',write_error)
+              else:
+                  record['retention']='unavailable_before_evidence_allocation'
+              try: print('B38_BOOTSTRAP_DIAGNOSTIC '+json.dumps(record,separators=(',',':')),file=sys.stderr,flush=True)
+              except BaseException as log_error:
+                  add_secondary('emit_failure','BOOTSTRAP_LOG_FAILURE',log_error)
+                  # The already-retained primary remains untouched. A separate
+                  # bounded secondary file preserves the later transport error.
+                  if retained:
+                      try:
+                          extra=json.dumps(record['secondary'][-1],separators=(',',':')).encode()
+                          fd=os.open(W/'bootstrap-secondary.json',os.O_WRONLY|os.O_CREAT|os.O_EXCL|os.O_NOFOLLOW,0o600)
+                          try: os.write(fd,extra);os.fsync(fd)
+                          finally: os.close(fd)
+                      except BaseException: pass  # Primary is intact; transport is incomplete.
+              raise SystemExit(1)
+          PY
+          b38_client=$!
+          b38_ticks=''
+          if { IFS= read -r b38_proc < "/proc/$b38_client/stat"; } 2>/dev/null; then
+            b38_proc_tail=${b38_proc##*) }
+            read -r -a b38_fields <<< "$b38_proc_tail"
+            b38_ticks=${b38_fields[19]:-}
+          fi
+          b38_identity_ok=1
+          if [[ ! "$b38_client" =~ ^[0-9]+$ || ! "$b38_ticks" =~ ^[0-9]+$ || "${b38_fields[1]:-}" != "$BASHPID" ]]; then b38_identity_ok=0; fi
+          if ! { printf 'launcher_pid=%s\nlauncher_start_ticks=%s\n' "$b38_client" "$b38_ticks" >> "$GITHUB_OUTPUT"; } 2>/dev/null; then
+            b38_identity_ok=0; printf 'B38_OUTPUT_FAILURE identity=secondary_or_unknown stage=launcher operation=write_identity code=LAUNCHER_OUTPUT_FAILURE incomplete=true\n' >&2 || true
+          fi
+          if wait "$b38_client"; then b38_status=0; else b38_status=$?; fi
+          if ! { printf 'launcher_status=%s\n' "$b38_status" >> "$GITHUB_OUTPUT"; } 2>/dev/null; then
+            b38_identity_ok=0; printf 'B38_OUTPUT_FAILURE identity=secondary_or_unknown stage=launcher operation=write_status code=LAUNCHER_OUTPUT_FAILURE incomplete=true\n' >&2 || true
+          fi
+          if [ "$b38_status" -ne 0 ]; then exit "$b38_status"; fi
+          if [ "$b38_identity_ok" -ne 1 ]; then printf 'B38_KNOWN_OBJECT_INCOMPLETE bootstrap\n' >&2; exit 1; fi
+          exit 0
+      - name: Audited lifecycle; no progression on success
+        id: b38_parent
+        run: |
+          sudo --preserve-env=GITHUB_ACTIONS,GITHUB_WORKSPACE,GITHUB_SHA,GITHUB_RUN_ATTEMPT,GITHUB_RUN_ID,GITHUB_SERVER_URL,GITHUB_REPOSITORY,ImageVersion,B38_PHASE,B38_PREFLIGHT timeout --kill-after=5s 295s systemd-run --quiet --pipe --wait --slice=b38-x01.slice --unit=b38-x01-parent --working-directory="$GITHUB_WORKSPACE" -p RuntimeMaxSec=285 -p TimeoutStartSec=5 -p TimeoutStopSec=2 -p KillMode=control-group -p LimitCORE=0 -p CPUQuota=200% -p AllowedCPUs=0,1 -p MemoryMax=6G -p MemorySwapMax=0 --setenv=GITHUB_ACTIONS --setenv=GITHUB_WORKSPACE --setenv=GITHUB_SHA --setenv=GITHUB_RUN_ATTEMPT --setenv=GITHUB_RUN_ID --setenv=GITHUB_SERVER_URL --setenv=GITHUB_REPOSITORY --setenv=ImageVersion --setenv=B38_PHASE --setenv=B38_PREFLIGHT python3 -B source/experiments/bed-038/x01/launch.py run &
+          b38_client=$!
+          b38_ticks=''
+          if { IFS= read -r b38_proc < "/proc/$b38_client/stat"; } 2>/dev/null; then
+            b38_proc_tail=${b38_proc##*) }
+            read -r -a b38_fields <<< "$b38_proc_tail"
+            b38_ticks=${b38_fields[19]:-}
+          fi
+          b38_identity_ok=1
+          if [[ ! "$b38_client" =~ ^[0-9]+$ || ! "$b38_ticks" =~ ^[0-9]+$ || "${b38_fields[1]:-}" != "$BASHPID" ]]; then b38_identity_ok=0; fi
+          if ! { printf 'launcher_pid=%s\nlauncher_start_ticks=%s\n' "$b38_client" "$b38_ticks" >> "$GITHUB_OUTPUT"; } 2>/dev/null; then
+            b38_identity_ok=0; printf 'B38_OUTPUT_FAILURE identity=secondary_or_unknown stage=launcher operation=write_identity code=LAUNCHER_OUTPUT_FAILURE incomplete=true\n' >&2 || true
+          fi
+          if wait "$b38_client"; then b38_status=0; else b38_status=$?; fi
+          if ! { printf 'launcher_status=%s\n' "$b38_status" >> "$GITHUB_OUTPUT"; } 2>/dev/null; then
+            b38_identity_ok=0; printf 'B38_OUTPUT_FAILURE identity=secondary_or_unknown stage=launcher operation=write_status code=LAUNCHER_OUTPUT_FAILURE incomplete=true\n' >&2 || true
+          fi
+          if [ "$b38_status" -ne 0 ]; then exit "$b38_status"; fi
+          if [ "$b38_identity_ok" -ne 1 ]; then printf 'B38_KNOWN_OBJECT_INCOMPLETE parent\n' >&2; exit 1; fi
+          exit 0
+      - name: Bounded evidence upload and failure cleanup
+        id: b38_adapter
         if: always()
-        with:
-          name: b38-x01-preflight-${{ github.sha }}
-          path: b38-x01-results/
-          retention-days: 30
-          if-no-files-found: error
+        uses: ./source/experiments/bed-038/x01/artifact
+      - name: Source-independent bounded teardown, including bootstrap failure
+        if: always()
+        env:
+          B38_BOOTSTRAP_OUTCOME: ${{ steps.b38_bootstrap.outcome }}
+          B38_PARENT_OUTCOME: ${{ steps.b38_parent.outcome }}
+          B38_ADAPTER_OUTCOME: ${{ steps.b38_adapter.outcome }}
+          B38_BOOTSTRAP_LAUNCHER_PID: ${{ steps.b38_bootstrap.outputs.launcher_pid }}
+          B38_BOOTSTRAP_LAUNCHER_START_TICKS: ${{ steps.b38_bootstrap.outputs.launcher_start_ticks }}
+          B38_BOOTSTRAP_LAUNCHER_STATUS: ${{ steps.b38_bootstrap.outputs.launcher_status }}
+          B38_PARENT_LAUNCHER_PID: ${{ steps.b38_parent.outputs.launcher_pid }}
+          B38_PARENT_LAUNCHER_START_TICKS: ${{ steps.b38_parent.outputs.launcher_start_ticks }}
+          B38_PARENT_LAUNCHER_STATUS: ${{ steps.b38_parent.outputs.launcher_status }}
+        run: |
+          cd /
+          trap 'b38_rc=$?; printf "B38_TEARDOWN_FAILURE identity=secondary_or_unknown stage=teardown operation=runner_cleanup code=TEARDOWN_COMMAND_FAILURE status=%s incomplete=true\n" "$b38_rc" >&2 || true' ERR
+          sudo --preserve-env=GITHUB_WORKSPACE,GITHUB_RUN_ID,GITHUB_SHA,B38_PHASE,B38_BOOTSTRAP_OUTCOME,B38_PARENT_OUTCOME,B38_ADAPTER_OUTCOME,B38_BOOTSTRAP_LAUNCHER_PID,B38_BOOTSTRAP_LAUNCHER_START_TICKS,B38_BOOTSTRAP_LAUNCHER_STATUS,B38_PARENT_LAUNCHER_PID,B38_PARENT_LAUNCHER_START_TICKS,B38_PARENT_LAUNCHER_STATUS timeout --kill-after=2s 25s python3 - <<'PY'
+          try:
+              import base64,hashlib,json,os,pathlib,re,selectors,signal,stat,subprocess,sys,time
+          except BaseException:
+              print('B38_TEARDOWN_DIAGNOSTIC {"identity":"secondary_or_unknown","stage":"teardown","operation":"import_stdlib","code":"TEARDOWN_IMPORT_FAILURE","kind":"Exception","errno":null,"incomplete":true}',flush=True)
+              raise SystemExit(1)
+          W=pathlib.Path(os.environ['GITHUB_WORKSPACE'])
+          S=pathlib.Path('/mnt/b38-x01-scratch')
+          LEASE=pathlib.Path('/mnt/b38-x01-lease')
+          MIB=1024**2
+          secondary=[];teardown_primary=[]
+          keys={'secondary_omitted','precedence_unknown','nested_fields_omitted','causes','origin_kind','provider_output_omitted','provider_output_reason','exit_code','returncode','retention','identity','qualification','filtered_fields','classification_incomplete','detail_omitted','worker_status','worker_status_fallback','setup_failure','status_write','safe_origin','safe_secondary','failure','case','diagnostic','original_diagnostic','attempted_bytes','worker_status_detail_omitted','primary','secondary','incomplete','stop','code','kind','failure_kind','failure_code','checkpoint_failure_kind','errno','stage','operation','phase','status','component','components','component_status','digest_scope','expected_sha256','observed_sha256','received_bytes','bytes','expected','observed','actual','effective','controls','memory.max','memory.swap.max','cpu.max','cpuset.cpus.effective','pids.max','RuntimeMaxUSec','TimeoutStopUSec','ControlGroup','Result','ExecMainStatus','ActiveState','SubState','unit','reason','files','version','cumulative_members','cumulative_expanded_bytes','provisional','cessation_confirmed'}
+          SAFE_FIXED_WORDS=frozenset(['ACQUIRE_REDIRECT', 'ACQUISITION_FAILED', 'ACQUISITION_IO_OR_FORMAT', 'ADAPTER_CLOSE_FAILURE', 'ADAPTER_COMPANION_WRITE_FAILURE', 'ADAPTER_OPERATION_FAILURE', 'ADAPTER_TRANSPORT_FAILURE', 'ADMISSION_AUTHORITY', 'ADMISSION_MODE', 'ADMISSION_SELECTION', 'ADMISSION_STOP', 'ARCHIVE_BOUND', 'ARCHIVE_BYTES', 'ARCHIVE_ENVELOPE', 'ARCHIVE_IDENTITY', 'ARCHIVE_LINK_OR_SPECIAL', 'ARCHIVE_MEMBER', 'ARCHIVE_PATH', 'ARCHIVE_PRIMARY_INVALID', 'ARCHIVE_READY_EXISTS', 'ARCHIVE_READY_INVALID', 'AUDIT_CGROUP', 'AUDIT_CONTROL_KEY', 'AUDIT_CORE_POLICY', 'AUDIT_CPU', 'AUDIT_DESCRIPTOR', 'AUDIT_DESCRIPTOR_LIMIT', 'AUDIT_DEVICE', 'AUDIT_IDENTITY', 'AUDIT_MISSING_CONTROL', 'AUDIT_MOUNT_COUNT', 'AUDIT_MOUNT_IDENTITY', 'AUDIT_NAMESPACE', 'AUDIT_OUTPUT_BOUND', 'AUDIT_PRIVILEGE', 'AUDIT_READ_BOUND', 'AUDIT_TASK_STORAGE', 'AUDIT_WRITABLE_MOUNT', 'AUDIT_WRONG_CONTROL', 'BACKING_NOT_EMPTY', 'BLOCKED_WRITE_ACCEPTED', 'BLOCKED_WRONG_DIAGNOSTIC', 'BOOTSTRAP', 'BOOTSTRAP_COMMAND_FAILURE', 'BOOTSTRAP_EVIDENCE_WRITE_FAILURE', 'BOOTSTRAP_IMPORT_FAILURE', 'BOOTSTRAP_LOG_FAILURE', 'BOOTSTRAP_OPERATION_FAILURE', 'CHILD_DISCRIMINATOR', 'CHILD_EXIT', 'CHILD_TIMEOUT_CEASED', 'CLEANUP_CONTROL_TEARDOWN', 'CLEANUP_DISCRIMINATOR', 'CLEANUP_INCOMPLETE', 'CLEANUP_SECONDARY', 'COLLECTION_BOUND', 'COLLECTION_CHANGED', 'COLLECTION_DISCRIMINATOR', 'COLLECTION_MEMBERS', 'COLLECTION_TARGET_NOT_REGULAR', 'COMMAND_FAILED', 'COMMAND_TIMEOUT', 'CONTROL_CASE', 'CONTROL_CHILD_CESSATION_UNPROVEN', 'CONTROL_MISMATCH', 'CONTROL_NO_REJECTION', 'CONTROL_PARENT_ONLY', 'CONTROL_PRIMARY', 'CONTROL_READBACK', 'CONTROL_UNIMPLEMENTED', 'DESCENDANTS_REMAIN', 'FALLBACK_OUTPUT_BOUND', 'HOST_CORE_PIPE_UNSUPPORTED', 'HOST_TOOL_BOUND', 'HOST_TOOL_MISSING', 'HYGIENE_ADAPTER_INVENTORY', 'HYGIENE_CANCEL_FAILED', 'HYGIENE_COMMAND_TIMEOUT', 'HYGIENE_INVENTORY_INCOMPLETE', 'HYGIENE_INVENTORY_MALFORMED', 'HYGIENE_JOB_FORMAT', 'HYGIENE_KNOWN_UNSETTLED', 'HYGIENE_LAUNCHER_INVENTORY', 'HYGIENE_MANAGER_FAILURE', 'HYGIENE_MANAGER_MALFORMED', 'HYGIENE_OUTPUT_BOUND', 'HYGIENE_RECORD_BOUND', 'HYGIENE_RECORD_IDENTITY', 'HYGIENE_SLICE_IDENTITY_UNKNOWN', 'HYGIENE_SLICE_STOP_FAILED', 'HYGIENE_STEP_INCOMPLETE', 'HYGIENE_STEP_OUTCOME_UNKNOWN', 'HYGIENE_STOP_FAILED', 'HYGIENE_UNIT_FORMAT', 'HYGIENE_UNKNOWN_UNIT', 'HYGIENE_WORKER_WITNESS_MALFORMED', 'LEASE_EVENT', 'LEASE_NOT_EMPTY', 'LEASE_REF', 'METADATA_STOP', 'MOUNT_CREATION_UNPROVEN', 'MOUNT_OWNERSHIP_UNKNOWN', 'MOUNT_PREEXISTS', 'MOUNT_PROVENANCE_BOUND', 'MOUNT_PROVENANCE_UNKNOWN', 'MOUNT_SCOPE', 'MOUNT_SOURCE_MISMATCH', 'MOUNT_SOURCE_UNKNOWN', 'MOUNT_STATE_UNKNOWN', 'NO_ARCHIVE', 'NO_TASK_ALLOCATION', 'OK', 'OUTPUT_BOUND', 'OUTPUT_DISCRIMINATOR', 'OUTPUT_IO', 'PARENT_DEADLINE', 'PARENT_ENVELOPE', 'PARENT_EVIDENCE_OVERSIZE', 'PERMIT_IDENTITY', 'PERMIT_TIMEOUT', 'PHASE', 'PREFLIGHT_ACTIVE_DEADLINE', 'QUALIFICATION_REQUIRED', 'RECORD_BOUND', 'SCRATCH_RETAINED', 'SECONDARY_MALFORMED', 'SLICE_ENVELOPE', 'STATUS_EXERCISE_INVALID', 'STATUS_EXERCISE_MISMATCH', 'STATUS_FALLBACK_BOUND', 'STATUS_FALLBACK_LOG_BOUND', 'STATUS_FALLBACK_MALFORMED', 'STATUS_FALLBACK_OVERSIZE', 'STATUS_FILE_OVERSIZE', 'STATUS_MALFORMED', 'STATUS_MISSING', 'STATUS_OVERSIZE', 'STATUS_WRITE_FAILED', 'STORAGE_NOT_EMPTY', 'TEARDOWN_OPERATION_FAILURE', 'TEARDOWN_OWNERSHIP', 'TOOLCHAIN_METADATA_BYTES', 'TRANSPORT_RECORD_BOUND', 'UNCLASSIFIED_FAILURE', 'UNIT_CESSATION_UNPROVEN', 'UNIT_CLEANUP_INCOMPLETE', 'UNIT_CLIENT_EXITED_BEFORE_PERMIT', 'UNIT_CLIENT_TIMEOUT', 'UNIT_CLIENT_UNREAPED', 'UNIT_CREATION_UNRESOLVED', 'UNIT_DEADLINE', 'UNIT_DEADLINE_FORMAT', 'UNIT_IDENTITY_LOST', 'UNIT_INVENTORY_BOUND', 'UNIT_INVENTORY_FAILED', 'UNIT_INVENTORY_INCOMPLETE', 'UNIT_INVENTORY_LAUNCHER', 'UNIT_INVENTORY_LEASE', 'UNIT_INVENTORY_PARENT', 'UNIT_INVENTORY_UNAVAILABLE', 'UNIT_POLICY', 'UNIT_RESET_FAILURE', 'UNIT_RESULT_UNPROVEN', 'UNIT_SLICE_UNPROVEN', 'UNIT_START_FAILED', 'UNIT_START_TIMEOUT', 'UNIT_TERMINAL_UNPROVEN', 'UPLOAD_AUDIT_BOUND', 'UPLOAD_AUDIT_DUPLICATE', 'UPLOAD_AUDIT_INVALID', 'UPLOAD_COPY_INVALID', 'UPLOAD_COPY_SETUP_FAILURE', 'UPLOAD_OBJECT_CHANGED', 'UPLOAD_PROVIDER_FAILURE', 'UPLOAD_STATUS_MISMATCH', 'UPLOAD_STOP', 'WORKER_FAILURE', 'WORKER_STATUS', 'acquisition', 'active', 'adapter_exec', 'adapter_prepare', 'admission', 'archive_append', 'archive_checkpoint', 'archive_open', 'archive_ready_revalidation', 'archive_verified', 'archive_verify', 'artifact', 'audit', 'audit_read', 'bootstrap', 'bootstrap_acquisition', 'cargo', 'cease', 'child.cease', 'child.close', 'child.kill', 'child.wait', 'cleanup', 'client_kill', 'client_reap', 'client_wait', 'close_stdout', 'collection', 'command_cleanup', 'complete', 'complete_archive', 'completion_checkpoint', 'component_checkpoint', 'control', 'control.cleanup', 'copy', 'copy.enumerate', 'copy.open', 'copy.validate', 'create_lease', 'create_tool_directory', 'descriptor_close', 'disabled', 'disposition_or_package', 'download_component', 'downloading', 'emit_failure', 'exited', 'extract_component', 'failed', 'failure_checkpoint', 'failure_event', 'final_checkpoint', 'finalization', 'finish', 'import_stdlib', 'inactive', 'incomplete', 'initial_checkpoint', 'initialize_downloader', 'inventory_adapter', 'inventory_client', 'inventory_close', 'inventory_run', 'inventory_upload', 'known_unsettled', 'lease', 'manager_inventory', 'metadata', 'mount.identity', 'mount.provenance', 'object_record', 'owned_mount_cleanup', 'ownership', 'package_slice_stop', 'per_unit_records_retained', 'permit', 'preflight', 'provider_execute', 'provisional', 'provisional_snapshot', 'received_prefix', 'record_object', 'retain_failure', 'retained_per_unit_snapshot', 'run', 'rust-std', 'rustc', 'seed', 'settlement_check', 'slice_identity', 'slice_limits', 'slice_start', 'slice_start_intent', 'source', 'status_recovery', 'status_write', 'step_outcomes', 'success', 'timeout', 'transport', 'transport_collection', 'umount', 'unit.cleanup', 'unknown', 'upload', 'upload.copy', 'upload.worker_setup', 'upload_copy', 'validate_event', 'validate_ownership', 'verify_archive', 'verify_core_policy', 'worker.status_write', 'worker_setup'])
+          SAFE_DIAGNOSTIC_CODES=frozenset(['ACQUIRE_REDIRECT', 'ACQUISITION_CAP', 'ACQUISITION_FAILED', 'ACQUISITION_IO_OR_FORMAT', 'ACQUISITION_REDIRECT', 'ADAPTER_CLOSE_FAILURE', 'ADAPTER_COMPANION_WRITE_FAILURE', 'ADAPTER_OPERATION_FAILURE', 'ADAPTER_TRANSPORT_FAILURE', 'ADMISSION_AUTHORITY', 'ADMISSION_MODE', 'ADMISSION_SELECTION', 'ADMISSION_STOP', 'ARCHIVE_BOUND', 'ARCHIVE_BYTES', 'ARCHIVE_ENVELOPE', 'ARCHIVE_IDENTITY', 'ARCHIVE_LINK_OR_SPECIAL', 'ARCHIVE_MEMBER', 'ARCHIVE_PATH', 'ARCHIVE_PRIMARY_INVALID', 'ARCHIVE_READY_EXISTS', 'ARCHIVE_READY_INVALID', 'ARTIFACT_SOURCE', 'AUDIT_CGROUP', 'AUDIT_CONTROL_KEY', 'AUDIT_CORE_POLICY', 'AUDIT_CPU', 'AUDIT_DESCRIPTOR', 'AUDIT_DESCRIPTOR_LIMIT', 'AUDIT_DEVICE', 'AUDIT_IDENTITY', 'AUDIT_MISSING_CONTROL', 'AUDIT_MOUNT_COUNT', 'AUDIT_MOUNT_IDENTITY', 'AUDIT_NAMESPACE', 'AUDIT_OUTPUT_BOUND', 'AUDIT_PRIVILEGE', 'AUDIT_READ_BOUND', 'AUDIT_TASK_STORAGE', 'AUDIT_WRITABLE_MOUNT', 'AUDIT_WRONG_CONTROL', 'BACKING_NOT_EMPTY', 'BLOCKED_WRITE_ACCEPTED', 'BLOCKED_WRONG_DIAGNOSTIC', 'BOOTSTRAP', 'BOOTSTRAP_CLOSE_FAILURE', 'BOOTSTRAP_COMMAND_FAILURE', 'BOOTSTRAP_CPU', 'BOOTSTRAP_ENVELOPE', 'BOOTSTRAP_EVENT', 'BOOTSTRAP_EVIDENCE_WRITE_FAILURE', 'BOOTSTRAP_IMPORT_FAILURE', 'BOOTSTRAP_LOG_FAILURE', 'BOOTSTRAP_NOT_EMPTY', 'BOOTSTRAP_OPERATION_FAILURE', 'BOOTSTRAP_PHASE', 'BOOTSTRAP_UNIT_IDENTITY', 'CHILD_DISCRIMINATOR', 'CHILD_EXIT', 'CHILD_TIMEOUT_CEASED', 'CLEANUP_CONTROL_TEARDOWN', 'CLEANUP_DISCRIMINATOR', 'CLEANUP_INCOMPLETE', 'CLEANUP_SECONDARY', 'COLLECTION_BOUND', 'COLLECTION_CHANGED', 'COLLECTION_DISCRIMINATOR', 'COLLECTION_MEMBERS', 'COLLECTION_TARGET_NOT_REGULAR', 'COMMAND_FAILED', 'COMMAND_TIMEOUT', 'CONTROL_CASE', 'CONTROL_CHILD_CESSATION_UNPROVEN', 'CONTROL_MISMATCH', 'CONTROL_NO_REJECTION', 'CONTROL_PARENT_ONLY', 'CONTROL_PRIMARY', 'CONTROL_READBACK', 'CONTROL_UNIMPLEMENTED', 'DESCENDANTS_REMAIN', 'DISK_HEADROOM', 'FALLBACK_OUTPUT_BOUND', 'HOST_ARCHITECTURE', 'HOST_CORE_PIPE_UNSUPPORTED', 'HOST_TOOL_BOUND', 'HOST_TOOL_MISSING', 'HYGIENE_ADAPTER_INVENTORY', 'HYGIENE_CANCEL_FAILED', 'HYGIENE_COMMAND_TIMEOUT', 'HYGIENE_INVENTORY_INCOMPLETE', 'HYGIENE_INVENTORY_MALFORMED', 'HYGIENE_JOB_FORMAT', 'HYGIENE_KNOWN_UNSETTLED', 'HYGIENE_LAUNCHER_INVENTORY', 'HYGIENE_MANAGER_FAILURE', 'HYGIENE_MANAGER_MALFORMED', 'HYGIENE_OUTPUT_BOUND', 'HYGIENE_RECORD_BOUND', 'HYGIENE_RECORD_IDENTITY', 'HYGIENE_SLICE_IDENTITY_UNKNOWN', 'HYGIENE_SLICE_STOP_FAILED', 'HYGIENE_STEP_INCOMPLETE', 'HYGIENE_STEP_OUTCOME_UNKNOWN', 'HYGIENE_STOP_FAILED', 'HYGIENE_UNIT_FORMAT', 'HYGIENE_UNKNOWN_UNIT', 'HYGIENE_WORKER_WITNESS_MALFORMED', 'LAUNCHER_OUTPUT_FAILURE', 'LEASE_EVENT', 'LEASE_NOT_EMPTY', 'LEASE_REF', 'MEMORY_HEADROOM', 'METADATA_STOP', 'MOUNT_CREATION_UNPROVEN', 'MOUNT_OWNERSHIP_UNKNOWN', 'MOUNT_PREEXISTS', 'MOUNT_PROVENANCE_BOUND', 'MOUNT_PROVENANCE_EXISTS', 'MOUNT_PROVENANCE_UNKNOWN', 'MOUNT_SCOPE', 'MOUNT_SOURCE_MISMATCH', 'MOUNT_SOURCE_UNKNOWN', 'MOUNT_STATE_UNKNOWN', 'NO_ARCHIVE', 'NO_TASK_ALLOCATION', 'OK', 'OUTPUT_BOUND', 'OUTPUT_DISCRIMINATOR', 'OUTPUT_IO', 'PARENT_DEADLINE', 'PARENT_ENVELOPE', 'PARENT_EVIDENCE_OVERSIZE', 'PERMIT_IDENTITY', 'PERMIT_TIMEOUT', 'PHASE', 'PREFLIGHT_ACTIVE_DEADLINE', 'QUALIFICATION_REQUIRED', 'RECORD_BOUND', 'RERUN_FORBIDDEN', 'SCRATCH_RETAINED', 'SECONDARY_MALFORMED', 'SLICE_ENVELOPE', 'SOURCE_BLOB', 'SOURCE_COMPLETENESS', 'SOURCE_FILE_CAP', 'SOURCE_MEMBER', 'SOURCE_MEMBER_COUNT', 'SOURCE_PATH', 'SOURCE_TOTAL_CAP', 'SOURCE_TREE_CAP', 'STATUS_EXERCISE_INVALID', 'STATUS_EXERCISE_MISMATCH', 'STATUS_FALLBACK_BOUND', 'STATUS_FALLBACK_LOG_BOUND', 'STATUS_FALLBACK_MALFORMED', 'STATUS_FALLBACK_OVERSIZE', 'STATUS_FILE_OVERSIZE', 'STATUS_MALFORMED', 'STATUS_MISSING', 'STATUS_OVERSIZE', 'STATUS_WRITE_FAILED', 'STORAGE_NOT_EMPTY', 'TEARDOWN_IMPORT_FAILURE', 'TEARDOWN_OPERATION_FAILURE', 'TEARDOWN_OWNERSHIP', 'TOOLCHAIN_METADATA_BYTES', 'TRANSPORT_RECORD_BOUND', 'UNCLASSIFIED_FAILURE', 'UNIT_CESSATION_UNPROVEN', 'UNIT_CLEANUP_INCOMPLETE', 'UNIT_CLIENT_EXITED_BEFORE_PERMIT', 'UNIT_CLIENT_TIMEOUT', 'UNIT_CLIENT_UNREAPED', 'UNIT_CREATION_UNRESOLVED', 'UNIT_DEADLINE', 'UNIT_DEADLINE_FORMAT', 'UNIT_IDENTITY_LOST', 'UNIT_INVENTORY_BOUND', 'UNIT_INVENTORY_FAILED', 'UNIT_INVENTORY_INCOMPLETE', 'UNIT_INVENTORY_LAUNCHER', 'UNIT_INVENTORY_LEASE', 'UNIT_INVENTORY_PARENT', 'UNIT_INVENTORY_UNAVAILABLE', 'UNIT_POLICY', 'UNIT_RESET_FAILURE', 'UNIT_RESULT_UNPROVEN', 'UNIT_SLICE_UNPROVEN', 'UNIT_START_FAILED', 'UNIT_START_TIMEOUT', 'UNIT_TERMINAL_UNPROVEN', 'UPLOAD_AUDIT_BOUND', 'UPLOAD_AUDIT_DUPLICATE', 'UPLOAD_AUDIT_INVALID', 'UPLOAD_COPY_INVALID', 'UPLOAD_COPY_SETUP_FAILURE', 'UPLOAD_OBJECT_CHANGED', 'UPLOAD_PROVIDER_FAILURE', 'UPLOAD_STATUS_MISMATCH', 'UPLOAD_STOP', 'WORKER_FAILURE', 'WORKER_STATUS'])
+          SAFE_DIAGNOSTIC_STAGES=frozenset(['artifact', 'bootstrap', 'cleanup', 'collection', 'command_cleanup', 'control', 'control.cleanup', 'descriptor_close', 'finalization', 'inventory_adapter', 'inventory_run', 'inventory_upload', 'known_object_inventory', 'known_unsettled', 'launcher', 'launcher_inventory', 'lease', 'manager_inventory', 'owned_mount_cleanup', 'ownership', 'package_slice_stop', 'provisional_snapshot', 'retained_per_unit_snapshot', 'run', 'settlement_check', 'slice_identity', 'slice_start_intent', 'source', 'step_outcomes', 'teardown', 'transport', 'unit.cleanup', 'unknown', 'upload', 'upload_copy', 'worker_setup'])
+          SAFE_DIAGNOSTIC_OPERATIONS=frozenset(['acquisition', 'adapter_exec', 'adapter_inventory_intent', 'adapter_prepare', 'allocate_external', 'archive_append', 'archive_checkpoint', 'archive_open', 'archive_ready_revalidation', 'archive_verify', 'audit', 'audit_read', 'bootstrap_acquisition', 'bootstrap_unit_identity', 'cease', 'child.cease', 'child.close', 'child.kill', 'child.wait', 'client_kill', 'client_reap', 'client_wait', 'close_stdout', 'command_cleanup', 'completion_checkpoint', 'component_checkpoint', 'control', 'copy', 'copy.enumerate', 'copy.open', 'copy.validate', 'create_lease', 'create_tool_directory', 'descriptor_close', 'disposition_or_package', 'download_component', 'emit_failure', 'extract_component', 'failure_checkpoint', 'failure_event', 'fetch_archive', 'fetch_tree', 'fetch_vendor', 'final_checkpoint', 'finish', 'format_external', 'import_stdlib', 'initial_checkpoint', 'initialize_acquisition', 'initialize_downloader', 'initialize_evidence', 'inventory_adapter', 'inventory_client', 'inventory_close', 'inventory_run', 'inventory_upload', 'known_unsettled', 'launcher_inventory', 'manager_inventory', 'metadata', 'mount.identity', 'mount.provenance', 'mount_external', 'mount_external_capture', 'mount_external_intent', 'mount_provenance_init', 'object_record', 'owned_mount_cleanup', 'ownership', 'package_slice_stop', 'permit', 'provider_execute', 'provisional_snapshot', 'record_object', 'record_success', 'resource_envelope', 'retain_failure', 'retained_per_unit_snapshot', 'run', 'seed', 'settlement_check', 'slice_identity', 'slice_limits', 'slice_start', 'status_recovery', 'status_write', 'step_outcomes', 'transport_collection', 'umount', 'unit.cleanup', 'unknown', 'upload', 'upload.copy', 'upload.worker_setup', 'validate_event', 'validate_ownership', 'validate_run', 'verify_archive', 'verify_completeness', 'verify_core_policy', 'verify_headroom', 'verify_ownership', 'verify_vendor', 'worker.status_write', 'workspace_identity', 'write_identity', 'write_status'])
+          labels={'stop','code','kind','failure_kind','failure_code','checkpoint_failure_kind','stage','operation','phase','status','component','component_status','digest_scope','unit','reason','version','Result','ActiveState','SubState','case','diagnostic','original_diagnostic'}
+          class TeardownStop(Exception):
+              def __init__(self,code): self.code=code
+          SAFE_KINDS={'TeardownStop','BootstrapStop','AcquisitionStop','ControlError','AuditError',
+                      'OSError','PermissionError','FileNotFoundError','FileExistsError','IsADirectoryError',
+                      'NotADirectoryError','TimeoutError','ValueError','UnicodeDecodeError','KeyError',
+                      'AssertionError','BadZipFile','TarError','Exception'}
+          def safe_kind(error):
+              for cls in (TeardownStop,PermissionError,FileNotFoundError,FileExistsError,
+                          IsADirectoryError,NotADirectoryError,TimeoutError,OSError,ValueError,KeyError):
+                  if isinstance(error,cls): return cls.__name__
+              return 'Exception'
+          def safe_number(value):
+              return value if type(value) is int and -4096<=value<=4096 else None
+          def safe(value,key='',depth=0):
+              if depth>10: return 'DEPTH_BOUND'
+              if key=='identity': return value if isinstance(value,str) and value in {'primary','secondary','secondary_or_unknown'} else 'REDACTED_UNSAFE_STRING'
+              if key=='qualification': return value if isinstance(value,str) and value in {'provisional','per_unit_records_retained'} else 'REDACTED_UNSAFE_STRING'
+              if key in {'stop','code','failure_code','diagnostic','original_diagnostic'}:
+                  return value if isinstance(value,str) and value in SAFE_DIAGNOSTIC_CODES else 'REDACTED_UNSAFE_STRING'
+              if key=='stage': return value if isinstance(value,str) and value in SAFE_DIAGNOSTIC_STAGES else 'REDACTED_UNSAFE_STRING'
+              if key=='operation': return value if isinstance(value,str) and value in SAFE_DIAGNOSTIC_OPERATIONS else 'REDACTED_UNSAFE_STRING'
+              if key in {'exit_code','returncode'}:
+                  return value if value is None or type(value) is int and -4096<=value<=4096 else 'REDACTED_UNSAFE_NUMBER'
+              if key=='status':
+                  if value is None: return None
+                  if type(value) is int: return value if -4096<=value<=4096 else 'REDACTED_UNSAFE_NUMBER'
+                  if isinstance(value,str) and value in {'initial','downloading','archive_verified','complete','failed','incomplete','ABSENT','UNREADABLE','NO_BOOTSTRAP_FAILURE_RECORD'}: return value
+                  return 'REDACTED_UNSAFE_STRING'
+              if key=='secondary_omitted':
+                  return value if type(value) is int and 0<=value<=64 else 'REDACTED_UNSAFE_NUMBER'
+              if key in {'precedence_unknown','nested_fields_omitted','provider_output_omitted'}:
+                  return value if type(value) is bool else 'REDACTED_UNSAFE_STRING'
+              if key in {'kind','origin_kind','failure_kind','checkpoint_failure_kind'}:
+                  return value if isinstance(value,str) and value in SAFE_KINDS else 'REDACTED_UNSAFE_STRING'
+              if key in {'classification_incomplete','detail_omitted'}:
+                  return value if type(value) is bool else 'REDACTED_UNSAFE_STRING'
+              if key=='errno':
+                  if value is None or (type(value) is int and -4096<=value<=4096): return value
+                  return 'REDACTED_UNSAFE_NUMBER'
+              if value is None or isinstance(value,(bool,int,float)): return value
+              if isinstance(value,str):
+                  if key in {'expected_sha256','observed_sha256'} and re.fullmatch(r'[0-9a-f]{64}',value): return value
+                  if key in labels and value in SAFE_FIXED_WORDS: return value
+                  if key=='unit' and re.fullmatch(r'b38-x0[13]-[A-Za-z0-9-]{1,64}\.(?:service|scope|slice)',value): return value
+                  if key in {'observed','expected','actual','memory.max','memory.swap.max','cpu.max','cpuset.cpus.effective','pids.max','ExecMainStatus'} and re.fullmatch(r'[0-9, .-]{1,128}|max',value): return value
+                  return 'REDACTED_UNSAFE_STRING'
+              if isinstance(value,list):
+                  result=[safe(x,key,depth+1) for x in value[:256]]
+                  return result if len(value)<=256 else {'items':result,'omitted':len(value)-256,'incomplete':True}
+              if isinstance(value,dict):
+                  if key=='components':
+                      result={k:safe(v,k,depth+1) for k,v in value.items() if k in {'rustc','rust-std','cargo'}}
+                      if len(result)!=len(value): result['incomplete']=True;result['filtered_fields']=len(value)-len(result)
+                      return result
+                  if key=='files':
+                      selected={k:v for k,v in list(value.items())[:256] if isinstance(k,str) and re.fullmatch(r'[A-Za-z0-9_./+ -]{1,256}',k) and '..' not in pathlib.PurePosixPath(k).parts and isinstance(v,str) and re.fullmatch(r'[0-9a-f]{64}',v)}
+                      return {'entries':selected,'source_count':len(value),'omitted_count':len(value)-len(selected),'truncated':len(selected)!=len(value)}
+                  selected=list(value.items())[:8000]
+                  result={k:safe(v,k,depth+1) for k,v in selected if k in keys}
+                  filtered=len(value)-sum(1 for k,_ in selected if k in keys)
+                  if filtered or any(v in ('REDACTED_UNSAFE_STRING','REDACTED_UNSAFE_NUMBER','UNSUPPORTED_VALUE','DEPTH_BOUND') for v in result.values() if isinstance(v,str)):
+                      result['incomplete']=True;result['filtered_fields']=filtered
+                  return result
+              return 'UNSUPPORTED_VALUE'
+          def emit(stage,payload):
+              data=json.dumps(payload,sort_keys=True,separators=(',',':'),ensure_ascii=True).encode()
+              if len(data)>160*1024 and isinstance(payload.get('records'),dict):
+                  # Optional per-file hashes yield to primary/secondary diagnostics
+                  # and per-component verified summaries. Preserve source counts.
+                  for record in payload['records'].values():
+                      value=record.get('safe_record') if isinstance(record,dict) else None
+                      files=value.get('files') if isinstance(value,dict) else None
+                      if isinstance(files,dict) and 'entries' in files:
+                          files['entries']={};files['omitted_count']=files.get('source_count',0);files['truncated']=True
+                  data=json.dumps(payload,sort_keys=True,separators=(',',':'),ensure_ascii=True).encode()
+              if len(data)>160*1024: raise TeardownStop('FALLBACK_OUTPUT_BOUND')
+              digest=hashlib.sha256(data).hexdigest()
+              encoded=base64.b64encode(data).decode('ascii')
+              for i in range(0,len(encoded),4096):
+                  print('B38_FALLBACK_PART '+stage+' '+str(i//4096+1)+' '+encoded[i:i+4096],flush=True)
+              print('B38_FALLBACK_SHA256 '+stage+' '+digest+' bytes='+str(len(data))+' encoding=base64',flush=True)
+          def snapshot(qualification):
+              records={}
+              for name,path,limit in [('bootstrap',W/'failure.json',65536),('disposition',W/'out/disposition.json',MIB),('acquisition',(S/'work/out/toolchain.json' if (S/'work/out/toolchain.json').exists() else W/'out/collected/toolchain.json'),MIB)]:
+                  try:
+                      fd=os.open(path,os.O_RDONLY|os.O_NOFOLLOW)
+                      try:
+                          info=os.fstat(fd)
+                          if info.st_size>limit: raise TeardownStop('RECORD_BOUND')
+                          data=b''
+                          while len(data)<=limit:
+                              chunk=os.read(fd,min(65536,limit+1-len(data)))
+                              if not chunk: break
+                              data+=chunk
+                          if len(data)>limit: raise TeardownStop('RECORD_BOUND')
+                      finally: os.close(fd)
+                      if name=='bootstrap' and len(data)==65536 and data==b' '*65536:
+                          records[name]={'status':'NO_BOOTSTRAP_FAILURE_RECORD','source_bytes':len(data),'source_sha256':hashlib.sha256(data).hexdigest()}
+                          continue
+                      obj=json.loads(data)
+                      records[name]={'source_bytes':len(data),'source_sha256':hashlib.sha256(data).hexdigest(),'safe_record':safe(obj)}
+                  except FileNotFoundError: records[name]={'status':'ABSENT'}
+                  except Exception as error: records[name]={'status':'UNREADABLE','kind':safe_kind(error),'errno':safe_number(getattr(error,'errno',None)),'incomplete':True}
+              emit(qualification,{'qualification':qualification,'records':records,'primary':teardown_primary[0] if teardown_primary else None,'secondary':secondary})
+          def error(stage,exception, *, caused_by=None):
+              # A cleanup failure cannot precede the operation that caused it.
+              # Preserve that operation first even when its outer handler has
+              # not yet run; the existing recorded marker prevents duplication.
+              if caused_by is not None:
+                  error(globals().get('stage','unknown'),caused_by)
+              known={'HYGIENE_ADAPTER_INVENTORY', 'HYGIENE_CLEANUP_INCOMPLETE', 'HYGIENE_CANCEL_FAILED', 'HYGIENE_MANAGER_MALFORMED', 'HYGIENE_WORKER_WITNESS_MALFORMED', 'MOUNT_SCOPE', 'HYGIENE_KNOWN_UNSETTLED', 'TEARDOWN_OWNERSHIP', 'HYGIENE_UNIT_FORMAT', 'NO_TASK_ALLOCATION', 'HYGIENE_INVENTORY_MALFORMED', 'HYGIENE_UNKNOWN_UNIT', 'MOUNT_PREEXISTS', 'RECORD_BOUND', 'HYGIENE_STOP_FAILED', 'HYGIENE_COMMAND_TIMEOUT', 'HYGIENE_SLICE_STOP_FAILED', 'HYGIENE_RECORD_IDENTITY', 'HYGIENE_SLICE_IDENTITY_UNKNOWN', 'HYGIENE_STEP_OUTCOME_UNKNOWN', 'MOUNT_PROVENANCE_UNKNOWN', 'SCRATCH_RETAINED', 'MOUNT_SOURCE_UNKNOWN', 'HYGIENE_INVENTORY_INCOMPLETE', 'HYGIENE_STEP_INCOMPLETE', 'HYGIENE_MANAGER_FAILURE', 'MOUNT_CREATION_UNPROVEN', 'MOUNT_OWNERSHIP_UNKNOWN', 'FALLBACK_OUTPUT_BOUND', 'MOUNT_STATE_UNKNOWN', 'HYGIENE_WORKER_WITNESS_MISSING', 'HYGIENE_JOB_FORMAT', 'HYGIENE_OUTPUT_BOUND', 'HYGIENE_RECORD_BOUND', 'MOUNT_PROVENANCE_BOUND'}
+              code=exception.code if isinstance(exception,TeardownStop) and exception.code in known else 'TEARDOWN_OPERATION_FAILURE'
+              if getattr(exception,'_b38_recorded',False): return
+              # An explicit wrapper for an already recorded cause is the same
+              # causal failure. Preserve its specific fixed code and original
+              # cause kind in that record; never emit a duplicate primary.
+              cause=exception.__cause__
+              original=getattr(cause,'_b38_recorded_entry',None) if cause is not None else None
+              if getattr(cause,'_b38_recorded',False) and isinstance(original,dict):
+                  exception._b38_recorded=True
+                  exception._b38_recorded_entry=original
+                  if code!='TEARDOWN_OPERATION_FAILURE': original['code']=code
+                  original.setdefault('origin_kind',safe_kind(cause))
+                  return
+              exception._b38_recorded=True
+              outcomes=[os.environ.get(name) for name in ('B38_BOOTSTRAP_OUTCOME','B38_PARENT_OUTCOME','B38_ADAPTER_OUTCOME')]
+              prior_failure=any(value in ('failure','cancelled') for value in outcomes)
+              prior_unknown=any(value not in ('success','failure','cancelled') for value in outcomes)
+              identity=('secondary' if caused_by is not None or prior_failure or teardown_primary else
+                        'secondary_or_unknown' if prior_unknown or secondary else 'primary')
+              entry={'identity':identity,
+                     'stage':stage if isinstance(stage,str) and stage in SAFE_DIAGNOSTIC_STAGES else 'unknown',
+                     'operation':stage if isinstance(stage,str) and stage in SAFE_DIAGNOSTIC_OPERATIONS else 'unknown',
+                     'kind':safe_kind(exception),'code':code,
+                     'errno':safe_number(getattr(exception,'errno',None)),
+                     'returncode':safe_number(getattr(exception,'returncode',None)),
+                     'incomplete':True}
+              origin=getattr(exception,'origin_kind',None)
+              if isinstance(origin,str) and origin in SAFE_KINDS: entry['origin_kind']=origin
+              exit_code=getattr(exception,'exit_code',None)
+              if type(exit_code) is int and -4096<=exit_code<=4096: entry['exit_code']=exit_code
+              busy=getattr(exception,'busy_message',None)
+              if type(busy) is bool: entry['busy_message']=busy
+              exception._b38_recorded_entry=entry
+              if entry['identity']=='primary': teardown_primary.append(entry)
+              else: secondary.append(entry)
+          def cmd(stage,*args):
+              try: return subprocess.run(args,check=True,timeout=8,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+              except Exception as exception: error(stage,exception);raise
+          def close_fd_preserving(fd):
+              primary=sys.exc_info()[1]
+              try: os.close(fd)
+              except BaseException as failure:
+                  if primary is None:
+                      error('descriptor_close',failure)
+                      raise
+                  error('descriptor_close',failure,caused_by=primary)
+          Path=pathlib.Path
+          PACKAGE='x01'
+          IMAGE=Path(str(S)+'.ext4')
+          class ControlError(TeardownStop):
+              def __init__(self,code,detail=None): super().__init__(code)
+          class audit:
+              @staticmethod
+              def read(path,limit):
+                  fd=os.open(path,os.O_RDONLY|os.O_CLOEXEC)
+                  try:
+                      data=b''
+                      while len(data)<=limit:
+                          part=os.read(fd,min(65536,limit+1-len(data)))
+                          if not part: break
+                          data+=part
+                      if len(data)>limit: raise ControlError('MOUNT_STATE_UNKNOWN')
+                      return data.decode('utf8')
+                  finally: close_fd_preserving(fd)
+              @staticmethod
+              def mount_path(value):
+                  return re.sub(r"\\([0-7]{3})",lambda match:chr(int(match[1],8)),value)
+          class BoundedWriter:
+              def __init__(self,fd,limit): self.fd=fd;self.limit=limit
+              def write(self,data):
+                  if len(data)>self.limit: raise ControlError('MOUNT_PROVENANCE_BOUND')
+                  view=memoryview(data)
+                  while view:
+                      count=os.write(self.fd,view)
+                      if count<=0: raise ControlError('MOUNT_PROVENANCE_UNKNOWN')
+                      view=view[count:]
+
+          # Mount identity is derived only for the exact owned target and its source.
+          # All mount creation intents are durable before invoking mount(8).
+          MOUNT_RECORD = Path('/mnt/b38-' + PACKAGE + '-mounts.json')
+
+          def mount_graph(path):
+              path=Path(path)
+              allowed=(W,S,S/'control-fixtures'/'mount',S/'work')
+              if path not in allowed: raise ControlError('MOUNT_SCOPE','target outside owned paths')
+              try:
+                  fd=os.open(path,os.O_PATH|os.O_NOFOLLOW|os.O_CLOEXEC)
+                  try:
+                      info=os.fstat(fd)
+                      if not stat.S_ISDIR(info.st_mode): raise ValueError('not directory')
+                      lines=audit.read('/proc/self/fdinfo/'+str(fd),4096).splitlines()
+                      mids=[int(x.split(':',1)[1].strip()) for x in lines if x.startswith('mnt_id:')]
+                      if len(mids)!=1 or mids[0]<=0: raise ValueError('effective id')
+                      effective=mids[0]
+                  finally: close_fd_preserving(fd)
+                  lines=audit.read('/proc/self/mountinfo',524288).splitlines()
+                  if len(lines)>512: raise ValueError('mount count')
+                  matches=[];exact=[]
+                  for line in lines:
+                      left,right=line.split(' - ',1);fields=left.split();tail=right.split()
+                      if len(fields)<6 or len(tail)<3: raise ValueError('mount fields')
+                      mid=int(fields[0]);point=audit.mount_path(fields[4])
+                      if mid!=effective and point!=str(path): continue
+                      row={'id':mid,'parent':int(fields[1]),'device':fields[2],
+                           'root':audit.mount_path(fields[3]),'path':point,
+                           'filesystem':tail[0],'source':audit.mount_path(tail[1])}
+                      if mid<=0 or row['parent']<=0: raise ValueError('invalid id')
+                      if mid==effective: matches.append(row)
+                      if point==str(path): exact.append(row)
+                  if len(matches)!=1 or len(exact)>1 or exact and exact[0]!=matches[0]:
+                      raise ValueError('ambiguous or stacked graph')
+                  if matches[0]['device']!=str(os.major(info.st_dev))+':'+str(os.minor(info.st_dev)):
+                      raise ValueError('device mismatch')
+                  return {'effective':matches[0],'exact':exact,'stat':{'dev':info.st_dev,'ino':info.st_ino}}
+              except BaseException as cause:
+                  error=ControlError('MOUNT_STATE_UNKNOWN','mount identity unavailable or ambiguous')
+                  error.operation='mount.identity'
+                  number=getattr(cause,'errno',None)
+                  if type(number) is int and -4096<=number<=4096: error.errno=number
+                  error.origin_kind=type(cause).__name__ if type(cause).__name__ in SAFE_KINDS else 'Exception'
+                  error.origin_incomplete=(type(cause).__name__ not in SAFE_KINDS or
+                      (number is not None and not (type(number) is int and -4096<=number<=4096)))
+                  error.secondary_errors=getattr(cause,'secondary_errors',[])
+                  raise error from cause
+
+          def mount_record_read():
+              try:
+                  fd=os.open(MOUNT_RECORD,os.O_RDONLY|os.O_NOFOLLOW|os.O_CLOEXEC)
+                  try:
+                      info=os.fstat(fd)
+                      if (not stat.S_ISREG(info.st_mode) or info.st_uid!=0 or info.st_gid!=0
+                          or stat.S_IMODE(info.st_mode)!=0o600 or info.st_nlink!=1 or info.st_size>16384):
+                          raise ValueError('sidecar identity')
+                      raw=os.read(fd,16385)
+                      if len(raw)!=info.st_size: raise ValueError('sidecar size')
+                  finally: close_fd_preserving(fd)
+                  record=json.loads(raw)
+                  if (not isinstance(record,dict) or set(record)!={'version','token','entries'}
+                      or record['version']!=1 or record['token']!=os.environ['GITHUB_RUN_ID']+':'+os.environ['GITHUB_SHA']
+                      or not isinstance(record['entries'],dict) or not set(record['entries'])<={'external','scratch','fixture'}):
+                      raise ValueError('sidecar authority')
+                  return record
+              except BaseException as cause:
+                  error=ControlError('MOUNT_PROVENANCE_UNKNOWN','mount provenance unavailable')
+                  error.operation='mount.provenance'
+                  number=getattr(cause,'errno',None)
+                  if type(number) is int and -4096<=number<=4096: error.errno=number
+                  error.origin_kind=type(cause).__name__ if type(cause).__name__ in SAFE_KINDS else 'Exception'
+                  error.origin_incomplete=(type(cause).__name__ not in SAFE_KINDS or
+                      (number is not None and not (type(number) is int and -4096<=number<=4096)))
+                  error.secondary_errors=getattr(cause,'secondary_errors',[])
+                  raise error from cause
+
+          def mount_record_write(record):
+              data=json.dumps(record,sort_keys=True,separators=(',',':')).encode()
+              if len(data)>16384: raise ControlError('MOUNT_PROVENANCE_BOUND','record size')
+              tmp=Path(str(MOUNT_RECORD)+'.tmp')
+              fd=os.open(tmp,os.O_WRONLY|os.O_CREAT|os.O_EXCL|os.O_NOFOLLOW|os.O_CLOEXEC,0o600)
+              try:
+                  os.fchmod(fd,0o600)
+                  if os.fstat(fd).st_uid!=0 or os.fstat(fd).st_gid!=0: raise ValueError('sidecar owner')
+                  BoundedWriter(fd,16384).write(data);os.fsync(fd)
+              finally: close_fd_preserving(fd)
+              os.replace(tmp,MOUNT_RECORD)
+              directory=os.open('/mnt',os.O_RDONLY|os.O_DIRECTORY|os.O_CLOEXEC)
+              try: os.fsync(directory)
+              finally: close_fd_preserving(directory)
+
+          def mount_source_stat(path,mode):
+              info=os.stat(path,follow_symlinks=False)
+              if mode=='loop' and not stat.S_ISREG(info.st_mode) or mode=='bind' and not stat.S_ISDIR(info.st_mode):
+                  raise ControlError('MOUNT_SOURCE_UNKNOWN','source type')
+              return {'dev':info.st_dev,'ino':info.st_ino}
+
+          def mount_validate(name,entry,view):
+              expected={'external':(W,Path('/mnt/b38-'+PACKAGE+'-external.ext4'),'loop'),
+                        'scratch':(S,IMAGE,'loop'),
+                        'fixture':(S/'control-fixtures'/'mount',S/'work','bind')}
+              if name not in expected or not isinstance(entry,dict) or set(entry)!={'state','target','underlying','mount','source','source_stat','mode'}:
+                  raise ControlError('MOUNT_PROVENANCE_UNKNOWN','invalid entry')
+              target,source,mode=expected[name]
+              if entry['target']!=str(target) or entry['source']!=str(source) or entry['mode']!=mode:
+                  raise ControlError('MOUNT_PROVENANCE_UNKNOWN','unexpected path')
+              row=entry['mount'];underlying=entry['underlying']
+              row_keys={'id','parent','device','root','path','filesystem','source'}
+              if (not isinstance(row,dict) or set(row)!=row_keys or not isinstance(underlying,dict)
+                  or set(underlying)!=row_keys or row['path']!=str(target) or row['parent']!=underlying['id']
+                  or any(type(r[k]) is not int or r[k]<=0 for r in (row,underlying) for k in ('id','parent'))
+                  or any(not isinstance(r[k],str) for r in (row,underlying) for k in ('device','root','path','filesystem','source'))
+                  or not isinstance(entry['source_stat'],dict) or set(entry['source_stat'])!={'dev','ino'}
+                  or any(type(entry['source_stat'][k]) is not int for k in ('dev','ino'))
+                  or entry['source_stat']['dev']<0 or entry['source_stat']['ino']<=0 or row['id']==underlying['id']):
+                  raise ControlError('MOUNT_PROVENANCE_UNKNOWN','invalid mount identity')
+              if entry['state'] in ('removed','released'):
+                  if entry['state']=='released' and mode!='loop': raise ControlError('MOUNT_PROVENANCE_UNKNOWN','invalid released state')
+                  if view['exact'] or view['effective']!=underlying:
+                      raise ControlError('MOUNT_STATE_UNKNOWN','removed identity changed')
+                  return
+              if mount_source_stat(source,mode)!=entry['source_stat']:
+                  raise ControlError('MOUNT_OWNERSHIP_UNKNOWN','source changed')
+              if entry['state']!='mounted' or view['exact']!=[entry['mount']] or view['effective']!=entry['mount']:
+                  raise ControlError('MOUNT_OWNERSHIP_UNKNOWN','owned mount not established')
+              row=entry['mount'];underlying=entry['underlying']
+              if row['parent']!=underlying['id'] or row['id']==underlying['id']:
+                  raise ControlError('MOUNT_OWNERSHIP_UNKNOWN','mount parent changed')
+              if mode=='loop':
+                  if row['filesystem']!='ext4' or row['root']!='/': raise ControlError('MOUNT_OWNERSHIP_UNKNOWN','loop filesystem')
+                  backing=audit.read('/sys/dev/block/'+row['device']+'/loop/backing_file',4096).strip()
+                  if backing!=str(source): raise ControlError('MOUNT_OWNERSHIP_UNKNOWN','loop backing')
+              else:
+                  source_view=mount_graph(source);base=source_view['effective']
+                  try: relative=source.relative_to(Path(base['path']))
+                  except ValueError as cause: raise ControlError('MOUNT_SOURCE_UNKNOWN','source graph') from cause
+                  expected_root=str(Path(base['root'])/relative)
+                  if (view['stat']!=entry['source_stat'] or row['device']!=base['device'] or
+                      row['filesystem']!=base['filesystem'] or row['root']!=expected_root):
+                      raise ControlError('MOUNT_SOURCE_UNKNOWN','bind source identity')
+
+          def mount_begin(name,target,source,mode):
+              record=mount_record_read();previous=record['entries'].get(name)
+              if previous and previous.get('state')!='removed': raise ControlError('MOUNT_PREEXISTS','ownership unresolved')
+              view=mount_graph(target)
+              if view['exact']: raise ControlError('MOUNT_PREEXISTS','target mounted')
+              if previous: mount_validate(name,previous,view)
+              record['entries'][name]={'state':'pending','target':str(target),'underlying':view['effective'],
+                 'mount':None,'source':str(source),'source_stat':mount_source_stat(source,mode),'mode':mode}
+              mount_record_write(record)
+
+          def mount_commit(name):
+              record=mount_record_read();entry=record['entries'][name]
+              if entry.get('state')!='pending': raise ControlError('MOUNT_PROVENANCE_UNKNOWN','no intent')
+              view=mount_graph(Path(entry['target']))
+              if len(view['exact'])!=1: raise ControlError('MOUNT_CREATION_UNPROVEN','no exact mount')
+              prospective=dict(entry,state='mounted',mount=view['exact'][0])
+              mount_validate(name,prospective,view)
+              # Re-read graph before making the proof durable. A changed mount is unknown.
+              if mount_graph(Path(entry['target']))!=view: raise ControlError('MOUNT_STATE_UNKNOWN','mount changed')
+              record['entries'][name]=prospective;mount_record_write(record)
+              return prospective
+
+          def validate_fixture_history(record,scratch,visible):
+              fixture=record['entries'].get('fixture');point=S/'control-fixtures'/'mount'
+              if fixture=={'state':'not_requested'}:
+                  if PACKAGE!='x03' or os.environ.get('B38_PHASE')!='admission' or visible and os.path.lexists(point):
+                      raise ControlError('MOUNT_PROVENANCE_UNKNOWN','fixture sentinel mismatch')
+                  return
+              keys={'state','target','underlying','mount','source','source_stat','mode'}
+              rows={'id','parent','device','root','path','filesystem','source'}
+              if not isinstance(fixture,dict) or set(fixture)!=keys:
+                  raise ControlError('MOUNT_PROVENANCE_UNKNOWN','fixture record missing')
+              row=fixture['mount'];parent=fixture['underlying'];saved=fixture['source_stat']
+              if (fixture['state']!='removed' or fixture['mode']!='bind' or fixture['target']!=str(point)
+                  or fixture['source']!=str(S/'work') or not isinstance(row,dict) or set(row)!=rows
+                  or not isinstance(parent,dict) or set(parent)!=rows or parent!=scratch['mount']
+                  or any(type(item[k]) is not int or item[k]<=0 for item in (row,parent) for k in ('id','parent'))
+                  or any(not isinstance(item[k],str) for item in (row,parent) for k in ('device','root','path','filesystem','source'))
+                  or row['path']!=str(point) or row['parent']!=parent['id'] or row['id']==parent['id']
+                  or row['device']!=parent['device'] or row['filesystem']!=parent['filesystem']
+                  or row['root']!=str(Path(parent['root'])/'work') or not isinstance(saved,dict)
+                  or set(saved)!={'dev','ino'} or type(saved['dev']) is not int or saved['dev']<0
+                  or type(saved['ino']) is not int or saved['ino']<=0
+                  or str(os.major(saved['dev']))+':'+str(os.minor(saved['dev']))!=row['device']):
+                  raise ControlError('MOUNT_PROVENANCE_UNKNOWN','fixture identity')
+              if visible: mount_validate('fixture',fixture,mount_graph(point))
+
+
+          def mount_remove(name):
+              record=mount_record_read();entry=record['entries'].get(name)
+              if not entry: raise ControlError('MOUNT_PROVENANCE_UNKNOWN','no owned mount record')
+              target=Path(entry['target']);view=mount_graph(target)
+              mount_validate(name,entry,view)
+              if name=='scratch':
+                  # A hidden fixture target after scratch release is supported only by its
+                  # previously committed record, never by ENOENT or a missing record.
+                  validate_fixture_history(record,entry,entry['state']=='mounted')
+              if entry['state'] in ('removed','released'): return
+              code,data=bounded(['umount',str(target)],5,4096,env={'PATH':'/usr/bin:/bin','LC_ALL':'C'})
+              if code:
+                  error=ControlError('SCRATCH_RETAINED','owned unmount failed')
+                  error.exit_code=code;error.busy_message=b'target is busy' in data
+                  raise error
+              after=mount_graph(target)
+              if after['exact'] or after['effective']!=entry['underlying']:
+                  raise ControlError('MOUNT_STATE_UNKNOWN','unmount not established')
+              entry['state']='removed';mount_record_write(record)
+
+          # The following reports process-local witness custody and bounded runner hygiene.
+          # It does not claim universal no-reentry or surviving provider infrastructure.
+          def bounded(args, seconds=2, cap=65536, env=None):
+              p=subprocess.Popen(args,stdin=subprocess.DEVNULL,stdout=subprocess.PIPE,
+                                 stderr=subprocess.STDOUT,start_new_session=True,env=env)
+              selector=selectors.DefaultSelector();selector.register(p.stdout,selectors.EVENT_READ)
+              data=bytearray();deadline=time.monotonic()+seconds
+              try:
+                  while selector.get_map():
+                      remain=deadline-time.monotonic()
+                      if remain<=0: raise TeardownStop('HYGIENE_COMMAND_TIMEOUT')
+                      for key,_ in selector.select(min(.1,remain)):
+                          part=os.read(key.fileobj.fileno(),min(65536,cap+1-len(data)))
+                          if not part: selector.unregister(key.fileobj);continue
+                          data.extend(part)
+                          if len(data)>cap: raise TeardownStop('HYGIENE_OUTPUT_BOUND')
+                  return p.wait(timeout=max(.01,deadline-time.monotonic())),bytes(data)
+              finally:
+                  primary=sys.exc_info()[1]
+                  failures=[]
+                  if p.poll() is None:
+                      try: os.killpg(p.pid,signal.SIGKILL);p.wait(timeout=1)
+                      except BaseException as failure: failures.append(failure)
+                  for close in (selector.close,p.stdout.close):
+                      try: close()
+                      except BaseException as failure: failures.append(failure)
+                  active=sys.exc_info()[1]
+                  for failure in failures:
+                      if primary is None:
+                          primary=failure
+                          error('command_cleanup',failure)
+                      else:
+                          error('command_cleanup',failure,caused_by=primary)
+                  if failures and active is None: raise primary
+
+          def manager(args, seconds=2):
+              rc,data=bounded(['systemctl','--no-pager','--no-legend','--plain']+args,seconds)
+              if rc!=0: raise TeardownStop('HYGIENE_MANAGER_FAILURE')
+              try: return data.decode('utf8').splitlines()
+              except UnicodeDecodeError: raise TeardownStop('HYGIENE_MANAGER_MALFORMED')
+
+          def read_bounded(path,limit):
+              fd=os.open(path,os.O_RDONLY|os.O_NOFOLLOW|os.O_CLOEXEC)
+              try:
+                  info=os.fstat(fd)
+                  if not stat.S_ISREG(info.st_mode) or info.st_uid!=0 or info.st_gid!=0 or info.st_nlink!=1 or stat.S_IMODE(info.st_mode)!=0o600 or info.st_size>limit:
+                      raise TeardownStop('HYGIENE_RECORD_IDENTITY')
+                  data=b''
+                  while len(data)<=limit:
+                      block=os.read(fd,min(65536,limit+1-len(data)))
+                      if not block: break
+                      data+=block
+                  if len(data)!=info.st_size: raise TeardownStop('HYGIENE_RECORD_BOUND')
+                  return json.loads(data)
+              finally: close_fd_preserving(fd)
+
+          def worker_inventory(mode):
+              record=read_bounded(W/'out'/('inventory-'+mode+'.json'),MIB)
+              required={'version','package','run_id','commit','mode','workers','parent_closed'}
+              if (not isinstance(record,dict) or set(record)!=required or record['version']!=1 or
+                  record['package']!=PACKAGE or record['run_id']!=os.environ['GITHUB_RUN_ID'] or
+                  record['commit']!=os.environ['GITHUB_SHA'] or record['mode']!=mode or
+                  type(record['parent_closed']) is not bool or not isinstance(record['workers'],dict) or
+                  not record['workers']):
+                  raise TeardownStop('HYGIENE_INVENTORY_INCOMPLETE')
+              known=set();complete=record['parent_closed'];proofs=[]
+              entries=record['workers']
+              if not all(isinstance(key,str) and isinstance(value,dict) for key,value in entries.items()):
+                  raise TeardownStop('HYGIENE_INVENTORY_MALFORMED')
+              rows=sorted(entries.values(),key=lambda row:row.get('ordinal') if type(row.get('ordinal')) is int else -1)
+              for i,row in enumerate(rows):
+                  required_row={'case','role','ordinal','unit','slice','stage','launcher_pid','launcher_start',
+                                'invocation','effective','terminal','slice_evidence','slice_events',
+                                'slice_processes','cleanup_complete','client_reaped','client_returncode'}
+                  if not isinstance(row,dict) or set(row)!=required_row: raise TeardownStop('HYGIENE_INVENTORY_MALFORMED')
+                  role=row['role'];case=row['case'];unit=row['unit'];sl=row['slice']
+                  if (role not in ('control','metadata','acquire','admit','upload') or
+                      not isinstance(case,str) or not re.fullmatch('[a-z0-9-]{1,64}',case) or
+                      row['ordinal']!=i or unit!='b38-'+PACKAGE+'-'+role+'-'+str(i)+'.service' or
+                      sl!='b38-'+PACKAGE+'-u'+str(i)+'.slice' or entries.get(unit) is not row):
+                      raise TeardownStop('HYGIENE_INVENTORY_MALFORMED')
+                  known.update((unit,sl))
+                  if (row['stage']!='cleaned' or row['cleanup_complete'] is not True or row['client_reaped'] is not True or
+                      type(row['client_returncode']) is not int or type(row['launcher_pid']) is not int or
+                      row['launcher_pid']<=0 or type(row['launcher_start']) is not int or row['launcher_start']<=0):
+                      complete=False
+                  effective=row['effective'];terminal=row['terminal'];slice_evidence=row['slice_evidence']
+                  if (not isinstance(effective,dict) or not isinstance(terminal,dict) or not isinstance(slice_evidence,dict) or
+                      effective.get('Id')!=unit or terminal.get('Id')!=unit or
+                      not isinstance(row['invocation'],str) or not re.fullmatch('[0-9a-f]{32}',row['invocation']) or
+                      effective.get('InvocationID')!=row['invocation'] or terminal.get('InvocationID')!=row['invocation'] or
+                      not terminal.get('Result') or not terminal.get('ExecMainCode') or not terminal.get('ExecMainStatus') or
+                      slice_evidence.get('Id')!=sl or slice_evidence.get('ActiveState')!='active' or
+                      not isinstance(slice_evidence.get('ControlGroup'),str) or
+                      not effective.get('ControlGroup','').startswith(slice_evidence['ControlGroup']+'/') or
+                      not isinstance(row['slice_events'],str) or 'populated 0' not in row['slice_events'].splitlines() or
+                      row['slice_processes']!=''):
+                      complete=False;continue
+                  def selected(mapping,fields):
+                      selected={}
+                      for field in fields:
+                          value=mapping.get(field)
+                          if not isinstance(value,str) or not re.fullmatch('[A-Za-z0-9_./:-]{1,128}',value):
+                              raise TeardownStop('HYGIENE_WORKER_WITNESS_MALFORMED')
+                          selected[field]=value
+                      return selected
+                  job_words=effective.get('Job','').split()
+                  if job_words and not job_words[0].isdigit(): raise TeardownStop('HYGIENE_JOB_FORMAT')
+                  manager_job='unobserved' if not job_words or job_words[0]=='0' else job_words[0]
+                  proofs.append({'manager_job':manager_job,'unit':unit,'slice':sl,'case':case,'role':role,'ordinal':i,
+                                 'invocation':row['invocation'],'launcher_pid':row['launcher_pid'] if type(row['launcher_pid']) is int else None,
+                                 'launcher_start':row['launcher_start'] if type(row['launcher_start']) is int else None,
+                                 'client_reaped':row['client_reaped'] is True,
+                                 'client_returncode':row['client_returncode'] if type(row['client_returncode']) is int else None,
+                                 'cleanup_complete':row['cleanup_complete'] is True,
+                                 'terminal':selected(terminal,('Id','InvocationID','Result','ExecMainCode','ExecMainStatus','ActiveState','SubState')),
+                                 'slice_evidence':selected(slice_evidence,('Id','ActiveState','ControlGroup')),
+                                 'slice_events':row['slice_events'],'slice_processes':row['slice_processes']})
+              if mode=='upload' and (len(rows)!=1 or rows[0]['role']!='upload'):
+                  raise TeardownStop('HYGIENE_INVENTORY_INCOMPLETE')
+              return known,len(record['workers']),complete,proofs
+
+          def launcher_inventory(requested):
+              result={}
+              for role in (requested,):
+                  unit='b38-'+PACKAGE+'-'+role+'.service'
+                  env='B38_'+role.upper()+'_'
+                  pid=os.environ.get(env+'LAUNCHER_PID','');ticks=os.environ.get(env+'LAUNCHER_START_TICKS','')
+                  status=os.environ.get(env+'LAUNCHER_STATUS','')
+                  if not all(re.fullmatch('[0-9]{1,20}',x) for x in (pid,ticks,status)) or int(pid)<=0 or int(ticks)<=0 or int(status)!=0:
+                      raise TeardownStop('HYGIENE_LAUNCHER_INVENTORY')
+                  record=read_bounded(W/'out'/('inventory-'+role+'.json'),16384)
+                  if (not isinstance(record,dict) or set(record)!={'version','package','run_id','commit','unit'} or
+                      record['version']!=1 or record['package']!=PACKAGE or record['run_id']!=os.environ['GITHUB_RUN_ID'] or
+                      record['commit']!=os.environ['GITHUB_SHA'] or not isinstance(record['unit'],dict)):
+                      raise TeardownStop('HYGIENE_LAUNCHER_INVENTORY')
+                  observed=record['unit']
+                  if (set(observed)!={'Id','InvocationID','ControlGroup','Job'} or observed['Id']!=unit or
+                      not isinstance(observed['InvocationID'],str) or not re.fullmatch('[0-9a-f]{32}',observed['InvocationID']) or
+                      not isinstance(observed['ControlGroup'],str) or
+                      not observed['ControlGroup'].endswith('/b38-'+PACKAGE+'.slice/'+unit) or
+                      observed['Job'] is not None and (not isinstance(observed['Job'],str) or not re.fullmatch('[0-9]{1,20}',observed['Job']))):
+                      raise TeardownStop('HYGIENE_LAUNCHER_INVENTORY')
+                  result[role]={'unit':observed,'launcher_pid':int(pid),'launcher_start_ticks':ticks,
+                                'launcher_status':int(status),'client_wait':'settled',
+                                'numeric_job_id':'unobserved' if observed['Job'] is None else observed['Job']}
+              return result
+
+          def upload_parent_inventory():
+              record=read_bounded(W/'inventory-upload-parent.json',16384)
+              unit='b38-'+PACKAGE+'-upload-parent.service'
+              if (not isinstance(record,dict) or set(record)!={'version','package','run_id','commit','unit'} or
+                  record['version']!=1 or record['package']!=PACKAGE or record['run_id']!=os.environ['GITHUB_RUN_ID'] or
+                  record['commit']!=os.environ['GITHUB_SHA'] or not isinstance(record['unit'],dict)):
+                  raise TeardownStop('HYGIENE_LAUNCHER_INVENTORY')
+              observed=record['unit']
+              if (set(observed)!={'Id','InvocationID','ControlGroup','Job'} or observed['Id']!=unit or
+                  not isinstance(observed['InvocationID'],str) or not re.fullmatch('[0-9a-f]{32}',observed['InvocationID']) or
+                  not isinstance(observed['ControlGroup'],str) or
+                  not observed['ControlGroup'].endswith('/b38-'+PACKAGE+'.slice/'+unit) or
+                  observed['Job'] is not None and (not isinstance(observed['Job'],str) or not re.fullmatch('[0-9]{1,20}',observed['Job']))):
+                  raise TeardownStop('HYGIENE_LAUNCHER_INVENTORY')
+              return observed
+
+          def adapter_inventory():
+              value=read_bounded(W/'inventory-adapter.json',16384)
+              expected={'version','package','run_id','commit','scope','adapter_pid','adapter_start_ticks','upload_client','adapter_complete','incomplete'}
+              if (not isinstance(value,dict) or set(value)!=expected or value['version']!=1 or
+                  value['package']!=PACKAGE or value['run_id']!=os.environ['GITHUB_RUN_ID'] or
+                  value['commit']!=os.environ['GITHUB_SHA'] or value['adapter_complete'] is not True or value['incomplete'] is not False):
+                  raise TeardownStop('HYGIENE_ADAPTER_INVENTORY')
+              scope=value['scope'];client=value['upload_client']
+              if (not isinstance(scope,dict) or set(scope)!={'id','invocation_id','control_group','job_id','state'} or
+                  scope['id']!='b38-'+PACKAGE+'-adapter.scope' or scope['state']!='observed' or
+                  not isinstance(scope['invocation_id'],str) or not re.fullmatch('[0-9a-f]{32}',scope['invocation_id']) or
+                  not isinstance(scope['job_id'],str) or not re.fullmatch('[0-9]{1,20}',scope['job_id']) or
+                  not isinstance(scope['control_group'],str) or not scope['control_group'].startswith('/') or
+                  not scope['control_group'].endswith('/b38-'+PACKAGE+'.slice/'+scope['id']) or
+                  not isinstance(client,dict) or set(client)!={'pid','start_ticks','status','signal','state'} or
+                  client['state']!='exited' or client['status']!=0 or client['signal'] is not None or
+                  any(type(number) is not int or number<=0 for number in (value['adapter_pid'],client['pid'])) or
+                  any(not isinstance(ticks,str) or not re.fullmatch('[0-9]{1,20}',ticks) or int(ticks)<=0 for ticks in (value['adapter_start_ticks'],client['start_ticks']))):
+                  raise TeardownStop('HYGIENE_ADAPTER_INVENTORY')
+              return value
+
+          def package_jobs():
+              found=[]
+              for line in manager(['list-jobs']):
+                  fields=line.split()
+                  if len(fields)!=4 or not fields[0].isdigit(): raise TeardownStop('HYGIENE_JOB_FORMAT')
+                  job,unit,kind,state=fields
+                  if unit.startswith('b38-'+PACKAGE):
+                      if not re.fullmatch('[A-Za-z0-9_.@-]{1,128}',unit) or not re.fullmatch('[a-z-]{1,32}',kind) or not re.fullmatch('[a-z-]{1,32}',state):
+                          raise TeardownStop('HYGIENE_JOB_FORMAT')
+                      found.append({'id':int(job),'unit':unit,'job':kind,'state':state})
+              return found
+
+          def package_units():
+              found=[]
+              for line in manager(['list-units','--all','b38-'+PACKAGE+'*']):
+                  fields=line.split(None,4)
+                  if len(fields)<4: raise TeardownStop('HYGIENE_UNIT_FORMAT')
+                  unit,load,active,sub=fields[:4]
+                  if not unit.startswith('b38-'+PACKAGE) or not re.fullmatch('[A-Za-z0-9_.@-]{1,128}',unit):
+                      raise TeardownStop('HYGIENE_UNIT_FORMAT')
+                  found.append({'unit':unit,'load':load,'active':active,'sub':sub})
+              return found
+
+          def release_mount(name):
+              record=mount_record_read();entry=record['entries'].get(name)
+              if not isinstance(entry,dict): raise TeardownStop('MOUNT_PROVENANCE_UNKNOWN')
+              if entry.get('state')=='released':
+                  if name=='scratch': validate_fixture_history(record,entry,False)
+                  mount_validate(name,entry,mount_graph(Path(entry['target'])))
+                  if os.path.lexists(entry['source']): raise TeardownStop('MOUNT_STATE_UNKNOWN')
+                  return
+              mount_remove(name)
+              record=mount_record_read();entry=record['entries'][name]
+              if entry['mode']=='bind': return
+              if entry['state']!='removed' or mount_source_stat(Path(entry['source']),'loop')!=entry['source_stat']:
+                  raise TeardownStop('MOUNT_OWNERSHIP_UNKNOWN')
+              os.unlink(entry['source'])
+              entry['state']='released';mount_record_write(record)
+
+          slice_identified=False;slice_stop_attempted=False
+          stage='ownership';hygiene={'trust_boundary':'github_ephemeral_runner_linux_systemd_pid1_actions_sequencing_no_host_adversary_or_undisclosed_external_launcher',
+              'package_slice':'b38-'+PACKAGE+'.slice','known_jobs':[],'known_units':[],
+              'per_unit_evidence':'unverified','package_hygiene':'incomplete','incomplete':True}
+          try:
+              if not LEASE.exists(): raise TeardownStop('NO_TASK_ALLOCATION')
+              lease_fd=os.open(LEASE,os.O_RDONLY|os.O_NOFOLLOW|os.O_CLOEXEC)
+              try:
+                  info=os.fstat(lease_fd)
+                  if not stat.S_ISREG(info.st_mode) or info.st_uid!=0 or info.st_nlink!=1 or info.st_size>128:
+                      raise TeardownStop('TEARDOWN_OWNERSHIP')
+                  owner=os.read(lease_fd,129).decode('ascii')
+              finally: close_fd_preserving(lease_fd)
+              if owner!=os.environ['GITHUB_RUN_ID']+':'+os.environ['GITHUB_SHA']:
+                  raise TeardownStop('TEARDOWN_OWNERSHIP')
+              stage='slice_identity'
+              properties={}
+              for line in manager(['show','b38-'+PACKAGE+'.slice','--property=Id,LoadState,ActiveState,ControlGroup']):
+                  if '=' not in line: raise TeardownStop('HYGIENE_SLICE_IDENTITY_UNKNOWN')
+                  key,value=line.split('=',1);properties[key]=value
+              if properties.get('Id')!='b38-'+PACKAGE+'.slice' or properties.get('LoadState')!='loaded':
+                  raise TeardownStop('HYGIENE_SLICE_IDENTITY_UNKNOWN')
+              group=properties.get('ControlGroup','')
+              if (properties.get('ActiveState')!='active' or not group or not group.startswith('/') or
+                  '..' in pathlib.PurePosixPath(group).parts or not group.endswith('/b38-'+PACKAGE+'.slice')):
+                  raise TeardownStop('HYGIENE_SLICE_IDENTITY_UNKNOWN')
+              hygiene['slice_identity']={k:properties.get(k,'') for k in ('Id','LoadState','ActiveState','ControlGroup')}
+              slice_identified=True
+              stage='provisional_snapshot';snapshot('provisional')
+              outcomes={name:os.environ.get('B38_'+name.upper()+'_OUTCOME','') for name in ('bootstrap','parent','adapter')}
+              if any(value not in ('success','failure','cancelled','skipped') for value in outcomes.values()):
+                  raise TeardownStop('HYGIENE_STEP_OUTCOME_UNKNOWN')
+              hygiene['step_outcomes']=outcomes
+              known={'b38-'+PACKAGE+'.slice','b38-'+PACKAGE+'-bootstrap.service',
+                     'b38-'+PACKAGE+'-parent.service','b38-'+PACKAGE+'-adapter.scope',
+                     'b38-'+PACKAGE+'-upload-parent.service'}
+              worker_proofs={};all_witnesses=True
+              for mode in ('run','upload'):
+                  try:
+                      names,count,complete,proofs=worker_inventory(mode);known.update(names);hygiene[mode+'_worker_count']=count
+                      worker_proofs[mode]=proofs
+                      if len(proofs)!=count: all_witnesses=False
+                      if not complete:
+                          error('inventory_'+mode,TeardownStop('HYGIENE_WORKER_WITNESS_MISSING' if len(proofs)!=count else 'HYGIENE_CLEANUP_INCOMPLETE'))
+                  except BaseException as failure:
+                      all_witnesses=False;error('inventory_'+mode,failure)
+              if all_witnesses: hygiene['per_unit_evidence']='retained_and_checked'
+              # Preserve actual per-unit custody before any later hygiene operation.
+              emit('worker_inventory',{'qualification':'per_unit_records_retained' if all_witnesses else 'provisional',
+                                       'workers':worker_proofs,'incomplete':not all_witnesses})
+              stage='launcher_inventory';launchers={};upload_parent=None;launcher_incomplete=False
+              for role in ('bootstrap','parent'):
+                  try: launchers.update(launcher_inventory(role))
+                  except BaseException as failure:
+                      launcher_incomplete=True;error('launcher_inventory',failure)
+              try: upload_parent=upload_parent_inventory()
+              except BaseException as failure:
+                  launcher_incomplete=True;error('launcher_inventory',failure)
+              emit('launcher_inventory',{'qualification':'provisional','launchers':launchers,
+                                         'upload_parent':upload_parent,'incomplete':launcher_incomplete})
+              stage='manager_inventory'
+              try:
+                  adapter=adapter_inventory()
+                  emit('adapter_inventory',{'qualification':'known_objects','adapter':adapter})
+              except BaseException as failure:
+                  error('inventory_adapter',failure)
+              jobs=package_jobs();units=package_units();hygiene['known_jobs']=jobs;hygiene['known_units']=units
+              if any(item['unit'] not in known for item in jobs+units): raise TeardownStop('HYGIENE_UNKNOWN_UNIT')
+              # A loaded active unit or job at this point is incomplete. Stopping it is
+              # best effort runner hygiene, never evidence that its worker was qualified.
+              unresolved=[item['unit'] for item in units if item['active'] not in ('inactive','failed') and item['unit']!=hygiene['package_slice']]
+              if jobs or unresolved:
+                  error('known_unsettled',TeardownStop('HYGIENE_KNOWN_UNSETTLED'))
+                  if jobs:
+                      rc,_=bounded(['systemctl','cancel']+[str(item['id']) for item in jobs],seconds=3)
+                      if rc: raise TeardownStop('HYGIENE_CANCEL_FAILED')
+                  if unresolved:
+                      rc,_=bounded(['systemctl','stop']+sorted(set(unresolved)),seconds=4)
+                      if rc: raise TeardownStop('HYGIENE_STOP_FAILED')
+              stage='settlement_check'
+              remaining_jobs=package_jobs();remaining_units=package_units()
+              hygiene['remaining_jobs']=remaining_jobs;hygiene['remaining_units']=remaining_units
+              if remaining_jobs or any(item['active'] not in ('inactive','failed') and item['unit']!=hygiene['package_slice'] for item in remaining_units):
+                  raise TeardownStop('HYGIENE_KNOWN_UNSETTLED')
+              if not any(item['unit']==hygiene['package_slice'] and item['load']=='loaded' for item in remaining_units):
+                  raise TeardownStop('HYGIENE_SLICE_IDENTITY_UNKNOWN')
+              if any(value!='success' for value in outcomes.values()): error('step_outcomes',TeardownStop('HYGIENE_STEP_INCOMPLETE'))
+              stage='retained_per_unit_snapshot'
+              snapshot('provisional')
+              stage='package_slice_stop'
+              slice_stop_attempted=True
+              rc,_=bounded(['systemctl','stop',hygiene['package_slice']],seconds=4)
+              hygiene['package_slice_stop_status']=rc
+              if rc: raise TeardownStop('HYGIENE_SLICE_STOP_FAILED')
+              hygiene['package_hygiene']='slice_stop_completed'
+              # Stop is a runner-hygiene outcome, not a descendant-cessation witness.
+              if teardown_primary or secondary:
+                  hygiene['incomplete']=True
+                  emit('cleanup',dict(hygiene,primary=teardown_primary[0] if teardown_primary else None,secondary=secondary,retention='owned storage retained for incomplete run'))
+                  raise SystemExit(1)
+              stage='owned_mount_cleanup'
+              record=mount_record_read()
+              if set(record['entries'])!={'fixture','scratch','external'}:
+                  raise TeardownStop('MOUNT_PROVENANCE_UNKNOWN')
+              for name in ('fixture','scratch','external'):
+                  entry=record['entries'][name]
+                  if name=='fixture' and entry=={'state':'not_requested'}:
+                      if PACKAGE!='x03' or os.environ.get('B38_PHASE')!='admission':
+                          raise TeardownStop('MOUNT_PROVENANCE_UNKNOWN')
+                      # Explicit admission plan, not a mount-absence inference.
+                      continue
+                  if name=='fixture' and record['entries']['scratch'].get('state')=='released':
+                      # The already-released scratch tree hides this path; rely
+                      # only on the durably committed removed fixture identity.
+                      row=entry.get('mount');underlying=entry.get('underlying');saved=entry.get('source_stat')
+                      row_keys={'id','parent','device','root','path','filesystem','source'}
+                      if (set(entry)!={'state','target','underlying','mount','source','source_stat','mode'} or
+                          entry.get('state')!='removed' or entry.get('mode')!='bind' or
+                          entry.get('target')!=str(S/'control-fixtures'/'mount') or entry.get('source')!=str(S/'work') or
+                          not isinstance(row,dict) or set(row)!=row_keys or not isinstance(underlying,dict) or
+                          set(underlying)!=row_keys or row['path']!=entry['target'] or
+                          any(type(r[k]) is not int or r[k]<=0 for r in (row,underlying) for k in ('id','parent')) or
+                          row['parent']!=underlying['id'] or row['id']==underlying['id'] or
+                          underlying!=record['entries']['scratch'].get('mount') or
+                          row['device']!=underlying['device'] or row['filesystem']!=underlying['filesystem'] or
+                          row['root']!=str(Path(underlying['root'])/'work') or
+                          any(not isinstance(r[k],str) for r in (row,underlying) for k in ('device','root','path','filesystem','source')) or
+                          not isinstance(saved,dict) or set(saved)!={'dev','ino'} or
+                          type(saved['dev']) is not int or type(saved['ino']) is not int or saved['dev']<0 or saved['ino']<=0 or
+                          str(os.major(saved['dev']))+':'+str(os.minor(saved['dev']))!=row['device']):
+                          raise TeardownStop('MOUNT_PROVENANCE_UNKNOWN')
+                      continue
+                  release_mount(name);record=mount_record_read()
+              hygiene['incomplete']=True
+              hygiene['owned_record_removal']='pending_after_transport'
+              emit('cleanup_provisional',dict(hygiene,primary=teardown_primary[0] if teardown_primary else None,secondary=secondary))
+              if teardown_primary or secondary: raise SystemExit(1)
+              # The prior record is expressly provisional. The final success
+              # follows removal; failed final transport leaves the step failed.
+              os.unlink(LEASE);os.unlink(MOUNT_RECORD)
+              hygiene['owned_record_removal']='complete';hygiene['incomplete']=False
+              emit('cleanup_final',dict(hygiene,primary=teardown_primary[0] if teardown_primary else None,secondary=secondary))
+          except SystemExit: raise
+          except BaseException as failure:
+              error(stage,failure)
+              hygiene['incomplete']=True;hygiene['package_hygiene']='incomplete'
+              if slice_identified and not slice_stop_attempted:
+                  try:
+                      slice_stop_attempted=True
+                      rc,_=bounded(['systemctl','stop',hygiene['package_slice']],seconds=4)
+                      hygiene['package_slice_stop_status']=rc
+                      if rc: error('package_slice_stop',TeardownStop('HYGIENE_SLICE_STOP_FAILED'))
+                  except BaseException as stop_failure:
+                      error('package_slice_stop',stop_failure)
+              try: emit('cleanup',dict(hygiene,primary=teardown_primary[0] if teardown_primary else None,secondary=secondary,retention='owned evidence retained where removal was not completed'))
+              except BaseException: pass
+              raise SystemExit(1)
+          PY
