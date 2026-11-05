@@ -176,9 +176,9 @@
     },
     {
       "path": "experiments/bed-038/x03/isolate.sh",
-      "bytes": 238,
-      "sha256": "b618cec85a616222aa4a207650caaf26e25d0a4c1a0001c5a14e13ac0ce9ce4e",
-      "git_blob": "4f9a4788683277916c98bc8716f6bfefcd9308e2",
+      "bytes": 354,
+      "sha256": "029da4dc892426d3f4f6270ee00ddacfdbae949dbc7ffdf4314d9a5cc3c1f282",
+      "git_blob": "20ee29738591c1fb20c24634bf2133f0fe794621",
       "git_mode": "100644"
     },
     {
@@ -190,9 +190,9 @@
     },
     {
       "path": "experiments/bed-038/x03/launch.py",
-      "bytes": 122745,
-      "sha256": "46ec25fa3f76d10808018465320dc93bd95570c6c0af5ca145d2c4bab9ab0ce1",
-      "git_blob": "551d34bc4294367ce805467414b5fcab5ba745c9",
+      "bytes": 123764,
+      "sha256": "84a205d24c9c5ef4993ea90b18dba4ddc5d5808278780a916be4953dbfbd02d7",
+      "git_blob": "43fda8f6a6c5fdc264ff01309dbc44df31404a90",
       "git_mode": "100644"
     },
     {

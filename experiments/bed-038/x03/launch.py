@@ -62,9 +62,18 @@ class preserving_close:
             attach_secondary(primary,error,'descriptor_close')
         return False
 
+def control_environment(env=None):
+    # Do not forward the upload parent's provider credentials to controls.
+    allowed={'PATH','HOME','TMPDIR','LC_ALL','LANG','PYTHONDONTWRITEBYTECODE'}
+    result={'PATH':'/usr/sbin:/usr/bin:/sbin:/bin','LC_ALL':'C','LANG':'C'}
+    if env is not None:
+        if set(env)-allowed: raise ControlError('COMMAND_FAILED','invalid control environment')
+        result.update(env)
+    return result
+
 def bounded(argv, seconds=10, cap=MIB, env=None):
     p = subprocess.Popen(argv, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
-                         stderr=subprocess.STDOUT, close_fds=True, start_new_session=True, env=env)
+                         stderr=subprocess.STDOUT, close_fds=True, start_new_session=True, env=control_environment(env))
     poll=None
     chunks, size, deadline = [], 0, time.monotonic()+seconds
     failure=None
@@ -597,8 +606,12 @@ def run_unit(case, role='control', timeout=8, injected=False):
     args+=['/usr/bin/unshare','--mount','--propagation','private','--pid','--fork','--mount-proc=/proc',
            '/bin/sh','/src/experiments/bed-038/'+PACKAGE+'/isolate.sh',role,case,json.dumps(kw)]
     inventory_worker(unit,stage='service_start_intent')
+    client_env=control_environment()
+    if role=='upload':
+        for name in ('ACTIONS_RUNTIME_TOKEN','ACTIONS_RESULTS_URL'):
+            if name in os.environ: client_env[name]=os.environ[name]
     p=subprocess.Popen(args,stdin=subprocess.DEVNULL,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,
-                       close_fds=True,start_new_session=True)
+                       close_fds=True,start_new_session=True,env=client_env)
     observed=None; deadline=time.monotonic()+timeout+12
     unit_failure=None; cleanup_errors=[]
     try:
@@ -1207,7 +1220,7 @@ def parent_controls():
     try:
         child=subprocess.Popen([sys.executable,'-B','-c','import sys,time;print("READY",flush=True);time.sleep(30)'],
                                cwd=point,stdin=subprocess.DEVNULL,stdout=subprocess.PIPE,stderr=subprocess.DEVNULL,
-                               close_fds=True,start_new_session=True)
+                               close_fds=True,start_new_session=True,env=control_environment())
     except BaseException as original:
         cleanup={'primary':None,'secondary':[],'incomplete':False}
         if not finish_checked(cleanup,point,None,()):
@@ -1434,7 +1447,10 @@ def worker(role, case, kw):
                 print('B38_UPLOAD_OBJECT '+json.dumps(upload_object,sort_keys=True,separators=(',',':')),flush=True)
             finally: close_fd_preserving(fd)
             operation='adapter_prepare'
-            os.environ.update({'INPUT_NAME':'b38-'+PACKAGE+'-'+os.environ['GITHUB_SHA'],
+            provider_names=('PATH','HOME','LANG','LC_ALL','GITHUB_SERVER_URL','GITHUB_REPOSITORY',
+                            'GITHUB_RUN_ID','GITHUB_RUN_ATTEMPT','ACTIONS_RESULTS_URL','ACTIONS_RUNTIME_TOKEN')
+            provider_env={name:os.environ[name] for name in provider_names if name in os.environ}
+            provider_env.update({'INPUT_NAME':'b38-'+PACKAGE+'-'+os.environ['GITHUB_SHA'],
                 'INPUT_PATH':'/task/evidence.zip','INPUT_RETENTION-DAYS':'30',
                 'INPUT_COMPRESSION-LEVEL':'0','INPUT_IF-NO-FILES-FOUND':'error','INPUT_OVERWRITE':'false','INPUT_INCLUDE-HIDDEN-FILES':'false',
                 'GITHUB_OUTPUT':'/task/artifact-output','RUNNER_TEMP':'/task/tmp','TMPDIR':'/task/tmp'})
@@ -1443,7 +1459,7 @@ def worker(role, case, kw):
             # Do not mix untrusted provider text with the worker status channel.
             # The bounded artifact-output fields are separately projected.
             result=subprocess.run(['/node','/src/experiments/bed-038/'+PACKAGE+'/artifact/vendor.js'],
-                stdin=subprocess.DEVNULL,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,close_fds=True)
+                stdin=subprocess.DEVNULL,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,close_fds=True,env=provider_env)
             if result.returncode:
                 error=ControlError('UPLOAD_PROVIDER_FAILURE','provider exit')
                 error.status=result.returncode if -255<=result.returncode<=255 else None
