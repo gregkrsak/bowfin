@@ -1,0 +1,21 @@
+// BED-038 proposed companion; the original Sentinel bytes precede this suffix.
+record ProbePair { first: Reading, again: Reading }
+function b38_relay(sensor: Sensor) -> Sensor {
+    return sensor;
+}
+function b38_read(view: &Sensor)
+    -> Result<success: Reading, failure: SensorError> effects io
+{
+    return sensor_read(view);
+}
+function b38_probe()
+    -> Result<success: ProbePair, failure: SensorError> effects io
+{
+    let sensor = sensor_open() or return;
+    let view = &sensor;
+    let alias = view;
+    let first = b38_read(alias) or return;
+    let again = b38_read(view) or return;
+    let done = sensor_finish(b38_relay(sensor)) or return;
+    return Ok(ProbePair { first: first, again: again });
+}

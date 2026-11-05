@@ -1,0 +1,22 @@
+name: Bounded B38 evidence
+description: Local pinned artifact adapter; no additional runner job
+outputs:
+  adapter_witness:
+    description: Base64 encoded direct-child termination witness
+  adapter_scope_terminal:
+    description: Base64 encoded retained scope terminal properties
+  adapter_scope_witness:
+    description: Base64 encoded scope and empty slice witness
+  adapter_scope_cleanup:
+    description: Whether the adapter slice stopped while the hold remains active
+  observer_scope_identity:
+    description: Base64 encoded observer scope identity and effective controls
+  upload_parent_terminal:
+    description: Base64 encoded upload parent terminal properties
+  upload_parent_witness:
+    description: Base64 encoded upload parent and empty slice witness
+  upload_parent_cleanup:
+    description: Whether the upload parent and its slice stopped
+runs:
+  using: node20
+  main: supervisor.js
