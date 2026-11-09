@@ -127,3 +127,23 @@ The accepted Stage I implementation selects no native design, makes no performan
 or new proof claim, and supplies no Stage N execution evidence. Independent review,
 owner acceptance and human merge are complete for Stage I. Any backend selection,
 Stage N authorization and later human merge remain separate decisions.
+
+## DP-017 — Write for the next person
+
+> A good Bowfin program should read like its author wanted the next person to
+> succeed. Cleverness should be possible only when it earns its complexity—and
+> the language should make gratuitous cleverness inconvenient.
+
+Bowfin should make clear code the path of least resistance. Language and
+toolchain design should prefer a small number of coherent spellings, visible
+effects and authority changes, canonical formatting, and abstractions that remove
+repetition without concealing behavior.
+
+Readability does not mean mandatory verbosity. Concision is valuable when it
+preserves the facts a maintainer needs to understand control flow, ownership,
+effects, failure, cost, and trust. Escape hatches and metaprogramming should be
+bounded, inspectable, and difficult to use as camouflage.
+
+When two designs are otherwise sound, prefer the one that helps an unfamiliar
+maintainer form the correct mental model with less hidden knowledge. Novelty,
+compression, or cleverness alone is not a benefit.
