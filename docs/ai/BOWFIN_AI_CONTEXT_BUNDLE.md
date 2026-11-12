@@ -4087,6 +4087,24 @@ The repair changes no frozen semantics, public API, source ownership/lifetime ru
 primary interpreter behavior or Stage N boundary. Post-merge build, tests, verify
 and docs workflows all pass on c2910493ad5e04fb80f5cfa0ae8d3ee80be5d717.
 
+### BED-038 Stage N1 continuity (non-normative)
+
+Complete independent plan validation, authenticated build and product
+associations, required executable inspection, and the actual direct invocation
+cannot be replaced by partial checks, matching output, or agreement between
+producers and checkers. The frozen contract requires association of the actual
+selected product, entry, invocation, and resulting evidence.
+
+Greg adopted [B38-N1-SNCC-01-R1](../engineering/BED-038-NATIVE-PRODUCT-INVOCATION-CONTINUITY.md)
+as a non-normative engineering continuity record in the [owner decision](https://github.com/gregkrsak/bowfin/issues/117#issuecomment-6834398832).
+Its original proposed/not-adopted label is retained as part of the exact historical
+text. It does not modify the frozen Stage N1 composite. Physical-object retention,
+continuous write exclusion, descriptor-bound launch, mapped-image correlation,
+and a particular one-shot owner representation are optional techniques, not
+universal N1 requirements. Future target equivalence requires separate independent
+review against an expressly defined profile and assurance claim; a target cannot
+self-declare equivalence. The record accepts no implementation or evidence.
+
 <!-- END ARCHITECTURE.md -->
 
 ---
