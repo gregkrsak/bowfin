@@ -189,6 +189,42 @@ Current direction:
 
 These are implementation choices, not permanent language semantics.
 
+### Singular Bowfin toolchain boundary
+
+DP-018 constrains the implementation direction: Bowfin is one product and one
+semantic authority even when its internal components are separate libraries,
+processes, implementation languages or qualified tools. This is not a requirement
+for one executable or a monolithic compiler.
+
+- Bowfin's supported CLI, project model and compatibility policy select and
+  orchestrate the components required for `build`, `test`, `verify`, `audit` and
+  execution. Development and expert workflows may expose lower-level entry points,
+  but ordinary use does not require a chain of separately operated products.
+- Component boundaries consume and produce versioned Bowfin-owned semantic,
+  obligation or evidence artifacts. A verifier, solver, backend or adapter may not
+  independently reinterpret source semantics or promote its private result into a
+  Bowfin guarantee.
+- Verification results become Bowfin evidence only after the toolchain validates
+  the applicable component identity, compatibility, assumptions and result form.
+  Infrastructure or component failure remains distinct from disproved, unproved,
+  dynamically checked and successfully proved obligations.
+- Bowfin diagnostics provide the coherent user-facing account. Raw component
+  diagnostics and artifacts may be retained for expert inspection and reproduction,
+  but they do not force ordinary source into a component-specific dialect or make
+  users reconcile incompatible status vocabularies.
+- Supported distributions must identify and compatibility-check material internal
+  components. Audit output must expose assurance-relevant versions, provenance,
+  trust and escape boundaries without turning those details into routine
+  orchestration work for the programmer.
+- An internal component may be replaced only behind a preserved Bowfin contract.
+  A replacement that changes accepted semantics, obligations, evidence meaning or
+  trust boundaries requires the corresponding explicit project decision and
+  review; a common `bowfin` command name cannot hide that change.
+
+Exact packaging, process boundaries, component protocols and evidence schemas
+remain subject to their focused decisions. Whatever forms they take, they must
+preserve this singular toolchain boundary.
+
 ## 15. Proposed repository structure
 
 ```text

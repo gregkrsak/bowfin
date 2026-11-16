@@ -127,3 +127,26 @@ The accepted Stage I implementation selects no native design, makes no performan
 or new proof claim, and supplies no Stage N execution evidence. Independent review,
 owner acceptance and human merge are complete for Stage I. Any backend selection,
 Stage N authorization and later human merge remain separate decisions.
+
+## DP-018 — One toolchain, one assurance story
+
+Bowfin presents one coherent language and toolchain. Internal compilers,
+verifiers, solvers, analyzers, backends, runtimes and qualified components may be
+independently implemented and written in any suitable language, but they remain
+subordinate to Bowfin's semantic authority, compatibility model, commands,
+diagnostics and evidence format.
+
+Ordinary users should not need to translate Bowfin into a component-specific
+dialect, coordinate separately versioned tools or reconcile incompatible
+assurance claims. Bowfin owns the supported workflow from source through build,
+test, verification, audit and execution.
+
+Integration may not conceal trust. Assurance-relevant output and audit must expose
+material component identity, versions, assumptions, provenance, unproved or
+dynamically checked obligations and the point at which Bowfin's guarantees stop.
+Expert component diagnostics may remain available without fragmenting the
+ordinary experience.
+
+Implementation plurality must not become semantic plurality. Replacing an
+internal component must preserve Bowfin-defined contracts and evidence
+requirements or be treated as an explicit architecture or language change.
