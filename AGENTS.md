@@ -6,9 +6,12 @@ Before making language-design, compiler-architecture, verification, or major too
 2. `docs/ai/DESIGN_PRINCIPLES.md`
 3. `docs/ai/LANGUAGE_DECISIONS.md`
 4. `docs/ai/ARCHITECTURE.md`
-5. `docs/ai/OPEN_QUESTIONS.md`
+5. `docs/ai/TOOLCHAIN_CONSTRAINTS.md`
+6. `docs/ai/OPEN_QUESTIONS.md`
 
 `docs/ai/LANGUAGE_DECISIONS.md` is authoritative for settled decisions.
+`docs/ai/TOOLCHAIN_CONSTRAINTS.md` is authoritative for active host-toolchain
+engineering restrictions and their mandatory gates.
 
 ## Rules for agents
 

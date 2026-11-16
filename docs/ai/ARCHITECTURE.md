@@ -189,6 +189,13 @@ Current direction:
 
 These are implementation choices, not permanent language semantics.
 
+The Rust host compiler is part of the implementation trust boundary. Active
+compiler defects, prohibited source shapes, mechanical gates, and retirement
+conditions are recorded in `TOOLCHAIN_CONSTRAINTS.md`. A successful build or test
+run cannot waive an active constraint. Detailed evidence belongs in
+`docs/engineering/`; host-toolchain policy does not become Bowfin source-language
+semantics merely because it is mandatory for the implementation.
+
 ## 15. Proposed repository structure
 
 ```text
