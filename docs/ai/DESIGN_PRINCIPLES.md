@@ -170,3 +170,34 @@ ordinary experience.
 Implementation plurality must not become semantic plurality. Replacing an
 internal component must preserve Bowfin-defined contracts and evidence
 requirements or be treated as an explicit architecture or language change.
+
+## DP-019 — Complexity must earn its place
+
+Bowfin source should expose domain meaning before implementation mechanism.
+Every syntactic burden, annotation, abstraction, and state transition must earn
+its cognitive cost by expressing a distinction that the programmer genuinely
+intends to control. Complexity introduced primarily to guide, appease, or
+outmaneuver the compiler is a language-design failure.
+
+Source is the programmer's control surface. Bowfin's language feel should
+preserve a perceptible and proportionate connection between programmer intent,
+source action, compiler feedback, and observable behavior. An ordinary-looking
+assignment must not conceal a change to inferred type identity, ownership,
+borrow duration, authority, or effect. When an operation has significant
+semantic consequences, its spelling and diagnostics should make them visible.
+
+Prefer named state over positional obscurity, established types over deferred
+inference traps, visible ownership and borrowing over punctuation puzzles, and
+progressive disclosure over mandatory ceremony. Advanced mechanisms are
+appropriate when the domain earns them; ordinary work should remain ordinary.
+
+This principle does not pretend that systems programming is simple or prohibit
+code that expresses real domain complexity. It rejects accidental complexity
+whose principal purpose is negotiating with toolchain machinery. Memory safety,
+type correctness, and successful compilation remain necessary but are not
+sufficient: code can satisfy the compiler and still fail as a human interface.
+
+The compiler, standard library, examples, and documentation should make the
+correct path the most legible one. A developer should not need to mentally
+simulate hidden inference, variance, destruction order, or remote constraints to
+understand the validity and consequences of a local source operation.
