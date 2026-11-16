@@ -127,3 +127,77 @@ The accepted Stage I implementation selects no native design, makes no performan
 or new proof claim, and supplies no Stage N execution evidence. Independent review,
 owner acceptance and human merge are complete for Stage I. Any backend selection,
 Stage N authorization and later human merge remain separate decisions.
+
+## DP-017 — Write for the next person
+
+> A good Bowfin program should read like its author wanted the next person to
+> succeed. Cleverness should be possible only when it earns its complexity—and
+> the language should make gratuitous cleverness inconvenient.
+
+Bowfin should make clear code the path of least resistance. Language and
+toolchain design should prefer a small number of coherent spellings, visible
+effects and authority changes, canonical formatting, and abstractions that remove
+repetition without concealing behavior.
+
+Readability does not mean mandatory verbosity. Concision is valuable when it
+preserves the facts a maintainer needs to understand control flow, ownership,
+effects, failure, cost, and trust. Escape hatches and metaprogramming should be
+bounded, inspectable, and difficult to use as camouflage.
+
+When two designs are otherwise sound, prefer the one that helps an unfamiliar
+maintainer form the correct mental model with less hidden knowledge. Novelty,
+compression, or cleverness alone is not a benefit.
+
+## DP-018 — One toolchain, one assurance story
+
+Bowfin presents one coherent language and toolchain. Internal compilers,
+verifiers, solvers, analyzers, backends, runtimes and qualified components may be
+independently implemented and written in any suitable language, but they remain
+subordinate to Bowfin's semantic authority, compatibility model, commands,
+diagnostics and evidence format.
+
+Ordinary users should not need to translate Bowfin into a component-specific
+dialect, coordinate separately versioned tools or reconcile incompatible
+assurance claims. Bowfin owns the supported workflow from source through build,
+test, verification, audit and execution.
+
+Integration may not conceal trust. Assurance-relevant output and audit must expose
+material component identity, versions, assumptions, provenance, unproved or
+dynamically checked obligations and the point at which Bowfin's guarantees stop.
+Expert component diagnostics may remain available without fragmenting the
+ordinary experience.
+
+Implementation plurality must not become semantic plurality. Replacing an
+internal component must preserve Bowfin-defined contracts and evidence
+requirements or be treated as an explicit architecture or language change.
+
+## DP-019 — Complexity must earn its place
+
+Bowfin source should expose domain meaning before implementation mechanism.
+Every syntactic burden, annotation, abstraction, and state transition must earn
+its cognitive cost by expressing a distinction that the programmer genuinely
+intends to control. Complexity introduced primarily to guide, appease, or
+outmaneuver the compiler is a language-design failure.
+
+Source is the programmer's control surface. Bowfin's language feel should
+preserve a perceptible and proportionate connection between programmer intent,
+source action, compiler feedback, and observable behavior. An ordinary-looking
+assignment must not conceal a change to inferred type identity, ownership,
+borrow duration, authority, or effect. When an operation has significant
+semantic consequences, its spelling and diagnostics should make them visible.
+
+Prefer named state over positional obscurity, established types over deferred
+inference traps, visible ownership and borrowing over punctuation puzzles, and
+progressive disclosure over mandatory ceremony. Advanced mechanisms are
+appropriate when the domain earns them; ordinary work should remain ordinary.
+
+This principle does not pretend that systems programming is simple or prohibit
+code that expresses real domain complexity. It rejects accidental complexity
+whose principal purpose is negotiating with toolchain machinery. Memory safety,
+type correctness, and successful compilation remain necessary but are not
+sufficient: code can satisfy the compiler and still fail as a human interface.
+
+The compiler, standard library, examples, and documentation should make the
+correct path the most legible one. A developer should not need to mentally
+simulate hidden inference, variance, destruction order, or remote constraints to
+understand the validity and consequences of a local source operation.
