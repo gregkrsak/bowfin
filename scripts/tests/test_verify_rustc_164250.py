@@ -82,6 +82,10 @@ class Rustc164250GuardTests(unittest.TestCase):
         source = "/* outer /* struct Q<T: Copy>(T); */ still outer */ struct P<T>(T);"
         self.assertEqual(self.findings(source), [])
 
+    def test_inequality_joins_only_adjacent_punctuation(self):
+        tokens = GUARD.tokenize("!= ! =")
+        self.assertEqual([token.text for token in tokens], ["!=", "!", "="])
+
     def test_macro_generated_declaration_is_visible_to_guard(self):
         source = "macro_rules! m { () => { struct Q<T: Copy>(T); } }"
         findings = self.findings(source)
@@ -158,6 +162,38 @@ class DefaultGuardTests(unittest.TestCase):
     def test_default_allows_lawful_macro_metavariable_name(self):
         self.write("lib.rs", "macro_rules! m { ($name:ident) => { struct $name<T>(T); }; } m!(Q);")
         self.assert_guard(0, "0 reviewed bounded aggregates")
+
+    def test_default_allows_inequality_after_macro_metavariable(self):
+        self.write(
+            "lib.rs",
+            "macro_rules! differs { ($field:ident, $actual:expr, $expected:expr) => {\n"
+            "    ($actual).$field != ($expected).$field\n"
+            "}; }\n",
+        )
+        self.assert_guard(0, "1 scanned Rust files")
+
+    def test_default_rejects_bounded_item_after_inequality_in_macro(self):
+        self.write(
+            "lib.rs",
+            "macro_rules! m { ($left:expr, $right:expr) => {\n"
+            "    if $left != $right { struct Q<T: Copy>(T); }\n"
+            "}; }\n",
+        )
+        result = self.run_guard()
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+        self.assertIn("struct Q in a macro template", result.stderr)
+        self.assertNotIn("unresolved dynamically named macro invocation", result.stderr)
+
+    def test_default_rejects_dynamic_macro_invocation_after_inequality(self):
+        self.write(
+            "lib.rs",
+            "macro_rules! m { ($left:expr, $right:expr, $name:ident) => {\n"
+            "    if $left != $right {\n"
+            "        $name!();\n"
+            "    }\n"
+            "}; }\n",
+        )
+        self.assert_guard(1, "line 3: unresolved dynamically named macro invocation")
 
     def test_default_rejects_unresolved_macro_declaration_header(self):
         self.write("lib.rs", "macro_rules! m { ($name:ident, $g:tt) => { struct $name $g; }; }")
