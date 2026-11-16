@@ -1,0 +1,39 @@
+// BED-038 proposed computational fixture; not yet compiled or approved.
+type Word = range 0..1000;
+type Steps = range 0..64;
+type Wide = range -9223372036854775808..9223372036854775807;
+record State { x: Word, left: Steps }
+
+function seed() -> State {
+    return State { left: 64, x: 10 };
+}
+function step(value: Word) -> Word {
+    return value - -3;
+}
+function compute() -> State {
+    let mutable state = seed();
+    while 1 <= state.left {
+        let next = step(state.x);
+        if next <= 16 {
+            state.x = next;
+        } else {
+            state.x = next - 1;
+        }
+        state.left = state.left - 1;
+    }
+    return state;
+}
+function trap() -> Word {
+    let mutable state = seed();
+    state.x = 11;
+    return step(999);
+}
+function short() -> bool {
+    return false && (step(999) == 0);
+}
+function wide_seed() -> Wide {
+    return -9223372036854775808;
+}
+function wide_trap() -> Wide {
+    return wide_seed() - 1;
+}

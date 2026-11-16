@@ -1,0 +1,747 @@
+{
+  "package": "B38-X03",
+  "status": "STOPPED_INCOMPLETE",
+  "identity": {
+    "compiler": "fb67a7608ab75d9b6721e91b58dbf61e8edaace1",
+    "compiler_tree": "c9e5047eaec9430698cd7a82c1d05205d729994f",
+    "design": "efb636de48c7b7b6c412aa30520e112329baed80",
+    "design_tree": "5e2376650d6306e127cfe107c98e7f286aa652e8"
+  },
+  "report": {
+    "path": "docs/engineering/BED-038-X03-REPORT.md",
+    "sha256": "4679df30decd455049b74ddb6aca474a81db7844a077e565d09ed3a389a5f170"
+  },
+  "source_files": {
+    "experiments/bed-038/x03/probe.sh": {
+      "bytes": 2310,
+      "sha256": "1041a76a1ee2bc37aff26ab5330bfc31e7184553a059628b7b43f90a98d7a56b"
+    },
+    "experiments/bed-038/x03/companion-suffix.bow": {
+      "bytes": 713,
+      "sha256": "ba74eceee3661196f85e89d21aebc41c52a009fe6bc876822cb353abfbfaa055"
+    },
+    "experiments/bed-038/x03/computational.bow": {
+      "bytes": 947,
+      "sha256": "1c9a863981ec28467de4f1850ba797a6ad19652fb6613897d94ceae402d4fe42"
+    },
+    "experiments/bed-038/x03/launch.py": {
+      "bytes": 4088,
+      "sha256": "89553ec0d2c4afc963d84b5f505805c5c0c164041f1388a9639d101dd5d4935f"
+    },
+    "experiments/bed-038/x03/launch-manifest.json": {
+      "bytes": 3089,
+      "sha256": "ca920263c0677f5e2f630b3bcad1903f483667df580eb4c6f8586a23b2df0020"
+    },
+    "experiments/bed-038/x03/EXPECTATIONS.md": {
+      "bytes": 3272,
+      "sha256": "7f19654c93f95ab57c623bd9dd62f95e1eb2934d998d6aa7845f65329f88e319"
+    },
+    ".github/workflows/bed-038-x03.yml": {
+      "bytes": 1425,
+      "sha256": "526ab098b65b3c26bc52c77f3d2b9ab8d6ac32b7cb1d2356167c7525597dfe73"
+    },
+    "compiler/execution/machine/conformance/b38_x03_tests.rs": {
+      "bytes": 6506,
+      "sha256": "6e97f2faabc430dfb418a44542db1eaa2776f6ed3aace6940da1b8ae2408e349"
+    }
+  },
+  "snapshots": {
+    "ipr": {
+      "bytes": 56802,
+      "sha256": "934dec687dc581b75217d0ebfb306c8bfa1acd8524f1df223b0c0b3b5040840b"
+    },
+    "auth": {
+      "bytes": 6144,
+      "sha256": "a8bdb1fa8313d90f64c1a9b29581797ad02102e9b03ca5e8391786ee919f7716"
+    },
+    "draft": {
+      "bytes": 59340,
+      "sha256": "31abb5a224a8c877d64749cc548588a3910d7df400bf99c7411b58e60c53dd85"
+    },
+    "x01": {
+      "bytes": 12389,
+      "sha256": "092188023e7cc210b147492623099762816b74ac132e94e35de55cd8f9f49ee3"
+    },
+    "sarah": {
+      "bytes": 37141,
+      "sha256": "4767e310c92f03d70cb0f15b6e76c4715915a80cdee441a6e1b6cc76fa5ffd02"
+    },
+    "x03": {
+      "bytes": 13143,
+      "sha256": "04eabdb1c83bbf736b88d7fc633744df91736ca34cfebb6838230522c6d6260c"
+    }
+  },
+  "artifacts": [
+    {
+      "local_collection": "b38-x03-attempt1",
+      "files": {
+        "artifact.zip": {
+          "bytes": 2236,
+          "sha256": "39c0660cd4128c16d66d8f88104fedde1bbc842425573bda2a4c213cfbce94b9"
+        },
+        "enforcement.json": {
+          "bytes": 157,
+          "sha256": "9ac57f5e6b0433e66ac3b66e182747e18be11e1b5052f6e3bba15d16dec98e56"
+        },
+        "group.log": {
+          "bytes": 620,
+          "sha256": "b8a87b578936e379ae430efcef4d6a8d7b5c79063812195aed0c99720821424c"
+        },
+        "launch-result.json": {
+          "bytes": 2567,
+          "sha256": "55e471cd588b9c60c787303868ff12db1e3089b4255b388fef1f7c0494e5969b"
+        },
+        "sha256.json": {
+          "bytes": 268,
+          "sha256": "eef7b2fe560b003eb6787421ad8f305441be5a3eb273207aa01288fe835ddd15"
+        }
+      },
+      "launch_result": {
+        "stage": "resource-preflight",
+        "status": "stopped",
+        "started": 1793724792.4424825,
+        "commit": "ee7b4a17ef95d78bf560f86af706694360da9718",
+        "tree": "1b5649dcca4a66be32e863b6b58fc19594117997",
+        "runner_image": "ubuntu24",
+        "runner_image_version": "20261026.354.1",
+        "kernel": "Linux runnervm48cm3 7.0.0-1017-azure #17~24.04.1-Ubuntu SMP PREEMPT Thu Sep 24 18:46:57 UTC 2026 x86_64 x86_64 x86_64 GNU/Linux",
+        "allocated_vcpus": 4,
+        "allowed_cpus": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "meminfo": "MemTotal:       16367516 kB\nMemFree:        14850984 kB\nMemAvailable:   15448584 kB\nBuffers:           60144 kB\nCached:           829668 kB\nSwapCached:            0 kB\nActive:           703268 kB\nInactive:         438180 kB\nActive(anon):     303000 kB\nInactive(anon):        0 kB\nActive(file):     400268 kB\nInactive(file):   438180 kB\nUnevictable:       46728 kB\nMlocked:           43656 kB\nSwapTotal:       3145724 kB\nSwapFree:        3145724 kB\nZswap:                 0 kB\nZswapped:              0 kB\nDirty:             12904 kB\nWriteback:             0 kB\nAnonPages:        298228 kB\nMapped:           325340 kB\nShmem:             42632 kB\nKReclaimable:      41368 kB\nSlab:             116016 kB\nSReclaimable:      41368 kB\nSUnreclaim:        74648 kB\nKernelStack:        4240 kB\nPageTables:         6024 kB\nSecPageTables:         0 kB\nNFS_Unstable:          0 kB\nBounce:                0 kB\nWritebackTmp:          0 kB\nCommitLimit:    11329480 kB\nCommitted_AS:    1984712 kB\nVmallocTotal:   34359738367 kB\nVmallocUsed:       42676 kB\nVmallocChunk:          0 kB\nPercpu:             2336 kB\nHardwareCorrupted:     0 kB\nAnonHugePages:         0 kB\nShmemHugePages:        0 kB\nShmemPmdMapped:        0 kB\nFileHugePages:         0 kB\nFilePmdMapped:         0 kB\nCmaTotal:              0 kB\nCmaFree:         1466368 kB\nUnaccepted:            0 kB\nBalloon:               0 kB\nGPUActive:             0 kB\nGPUReclaim:            0 kB\nHugePages_Total:       0\nHugePages_Free:        0\nHugePages_Rsvd:        0\nHugePages_Surp:        0\nHugepagesize:       2048 kB\nHugetlb:               0 kB\nDirectMap4k:      119936 kB\nDirectMap2M:     3020800 kB\nDirectMap1G:    15728640 kB\n",
+        "free_disk": 91881385984,
+        "baseline_runner_class_observed_cpus": "4",
+        "workflow_sha256": "526ab098b65b3c26bc52c77f3d2b9ab8d6ac32b7cb1d2356167c7525597dfe73",
+        "no_interpreter_execution": true,
+        "process_exit": 1,
+        "stop": "enforcement or admission stage failed; inspect group.log",
+        "finished": 1793724800.2312093
+      },
+      "enforcement": {
+        "cpu.max": "200000 100000",
+        "cpuset.cpus.effective": "0-1",
+        "memory.max": "4294967296",
+        "memory.swap.max": "0",
+        "affinity": [
+          0,
+          1
+        ]
+      },
+      "github_artifact_id": 13252635601,
+      "expires_at": "2026-12-03T16:53:20Z",
+      "run_id": 41678693408
+    },
+    {
+      "local_collection": "b38-x03-attempt2",
+      "files": {
+        "admission.log": {
+          "bytes": 699,
+          "sha256": "ef64d55ac266ad8a4aca68e6dc7bc7e1d1a337e938152313772d428f087be834"
+        },
+        "artifact.zip": {
+          "bytes": 18813,
+          "sha256": "d407dd7c22ac1a84e735bc872620ce9bd926a20de406cb6dcdb445b723279539"
+        },
+        "enforcement.json": {
+          "bytes": 157,
+          "sha256": "9ac57f5e6b0433e66ac3b66e182747e18be11e1b5052f6e3bba15d16dec98e56"
+        },
+        "group.log": {
+          "bytes": 533,
+          "sha256": "8ae8d8d81c4c60761b56dd5fcbf766743ba81a1b290e08950261a9dbfbf02ac9"
+        },
+        "inventory.txt": {
+          "bytes": 157999,
+          "sha256": "22dafec3df2df1db2bf9dbe889db29f102e4344385cd759bcb6bec49186ab25a"
+        },
+        "launch-result.json": {
+          "bytes": 2569,
+          "sha256": "16311e377d02f8e3533de76a558010431b21711a10197d7a1755d0de7e1d638e"
+        },
+        "rustc.txt": {
+          "bytes": 196,
+          "sha256": "cf51924780ffef5cd6319c6b79cbdff0ee4e3e7d4b6deb95a3848a8329b9fb62"
+        },
+        "sha256.json": {
+          "bytes": 615,
+          "sha256": "e0b97d9a3122c8edb3b256562176fde0b85a70d9c1fffe186dfd25790fc484fb"
+        },
+        "toolchain.sha256": {
+          "bytes": 19484,
+          "sha256": "ade6f8465126d462c67a47b875b4f69dfee1bc2136b57a191844b09e5e5647e2"
+        }
+      },
+      "launch_result": {
+        "stage": "resource-preflight",
+        "status": "stopped",
+        "started": 1793724942.0748112,
+        "commit": "7c01f0b9a998fe97ad665fef86b60f1118a6b2e5",
+        "tree": "cd992c6bb96062089d53d03b4651993b9c9627a4",
+        "runner_image": "ubuntu24",
+        "runner_image_version": "20261026.354.1",
+        "kernel": "Linux runnervm48cm3 7.0.0-1017-azure #17~24.04.1-Ubuntu SMP PREEMPT Thu Sep 24 18:46:57 UTC 2026 x86_64 x86_64 x86_64 GNU/Linux",
+        "allocated_vcpus": 4,
+        "allowed_cpus": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "meminfo": "MemTotal:       16367520 kB\nMemFree:        14856276 kB\nMemAvailable:   15454660 kB\nBuffers:           60092 kB\nCached:           829708 kB\nSwapCached:            0 kB\nActive:           694668 kB\nInactive:         437972 kB\nActive(anon):     293524 kB\nInactive(anon):        0 kB\nActive(file):     401144 kB\nInactive(file):   437972 kB\nUnevictable:       46760 kB\nMlocked:           43688 kB\nSwapTotal:       3145724 kB\nSwapFree:        3145724 kB\nZswap:                 0 kB\nZswapped:              0 kB\nDirty:             12756 kB\nWriteback:             0 kB\nAnonPages:        289704 kB\nMapped:           322920 kB\nShmem:             41920 kB\nKReclaimable:      41200 kB\nSlab:             115000 kB\nSReclaimable:      41200 kB\nSUnreclaim:        73800 kB\nKernelStack:        4256 kB\nPageTables:         6140 kB\nSecPageTables:         0 kB\nNFS_Unstable:          0 kB\nBounce:                0 kB\nWritebackTmp:          0 kB\nCommitLimit:    11329484 kB\nCommitted_AS:    1992728 kB\nVmallocTotal:   34359738367 kB\nVmallocUsed:       42660 kB\nVmallocChunk:          0 kB\nPercpu:             2336 kB\nHardwareCorrupted:     0 kB\nAnonHugePages:         0 kB\nShmemHugePages:        0 kB\nShmemPmdMapped:        0 kB\nFileHugePages:         0 kB\nFilePmdMapped:         0 kB\nCmaTotal:              0 kB\nCmaFree:         1478656 kB\nUnaccepted:            0 kB\nBalloon:               0 kB\nGPUActive:             0 kB\nGPUReclaim:            0 kB\nHugePages_Total:       0\nHugePages_Free:        0\nHugePages_Rsvd:        0\nHugePages_Surp:        0\nHugepagesize:       2048 kB\nHugetlb:               0 kB\nDirectMap4k:      140416 kB\nDirectMap2M:     4048896 kB\nDirectMap1G:    14680064 kB\n",
+        "free_disk": 91881533440,
+        "baseline_runner_class_observed_cpus": "4",
+        "workflow_sha256": "526ab098b65b3c26bc52c77f3d2b9ab8d6ac32b7cb1d2356167c7525597dfe73",
+        "no_interpreter_execution": true,
+        "process_exit": 101,
+        "stop": "enforcement or admission stage failed; inspect group.log",
+        "finished": 1793724969.2884421
+      },
+      "enforcement": {
+        "cpu.max": "200000 100000",
+        "cpuset.cpus.effective": "0-1",
+        "memory.max": "4294967296",
+        "memory.swap.max": "0",
+        "affinity": [
+          0,
+          1
+        ]
+      },
+      "github_artifact_id": 13251298236,
+      "expires_at": "2026-12-03T16:56:09Z",
+      "run_id": 41679108551
+    }
+  ],
+  "github_artifact_metadata": {
+    "x03a": {
+      "artifacts": [
+        {
+          "id": 13252635601,
+          "name": "b38-x03-admission-ee7b4a17ef95d78bf560f86af706694360da9718",
+          "size_in_bytes": 2236,
+          "url": "https://api.github.com/repos/gregkrsak/bowfin/actions/artifacts/13252635601",
+          "archive_download_url": "https://api.github.com/repos/gregkrsak/bowfin/actions/artifacts/13252635601/zip",
+          "expired": false,
+          "created_at": "2026-11-03T16:53:21Z",
+          "expires_at": "2026-12-03T16:53:20Z",
+          "updated_at": "2026-11-03T16:53:21Z",
+          "digest": "sha256:39c0660cd4128c16d66d8f88104fedde1bbc842425573bda2a4c213cfbce94b9",
+          "workflow_run": {
+            "id": 41678693408,
+            "repository_id": 1398259526,
+            "head_repository_id": 1398259526,
+            "head_branch": "bed-038-x03-workload-inventory",
+            "head_sha": "ee7b4a17ef95d78bf560f86af706694360da9718"
+          }
+        }
+      ]
+    },
+    "x03b": {
+      "artifacts": [
+        {
+          "id": 13251298236,
+          "name": "b38-x03-admission-7c01f0b9a998fe97ad665fef86b60f1118a6b2e5",
+          "size_in_bytes": 18813,
+          "url": "https://api.github.com/repos/gregkrsak/bowfin/actions/artifacts/13251298236",
+          "archive_download_url": "https://api.github.com/repos/gregkrsak/bowfin/actions/artifacts/13251298236/zip",
+          "expired": false,
+          "created_at": "2026-11-03T16:56:10Z",
+          "expires_at": "2026-12-03T16:56:09Z",
+          "updated_at": "2026-11-03T16:56:10Z",
+          "digest": "sha256:d407dd7c22ac1a84e735bc872620ce9bd926a20de406cb6dcdb445b723279539",
+          "workflow_run": {
+            "id": 41679108551,
+            "repository_id": 1398259526,
+            "head_repository_id": 1398259526,
+            "head_branch": "bed-038-x03-workload-inventory",
+            "head_sha": "7c01f0b9a998fe97ad665fef86b60f1118a6b2e5"
+          }
+        }
+      ]
+    }
+  },
+  "jobs": [
+    {
+      "run": 41679115965,
+      "name": "docs",
+      "event": "pull_request",
+      "head": "7c01f0b9a998fe97ad665fef86b60f1118a6b2e5",
+      "jobs": [
+        {
+          "id": 126067681466,
+          "name": "docs",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-03T16:55:37Z",
+          "completed_at": "2026-11-03T16:55:47Z",
+          "runner_name": "GitHub Actions 1000002532",
+          "labels": [
+            "ubuntu-latest"
+          ]
+        }
+      ]
+    },
+    {
+      "run": 41679115948,
+      "name": "tests",
+      "event": "pull_request",
+      "head": "7c01f0b9a998fe97ad665fef86b60f1118a6b2e5",
+      "jobs": [
+        {
+          "id": 126067681247,
+          "name": "compiler-tests",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-03T16:55:37Z",
+          "completed_at": "2026-11-03T16:57:29Z",
+          "runner_name": "GitHub Actions 1000002531",
+          "labels": [
+            "ubuntu-latest"
+          ]
+        }
+      ]
+    },
+    {
+      "run": 41679115932,
+      "name": "build",
+      "event": "pull_request",
+      "head": "7c01f0b9a998fe97ad665fef86b60f1118a6b2e5",
+      "jobs": [
+        {
+          "id": 126067680543,
+          "name": "compiler-build",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-03T16:55:37Z",
+          "completed_at": "2026-11-03T16:56:17Z",
+          "runner_name": "GitHub Actions 1000002530",
+          "labels": [
+            "ubuntu-latest"
+          ]
+        }
+      ]
+    },
+    {
+      "run": 41679116196,
+      "name": "verify",
+      "event": "pull_request",
+      "head": "7c01f0b9a998fe97ad665fef86b60f1118a6b2e5",
+      "jobs": [
+        {
+          "id": 126067681762,
+          "name": "battery-contract",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-03T16:55:37Z",
+          "completed_at": "2026-11-03T16:56:16Z",
+          "runner_name": "GitHub Actions 1000002533",
+          "labels": [
+            "ubuntu-latest"
+          ]
+        }
+      ]
+    },
+    {
+      "run": 41679108616,
+      "name": "docs",
+      "event": "push",
+      "head": "7c01f0b9a998fe97ad665fef86b60f1118a6b2e5",
+      "jobs": [
+        {
+          "id": 126067654071,
+          "name": "docs",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-03T16:55:34Z",
+          "completed_at": "2026-11-03T16:55:44Z",
+          "runner_name": "GitHub Actions 1000002529",
+          "labels": [
+            "ubuntu-latest"
+          ]
+        }
+      ]
+    },
+    {
+      "run": 41679108584,
+      "name": "build",
+      "event": "push",
+      "head": "7c01f0b9a998fe97ad665fef86b60f1118a6b2e5",
+      "jobs": [
+        {
+          "id": 126067653046,
+          "name": "compiler-build",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-03T16:55:35Z",
+          "completed_at": "2026-11-03T16:56:09Z",
+          "runner_name": "GitHub Actions 1000002525",
+          "labels": [
+            "ubuntu-latest"
+          ]
+        }
+      ]
+    },
+    {
+      "run": 41679108551,
+      "name": "bed-038-x03",
+      "event": "push",
+      "head": "7c01f0b9a998fe97ad665fef86b60f1118a6b2e5",
+      "jobs": [
+        {
+          "id": 126067653516,
+          "name": "baseline-runner-account",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-03T16:55:34Z",
+          "completed_at": "2026-11-03T16:55:36Z",
+          "runner_name": "GitHub Actions 1000002527",
+          "labels": [
+            "ubuntu-latest"
+          ]
+        },
+        {
+          "id": 126067696934,
+          "name": "admission-inventory",
+          "status": "completed",
+          "conclusion": "failure",
+          "started_at": "2026-11-03T16:55:39Z",
+          "completed_at": "2026-11-03T16:56:13Z",
+          "runner_name": "GitHub Actions 1000002534",
+          "labels": [
+            "ubuntu-24.04"
+          ]
+        }
+      ]
+    },
+    {
+      "run": 41679108524,
+      "name": "verify",
+      "event": "push",
+      "head": "7c01f0b9a998fe97ad665fef86b60f1118a6b2e5",
+      "jobs": [
+        {
+          "id": 126067653834,
+          "name": "battery-contract",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-03T16:55:36Z",
+          "completed_at": "2026-11-03T16:56:13Z",
+          "runner_name": "GitHub Actions 1000002528",
+          "labels": [
+            "ubuntu-latest"
+          ]
+        }
+      ]
+    },
+    {
+      "run": 41679108604,
+      "name": "tests",
+      "event": "push",
+      "head": "7c01f0b9a998fe97ad665fef86b60f1118a6b2e5",
+      "jobs": [
+        {
+          "id": 126067653353,
+          "name": "compiler-tests",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-03T16:55:34Z",
+          "completed_at": "2026-11-03T16:57:34Z",
+          "runner_name": "GitHub Actions 1000002526",
+          "labels": [
+            "ubuntu-latest"
+          ]
+        }
+      ]
+    },
+    {
+      "run": 41678702887,
+      "name": "docs",
+      "event": "pull_request",
+      "head": "ee7b4a17ef95d78bf560f86af706694360da9718",
+      "jobs": [
+        {
+          "id": 126066203606,
+          "name": "docs",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-03T16:53:07Z",
+          "completed_at": "2026-11-03T16:53:15Z",
+          "runner_name": "GitHub Actions 1000002521",
+          "labels": [
+            "ubuntu-latest"
+          ]
+        }
+      ]
+    },
+    {
+      "run": 41678702676,
+      "name": "verify",
+      "event": "pull_request",
+      "head": "ee7b4a17ef95d78bf560f86af706694360da9718",
+      "jobs": [
+        {
+          "id": 126066216156,
+          "name": "battery-contract",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-03T16:53:09Z",
+          "completed_at": "2026-11-03T16:53:48Z",
+          "runner_name": "GitHub Actions 1000002524",
+          "labels": [
+            "ubuntu-latest"
+          ]
+        }
+      ]
+    },
+    {
+      "run": 41678702738,
+      "name": "build",
+      "event": "pull_request",
+      "head": "ee7b4a17ef95d78bf560f86af706694360da9718",
+      "jobs": [
+        {
+          "id": 126066202791,
+          "name": "compiler-build",
+          "status": "completed",
+          "conclusion": "failure",
+          "started_at": "2026-11-03T16:53:07Z",
+          "completed_at": "2026-11-03T16:53:28Z",
+          "runner_name": "GitHub Actions 1000002520",
+          "labels": [
+            "ubuntu-latest"
+          ]
+        }
+      ]
+    },
+    {
+      "run": 41678703068,
+      "name": "tests",
+      "event": "pull_request",
+      "head": "ee7b4a17ef95d78bf560f86af706694360da9718",
+      "jobs": [
+        {
+          "id": 126066204166,
+          "name": "compiler-tests",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-03T16:53:07Z",
+          "completed_at": "2026-11-03T16:55:10Z",
+          "runner_name": "GitHub Actions 1000002522",
+          "labels": [
+            "ubuntu-latest"
+          ]
+        }
+      ]
+    },
+    {
+      "run": 41678693408,
+      "name": "bed-038-x03",
+      "event": "push",
+      "head": "ee7b4a17ef95d78bf560f86af706694360da9718",
+      "jobs": [
+        {
+          "id": 126066169894,
+          "name": "baseline-runner-account",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-03T16:53:04Z",
+          "completed_at": "2026-11-03T16:53:06Z",
+          "runner_name": "GitHub Actions 1000002517",
+          "labels": [
+            "ubuntu-latest"
+          ]
+        },
+        {
+          "id": 126066216903,
+          "name": "admission-inventory",
+          "status": "completed",
+          "conclusion": "failure",
+          "started_at": "2026-11-03T16:53:09Z",
+          "completed_at": "2026-11-03T16:53:26Z",
+          "runner_name": "GitHub Actions 1000002523",
+          "labels": [
+            "ubuntu-24.04"
+          ]
+        }
+      ]
+    },
+    {
+      "run": 41678693290,
+      "name": "verify",
+      "event": "push",
+      "head": "ee7b4a17ef95d78bf560f86af706694360da9718",
+      "jobs": [
+        {
+          "id": 126066169325,
+          "name": "battery-contract",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-03T16:53:04Z",
+          "completed_at": "2026-11-03T16:53:41Z",
+          "runner_name": "GitHub Actions 1000002518",
+          "labels": [
+            "ubuntu-latest"
+          ]
+        }
+      ]
+    },
+    {
+      "run": 41678693144,
+      "name": "docs",
+      "event": "push",
+      "head": "ee7b4a17ef95d78bf560f86af706694360da9718",
+      "jobs": [
+        {
+          "id": 126066169115,
+          "name": "docs",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-03T16:53:04Z",
+          "completed_at": "2026-11-03T16:53:13Z",
+          "runner_name": "GitHub Actions 1000002515",
+          "labels": [
+            "ubuntu-latest"
+          ]
+        }
+      ]
+    },
+    {
+      "run": 41678693134,
+      "name": "build",
+      "event": "push",
+      "head": "ee7b4a17ef95d78bf560f86af706694360da9718",
+      "jobs": [
+        {
+          "id": 126066168632,
+          "name": "compiler-build",
+          "status": "completed",
+          "conclusion": "failure",
+          "started_at": "2026-11-03T16:53:09Z",
+          "completed_at": "2026-11-03T16:53:29Z",
+          "runner_name": "GitHub Actions 1000002516",
+          "labels": [
+            "ubuntu-latest"
+          ]
+        }
+      ]
+    },
+    {
+      "run": 41678693213,
+      "name": "tests",
+      "event": "push",
+      "head": "ee7b4a17ef95d78bf560f86af706694360da9718",
+      "jobs": [
+        {
+          "id": 126066169892,
+          "name": "compiler-tests",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-03T16:53:04Z",
+          "completed_at": "2026-11-03T16:55:03Z",
+          "runner_name": "GitHub Actions 1000002519",
+          "labels": [
+            "ubuntu-latest"
+          ]
+        }
+      ]
+    },
+    {
+      "run": 41678006242,
+      "name": "docs",
+      "event": "push",
+      "head": "fb67a7608ab75d9b6721e91b58dbf61e8edaace1",
+      "jobs": [
+        {
+          "id": 126063733185,
+          "name": "docs",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-03T16:48:53Z",
+          "completed_at": "2026-11-03T16:49:01Z",
+          "runner_name": "GitHub Actions 1000002511",
+          "labels": [
+            "ubuntu-latest"
+          ]
+        }
+      ]
+    },
+    {
+      "run": 41678006219,
+      "name": "verify",
+      "event": "push",
+      "head": "fb67a7608ab75d9b6721e91b58dbf61e8edaace1",
+      "jobs": [
+        {
+          "id": 126063733447,
+          "name": "battery-contract",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-03T16:48:53Z",
+          "completed_at": "2026-11-03T16:49:26Z",
+          "runner_name": "GitHub Actions 1000002512",
+          "labels": [
+            "ubuntu-latest"
+          ]
+        }
+      ]
+    },
+    {
+      "run": 41678006361,
+      "name": "build",
+      "event": "push",
+      "head": "fb67a7608ab75d9b6721e91b58dbf61e8edaace1",
+      "jobs": [
+        {
+          "id": 126063734365,
+          "name": "compiler-build",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-03T16:48:54Z",
+          "completed_at": "2026-11-03T16:49:34Z",
+          "runner_name": "GitHub Actions 1000002513",
+          "labels": [
+            "ubuntu-latest"
+          ]
+        }
+      ]
+    },
+    {
+      "run": 41678006297,
+      "name": "tests",
+      "event": "push",
+      "head": "fb67a7608ab75d9b6721e91b58dbf61e8edaace1",
+      "jobs": [
+        {
+          "id": 126063734975,
+          "name": "compiler-tests",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-03T16:48:54Z",
+          "completed_at": "2026-11-03T16:50:51Z",
+          "runner_name": "GitHub Actions 1000002514",
+          "labels": [
+            "ubuntu-latest"
+          ]
+        }
+      ]
+    }
+  ],
+  "cost_snapshot": {
+    "job_seconds": 1031.0,
+    "allocated_vcpus_observed_per_runner_class": 4,
+    "individual_ordinary_job_allocation_observed": false,
+    "proxy_cpu_minutes": 68.73333333333333,
+    "closeout_reserve_cpu_minutes": 36,
+    "ceiling_cpu_minutes": 120,
+    "settled_closeout": "append-only PR comment after report/index commit CI"
+  },
+  "line_charge_upper_bound": 595,
+  "line_charge_method": "ALL live nonblank lines including comments/headings plus conservative cumulative discarded/revision allowances; report/index construction <=75; generated metadata rows excluded",
+  "new_cargo_dependencies": 0,
+  "unsafe_ffi_lines": 0,
+  "human_effort": "not supplied; no inference from AI wall time",
+  "restore": "Download artifact ZIP by ID from the recorded Actions run or authenticated /repos/gregkrsak/bowfin/actions/artifacts/ID/zip endpoint; verify ZIP SHA-256, extract without executing contents, verify sha256.json; expiry/missing bytes leaves trust unestablished."
+}

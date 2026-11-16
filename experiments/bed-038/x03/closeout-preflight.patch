@@ -1,0 +1,24 @@
+--- a/.github/workflows/bed-038-x03.yml
++++ b/.github/workflows/bed-038-x03.yml
+@@ -10,18 +10,18 @@
+   contents: read
+ jobs:
+   baseline-runner-account:
+-    if: ${{ true }}
++    if: ${{ false }}
+     runs-on: ubuntu-latest
+     timeout-minutes: 2
+     steps:
+       - run: python3 -c 'import os; print("B38 allocation",os.cpu_count(),os.getenv("ImageOS"),os.getenv("ImageVersion"))'
+   admission-inventory:
+-    if: ${{ true }}
++    if: ${{ false }}
+     needs: baseline-runner-account
+     runs-on: ubuntu-24.04
+     timeout-minutes: 10
+     env:
+-      B38_PHASE: preflight
++      B38_PHASE: disabled
+       B38_PREFLIGHT: none
+       PYTHONDONTWRITEBYTECODE: '1'
+     steps:
