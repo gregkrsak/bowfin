@@ -9,6 +9,7 @@ order = [
     "DESIGN_PRINCIPLES.md",
     "LANGUAGE_DECISIONS.md",
     "ARCHITECTURE.md",
+    "TOOLCHAIN_CONSTRAINTS.md",
     "OPEN_QUESTIONS.md",
 ]
 

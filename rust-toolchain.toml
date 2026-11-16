@@ -1,4 +1,6 @@
 [toolchain]
+# Active safety constraints for this pin are recorded in
+# docs/ai/TOOLCHAIN_CONSTRAINTS.md and enforced in CI.
 channel = "1.80.0"
 profile = "minimal"
 components = ["rustfmt", "clippy"]

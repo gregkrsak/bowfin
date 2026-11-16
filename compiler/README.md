@@ -66,6 +66,9 @@ installation. This phase creates no new editor, MIME or source-discovery facilit
 
 Install Rust through rustup. `rust-toolchain.toml` pins Rust 1.80.0, rustfmt, and Clippy,
 matching the workspace's minimum supported Rust version.
+The pin has active host-compiler safety constraints. Contributors and agents must
+follow [the canonical toolchain constraints](../docs/ai/TOOLCHAIN_CONSTRAINTS.md);
+ordinary Cargo success does not waive those gates.
 
 From the repository root:
 

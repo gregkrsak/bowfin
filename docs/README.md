@@ -28,6 +28,8 @@ Use the established documentation layers consistently:
 - `compiler/README.md`: exact implemented syntax, semantic boundaries,
   diagnostics, examples, and known exclusions;
 - `docs/ai/LANGUAGE_DECISIONS.md`: accepted and directional language decisions;
+- `docs/ai/TOOLCHAIN_CONSTRAINTS.md`: active host compiler and build-tool
+  restrictions, mechanical gates, and retirement conditions;
 - `docs/engineering/`: implementation ledgers, milestone identities, test
   evidence, and exact review state;
 - GitHub issues and pull requests: drafts, pressure reviews, branch lifecycle,
