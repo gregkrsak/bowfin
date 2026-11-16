@@ -10,6 +10,13 @@ Before making language-design, compiler-architecture, verification, or major too
 
 `docs/ai/LANGUAGE_DECISIONS.md` is authoritative for settled decisions.
 
+## Planning context
+
+Before drafting or revising public comparisons with other languages, read
+`docs/planning/language-comparisons.md`. It is noncanonical planning guidance: it
+does not override accepted decisions, implementation evidence, or current maturity
+claims.
+
 ## Rules for agents
 
 - Do **not** reinterpret an **Accepted** decision unless the user explicitly asks to reopen it.
