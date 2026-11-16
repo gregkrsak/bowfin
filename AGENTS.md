@@ -30,6 +30,15 @@ python scripts/build-ai-context.py
 
 The repository—not conversational memory—is Bowfin's canonical project context.
 
+## Repository and branch boundary
+
+Until Greg explicitly changes the project direction, compiler implementation,
+verification, documentation, and tooling changes start from and target the
+compiler repository's `staging` branch. The governance repository's `prod`
+branch controls live agent governance; it does not select the compiler base or
+pull-request target. Verify the compiler base and intended target before editing
+instead of inferring them from another repository.
+
 ## Commit messages
 
 Use Conventional-Commit-style lowercase type prefixes:
