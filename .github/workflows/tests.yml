@@ -12,8 +12,10 @@ jobs:
 
       - name: Enforce Rust host-toolchain constraints
         run: |
+          printf 'TC-001 checkout commit=%s tree=%s\n' "$(git rev-parse HEAD)" "$(git rev-parse HEAD^{tree})"
           python3 scripts/verify-rustc-164250.py
           python3 scripts/tests/test_verify_rustc_164250.py
+          python3 scripts/tests/test_probe_rustc_164250.py
           python3 scripts/probe-rustc-164250.py --expect affected --expected-version 1.80.0
 
       - name: Run compiler unit tests

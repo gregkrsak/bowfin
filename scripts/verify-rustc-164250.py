@@ -16,10 +16,13 @@ the compiler behavior it is guarding.
 from __future__ import annotations
 
 import argparse
+from collections import Counter
 import hashlib
 import json
+import os
 from dataclasses import dataclass
-from pathlib import Path
+from pathlib import Path, PurePosixPath
+import re
 import subprocess
 import sys
 from typing import Iterable, Sequence
@@ -37,6 +40,8 @@ EXCLUDED_PREFIXES = (
 class Token:
     text: str
     line: int
+    offset: int
+    literal: bool = False
 
 
 @dataclass(frozen=True)
@@ -46,30 +51,38 @@ class Finding:
     kind: str
     name: str
     declaration_sha256: str
+    file_sha256: str
+    byte_offset: int
     reason: str
+    in_macro: bool
 
-    def identity(self) -> tuple[str, str, str, str]:
-        return (self.path, self.kind, self.name, self.declaration_sha256)
+    def identity(self) -> tuple[str, str, str, str, str, int]:
+        return (self.path, self.kind, self.name, self.declaration_sha256,
+                self.file_sha256, self.byte_offset)
 
 
-def _raw_string_end(source: str, start: int) -> int | None:
-    """Return the byte index after a Rust raw string beginning at start."""
-    i = start
-    if source.startswith("br", i) or source.startswith("rb", i):
-        i += 2
-    elif source.startswith("r", i):
+RAW_STRING = re.compile(r'(?:br|cr|r)(#*)"')
+NUMERIC_LITERAL = re.compile(
+    r"(?:0x[0-9a-fA-F_]+|0b[01_]+|0o[0-7_]+|"
+    r"[0-9][0-9_]*(?:\.(?:[0-9][0-9_]*|(?=[^\w.]|$)))?(?:[eE][+-]?[0-9_]+)?)"
+    r"(?:[^\W\d]\w*)?"
+)
+GROUP_END = {"(": ")", "[": "]", "{": "}"}
+DECLARATIONS = {"struct", "enum", "union"}
+
+
+def _identifier_end(source: str, start: int) -> int:
+    i = start + 2 if source.startswith("r#", start) else start
+    if i >= len(source) or not source[i].isidentifier():
+        return start
+    i += 1
+    while i < len(source) and ("a" + source[i]).isidentifier():
         i += 1
-    else:
-        return None
-    hashes = 0
-    while i < len(source) and source[i] == "#":
-        hashes += 1
-        i += 1
-    if i >= len(source) or source[i] != '"':
-        return None
-    closing = '"' + ("#" * hashes)
-    end = source.find(closing, i + 1)
-    return len(source) if end < 0 else end + len(closing)
+    return i
+
+
+def _identifier(text: str) -> bool:
+    return text.removeprefix("r#").isidentifier()
 
 
 def tokenize(source: str) -> list[Token]:
@@ -78,7 +91,8 @@ def tokenize(source: str) -> list[Token]:
     line = 1
     length = len(source)
 
-    def skip_quoted(start: int, quote: str) -> int:
+    def quoted_end(start: int) -> int:
+        quote = source[start]
         cursor = start + 1
         while cursor < length:
             if source[cursor] == "\\":
@@ -87,23 +101,21 @@ def tokenize(source: str) -> list[Token]:
             if source[cursor] == quote:
                 return cursor + 1
             cursor += 1
-        return length
+        raise ValueError(f"line {line}: unterminated quoted literal")
 
     while i < length:
         ch = source[i]
-        if ch.isspace():
+        if ch.isspace() or (i == 0 and ch == "\ufeff"):
             if ch == "\n":
                 line += 1
             i += 1
             continue
-
         if source.startswith("//", i):
             end = source.find("\n", i + 2)
             if end < 0:
                 break
             i = end
             continue
-
         if source.startswith("/*", i):
             depth = 1
             cursor = i + 2
@@ -115,226 +127,257 @@ def tokenize(source: str) -> list[Token]:
                     depth -= 1
                     cursor += 2
                 else:
-                    if source[cursor] == "\n":
-                        line += 1
                     cursor += 1
+            if depth:
+                raise ValueError(f"line {line}: unterminated block comment")
+            line += source.count("\n", i, cursor)
             i = cursor
             continue
 
-        raw_end = _raw_string_end(source, i)
-        if raw_end is not None:
-            line += source.count("\n", i, raw_end)
-            i = raw_end
-            continue
+        raw = RAW_STRING.match(source, i)
+        literal = True
+        if raw:
+            closing = '"' + raw[1]
+            end = source.find(closing, raw.end())
+            if end < 0:
+                raise ValueError(f"line {line}: unterminated raw literal")
+            end += len(closing)
+        elif source.startswith(('b"', 'c"', "b'"), i):
+            end = quoted_end(i + 1)
+        elif ch == '"':
+            end = quoted_end(i)
+        elif ch == "'":
+            end = _identifier_end(source, i + 1)
+            if end > i + 1 and (end == length or source[end] != "'"):
+                literal = False  # lifetime, including '_
+            else:
+                end = quoted_end(i)
+        elif numeric := NUMERIC_LITERAL.match(source, i):
+            end = numeric.end()
+        else:
+            literal = False
+            end = _identifier_end(source, i)
+            if end == i:
+                end = i + (2 if source[i:i + 2] in {"::", "->", "=>"} else 1)
 
-        if source.startswith('b"', i):
-            end = skip_quoted(i + 1, '"')
-            line += source.count("\n", i, end)
-            i = end
-            continue
-        if ch == '"':
-            end = skip_quoted(i, '"')
-            line += source.count("\n", i, end)
-            i = end
-            continue
-
-        if source.startswith("b'", i):
-            end = skip_quoted(i + 1, "'")
-            line += source.count("\n", i, end)
-            i = end
-            continue
-
-        if ch == "'":
-            # A lifetime is apostrophe + identifier without a closing quote.
-            cursor = i + 1
-            if cursor < length and (source[cursor].isalpha() or source[cursor] == "_"):
-                cursor += 1
-                while cursor < length and (
-                    source[cursor].isalnum() or source[cursor] == "_"
-                ):
-                    cursor += 1
-                if cursor >= length or source[cursor] != "'":
-                    tokens.append(Token(source[i:cursor], line))
-                    i = cursor
-                    continue
-            end = skip_quoted(i, "'")
-            line += source.count("\n", i, end)
-            i = end
-            continue
-
-        if ch.isalpha() or ch == "_":
-            cursor = i + 1
-            while cursor < length and (
-                source[cursor].isalnum() or source[cursor] == "_"
-            ):
-                cursor += 1
-            tokens.append(Token(source[i:cursor], line))
-            i = cursor
-            continue
-
-        two = source[i : i + 2]
-        if two in {"::", "->", "=>", "<=", ">=", "==", "!=", "&&", "||"}:
-            tokens.append(Token(two, line))
-            i += 2
-            continue
-
-        tokens.append(Token(ch, line))
-        i += 1
-
+        # Literal spelling is opaque to the scanner, but is part of the hash.
+        tokens.append(Token(source[i:end], line, i, literal))
+        line += source.count("\n", i, end)
+        i = end
     return tokens
 
 
-def _split_top_level(tokens: Sequence[Token], separator: str) -> list[list[Token]]:
-    result: list[list[Token]] = [[]]
-    angle = paren = bracket = brace = 0
-    for token in tokens:
-        text = token.text
-        if text == "<":
-            angle += 1
-        elif text == ">" and angle:
-            angle -= 1
-        elif text == "(":
-            paren += 1
-        elif text == ")" and paren:
-            paren -= 1
-        elif text == "[":
-            bracket += 1
-        elif text == "]" and bracket:
-            bracket -= 1
-        elif text == "{":
-            brace += 1
-        elif text == "}" and brace:
-            brace -= 1
-        if text == separator and not (angle or paren or bracket or brace):
-            result.append([])
+def _groups(tokens: Sequence[Token]) -> dict[int, int]:
+    groups = {}
+    stack = []
+    for i, token in enumerate(tokens):
+        if token.text in GROUP_END:
+            stack.append(i)
+        elif token.text in GROUP_END.values():
+            if not stack or GROUP_END[tokens[stack[-1]].text] != token.text:
+                raise ValueError(f"line {token.line}: unbalanced Rust delimiter")
+            groups[stack.pop()] = i
+    if stack:
+        raise ValueError(f"line {tokens[stack[-1]].line}: unclosed Rust delimiter")
+    return groups
+
+
+def _angle_end(tokens: Sequence[Token], groups: dict[int, int], start: int) -> int:
+    cursor = start + 1
+    depth = 1
+    while cursor < len(tokens):
+        if cursor in groups:
+            cursor = groups[cursor] + 1
+            continue
+        text = tokens[cursor].text
+        if text in {"{", "}", "]", ")", ";"}:
+            break
+        depth += (text == "<") - (text == ">")
+        if depth == 0:
+            return cursor
+        cursor += 1
+    raise ValueError(f"line {tokens[start].line}: unresolved generic parameter syntax")
+
+
+def _top_level(
+    tokens: Sequence[Token], groups: dict[int, int], start: int, stop: int,
+) -> Iterable[int]:
+    cursor = start
+    while cursor < stop:
+        yield cursor
+        if cursor in groups:
+            cursor = groups[cursor] + 1
+        elif tokens[cursor].text == "<":
+            cursor = _angle_end(tokens, groups, cursor) + 1
         else:
-            result[-1].append(token)
-    return result
+            cursor += 1
 
 
-def _generic_parameter_has_bound(segment: Sequence[Token]) -> bool:
-    meaningful = [token.text for token in segment if token.text]
-    if not meaningful or meaningful[0] == "const":
-        return False
-    return ":" in meaningful
+def _generic_bound(
+    tokens: Sequence[Token], groups: dict[int, int], start: int, stop: int,
+) -> bool:
+    # Inspect parameter heads. A const parameter's colon is a type annotation.
+    generic_bound = False
+    ends = [i for i in _top_level(tokens, groups, start, stop) if tokens[i].text == ","]
+    for end in [*ends, stop]:
+        while start + 1 < end and tokens[start].text == "#" and tokens[start + 1].text == "[":
+            start = groups[start + 1] + 1
+        if start < end:
+            head = tokens[start].text
+            if not _identifier(head.removeprefix("'")):
+                raise ValueError(f"line {tokens[start].line}: unresolved generic parameter head")
+            if head != "const" and start + 1 < end:
+                following = tokens[start + 1].text
+                if following not in {":", "="}:
+                    raise ValueError(f"line {tokens[start].line}: unresolved generic parameter")
+                generic_bound |= following == ":"
+        start = end + 1
+    return generic_bound
 
 
-def _find_matching_angle(tokens: Sequence[Token], start: int) -> int | None:
-    depth = 0
-    for index in range(start, len(tokens)):
-        if tokens[index].text == "<":
-            depth += 1
-        elif tokens[index].text == ">":
-            depth -= 1
-            if depth == 0:
-                return index
-    return None
+def _macro_body_ranges(tokens: Sequence[Token], groups: dict[int, int]) -> list[tuple[int, int]]:
+    return [
+        (i + 3, groups[i + 3]) for i, token in enumerate(tokens)
+        if token.text == "macro_rules" and i + 3 in groups
+        and tokens[i + 1].text == "!" and _identifier(tokens[i + 2].text)
+    ]
+
+
+def _find_bound_aggregates(
+    source: str, path: str, tokens: Sequence[Token], groups: dict[int, int],
+) -> list[Finding]:
+    findings = []
+    macro_ranges = _macro_body_ranges(tokens, groups)
+    file_hash = hashlib.sha256(source.encode("utf-8")).hexdigest()
+    # Do not skip a recognized declaration body: it may contain nested items.
+    for index, keyword in enumerate(tokens):
+        kind = keyword.text
+        if kind not in DECLARATIONS:
+            continue
+        cursor = index + 1
+        preceding = tokens[index - 1].text if index else None
+        if kind == "union" and preceding in {".", "::", "fn", "struct", "enum", "union", "$"}:
+            continue  # contextual identifier in a field, path, name or metavariable
+        if cursor < len(tokens) and tokens[cursor].text == "$":
+            cursor += 1
+            name_prefix = "$"
+        else:
+            name_prefix = ""
+        if cursor >= len(tokens) or not _identifier(tokens[cursor].text):
+            raise ValueError(f"line {keyword.line}: unresolved {kind} declaration name")
+        name = name_prefix + tokens[cursor].text
+        cursor += 1
+
+        generic_bound = False
+        if cursor < len(tokens) and tokens[cursor].text == "<":
+            end = _angle_end(tokens, groups, cursor)
+            generic_bound = _generic_bound(tokens, groups, cursor + 1, end)
+            cursor = end + 1
+        if kind == "struct" and cursor < len(tokens) and tokens[cursor].text == "(":
+            cursor = groups[cursor] + 1
+
+        where_bound = False
+        if cursor < len(tokens) and tokens[cursor].text == "where":
+            start = cursor + 1
+            for cursor in _top_level(tokens, groups, start, len(tokens)):
+                if tokens[cursor].text in {"{", ";"}:
+                    break
+            # Any nonempty predicate is conservative evidence of a constraint.
+            where_bound = cursor > start
+        terminators = {"{", ";"} if kind == "struct" else {"{"}
+        if cursor >= len(tokens) or tokens[cursor].text not in terminators:
+            raise ValueError(f"line {keyword.line}: unresolved {kind} {name} declaration header")
+        end = groups.get(cursor, cursor)
+
+        if generic_bound or where_bound:
+            normalized = json.dumps([token.text for token in tokens[index:end + 1]],
+                                    ensure_ascii=False, separators=(",", ":"))
+            findings.append(Finding(
+                path=path,
+                line=keyword.line,
+                kind=kind,
+                name=name,
+                declaration_sha256=hashlib.sha256(normalized.encode("utf-8")).hexdigest(),
+                file_sha256=file_hash,
+                byte_offset=len(source[:keyword.offset].encode("utf-8")),
+                reason=(
+                    "generic-parameter and where-clause bounds" if generic_bound and where_bound
+                    else "generic-parameter bound" if generic_bound else "where-clause bound"
+                ),
+                in_macro=any(first < index < last for first, last in macro_ranges),
+            ))
+    return findings
 
 
 def find_bound_aggregates(source: str, path: str) -> list[Finding]:
     tokens = tokenize(source)
-    findings: list[Finding] = []
-    index = 0
-    while index < len(tokens):
-        kind = tokens[index].text
-        if kind not in {"struct", "enum", "union"}:
-            index += 1
-            continue
-        if index + 1 >= len(tokens):
-            break
-        name_token = tokens[index + 1]
-        if not (name_token.text[:1].isalpha() or name_token.text.startswith("_")):
-            index += 1
-            continue
-
-        cursor = index + 2
-        generic_tokens: list[Token] = []
-        if cursor < len(tokens) and tokens[cursor].text == "<":
-            end = _find_matching_angle(tokens, cursor)
-            if end is None:
-                index += 1
-                continue
-            generic_tokens = list(tokens[cursor + 1 : end])
-            cursor = end + 1
-
-        # Find the header terminator while allowing tuple-struct fields before a
-        # trailing where clause.  The opening brace of a braced aggregate ends
-        # the header; a tuple field's parentheses are balanced first.
-        paren = bracket = angle = 0
-        header_end = cursor
-        where_index: int | None = None
-        while header_end < len(tokens):
-            text = tokens[header_end].text
-            if text == "(":
-                paren += 1
-            elif text == ")" and paren:
-                paren -= 1
-            elif text == "[":
-                bracket += 1
-            elif text == "]" and bracket:
-                bracket -= 1
-            elif text == "<":
-                angle += 1
-            elif text == ">" and angle:
-                angle -= 1
-            elif not (paren or bracket or angle):
-                if text == "where" and where_index is None:
-                    where_index = header_end
-                if text in {"{", ";"}:
-                    break
-            header_end += 1
-
-        generic_bound = any(
-            _generic_parameter_has_bound(segment)
-            for segment in _split_top_level(generic_tokens, ",")
-        )
-        where_bound = False
-        if where_index is not None:
-            where_tokens = tokens[where_index + 1 : header_end]
-            where_bound = any(
-                ":" in [token.text for token in segment]
-                for segment in _split_top_level(where_tokens, ",")
-            )
-
-        declaration_end = header_end
-        if header_end < len(tokens) and tokens[header_end].text == "{":
-            brace_depth = 0
-            for declaration_end in range(header_end, len(tokens)):
-                if tokens[declaration_end].text == "{":
-                    brace_depth += 1
-                elif tokens[declaration_end].text == "}":
-                    brace_depth -= 1
-                    if brace_depth == 0:
-                        break
-
-        if generic_bound or where_bound:
-            normalized = " ".join(
-                token.text
-                for token in tokens[index : min(declaration_end + 1, len(tokens))]
-            )
-            findings.append(
-                Finding(
-                    path=path,
-                    line=tokens[index].line,
-                    kind=kind,
-                    name=name_token.text,
-                    declaration_sha256=hashlib.sha256(
-                        normalized.encode("utf-8")
-                    ).hexdigest(),
-                    reason=(
-                        "generic-parameter bound"
-                        if generic_bound and not where_bound
-                        else "where-clause bound"
-                        if where_bound and not generic_bound
-                        else "generic-parameter and where-clause bounds"
-                    ),
-                )
-            )
-        index = max(index + 1, declaration_end + 1)
-    return findings
+    return _find_bound_aggregates(source, path, tokens, _groups(tokens))
 
 
-def _tracked_rust_paths(root: Path) -> list[Path]:
+def _path_literal(token: Token) -> str:
+    text = token.text
+    if token.literal and text.startswith('"') and "\\" not in text:
+        value = text[1:-1]
+    elif token.literal and text.startswith("r"):
+        opening_quote = text.index('"')
+        value = text[opening_quote + 1:-opening_quote]
+    else:
+        raise ValueError(f"line {token.line}: unresolved Rust source path (need a literal path)")
+    if not value or any(ch in value for ch in ("\0", "\\", "\n", "\r")) or Path(value).is_absolute():
+        raise ValueError(f"line {token.line}: unresolved Rust source path")
+    return value
+
+
+def _source_inputs(
+    tokens: Sequence[Token], groups: dict[int, int],
+) -> Iterable[tuple[int, str, str]]:
+    macro_ranges = _macro_body_ranges(tokens, groups)
+    for i, token in enumerate(tokens):
+        if token.text.removeprefix("r#") == "include":
+            if i + 2 not in groups or tokens[i + 1].text != "!":
+                raise ValueError(f"line {token.line}: unresolved use of Rust include macro name")
+            if any(first < i < last for first, last in macro_ranges):
+                raise ValueError(f"line {token.line}: unresolved include! base in macro template")
+            args = tokens[i + 3:groups[i + 2]]
+            if args and args[-1].text == ",":
+                args = args[:-1]
+            if len(args) != 1:
+                raise ValueError(f"line {token.line}: unresolved include! input (need one literal path)")
+            yield token.line, _path_literal(args[0]), "include"
+        if token.text == "$" and i + 2 < len(tokens) and (
+            _identifier(tokens[i + 1].text) and tokens[i + 2].text == "!"
+        ):
+            raise ValueError(f"line {token.line}: unresolved dynamically named macro invocation")
+        if token.text == "#" and i + 1 < len(tokens) and tokens[i + 1].text == "[":
+            # Source-file-level #[path] is relative to the file's directory.
+            # Inside an inline module the base differs, so leave that case closed.
+            end = groups[i + 1]
+            for j in range(i + 2, end - 1):
+                if tokens[j].text.removeprefix("r#") != "path" or tokens[j + 1].text != "=":
+                    continue
+                if any(first < i < last and tokens[first].text == "{" for first, last in groups.items()):
+                    raise ValueError(f"line {tokens[j].line}: unresolved nested #[path] base")
+                if any(first < i < last for first, last in macro_ranges):
+                    raise ValueError(f"line {tokens[j].line}: unresolved #[path] base in macro template")
+                yield tokens[j].line, _path_literal(tokens[j + 2]), "path"
+
+
+def _resolve_source_input(root: Path, parent: Path, name: str) -> Path:
+    # Interpret '..' stepwise so that an intermediate symlink cannot change
+    # the base directory before a later segment cancels its spelling.
+    target = parent
+    for segment in PurePosixPath(name).parts:
+        target = target.parent if segment == ".." else target / segment
+        if not target.is_relative_to(root) or target.is_symlink():
+            raise ValueError(f"Rust source input {name!r} escapes the root or uses a symlink")
+    if target != Path(os.path.normpath(parent / name)):
+        raise ValueError(f"unresolved Rust source input path: {name!r}")
+    if target.resolve(strict=True) != target:
+        raise ValueError(f"Rust source input {name!r} aliases a different path")
+    return target
+
+
+def _tracked_rust_paths(root: Path) -> tuple[list[Path], int]:
     result = subprocess.run(
         ["git", "ls-files", "-z", "--", "*.rs"],
         cwd=root,
@@ -342,21 +385,47 @@ def _tracked_rust_paths(root: Path) -> list[Path]:
         capture_output=True,
     )
     paths = []
+    excluded = 0
     for raw in result.stdout.split(b"\0"):
         if not raw:
             continue
         relative = raw.decode("utf-8")
         if relative.startswith(EXCLUDED_PREFIXES):
-            continue
-        paths.append(root / relative)
-    return paths
+            excluded += 1
+        else:
+            paths.append(root / relative)
+    return paths, excluded
 
 
-def _load_allowlist(path: Path) -> list[dict[str, object]]:
-    data = json.loads(path.read_text(encoding="utf-8"))
-    if data.get("schema") != 1 or data.get("issue") != ISSUE:
+def _entry_identity(entry: dict[str, object]) -> tuple[str, str, str, str, str, int]:
+    parts = [entry[field] for field in ("path", "kind", "name", "declaration_sha256", "file_sha256")]
+    offset = entry["byte_offset"]
+    if any(not isinstance(part, str) or not part for part in parts) or type(offset) is not int or offset < 0:
+        raise ValueError(f"invalid allowlist declaration identity: {entry!r}")
+    path, kind, name, digest, file_digest = parts
+    file = PurePosixPath(path)
+    if (file.is_absolute() or ".." in file.parts or file.as_posix() != path
+        or kind not in DECLARATIONS or not _identifier(name)
+        or any(not re.fullmatch("[0-9a-f]{64}", value) for value in (digest, file_digest))):
+        raise ValueError(f"invalid allowlist declaration identity: {entry!r}")
+    return path, kind, name, digest, file_digest, offset
+
+
+def _unique_fields(pairs: list[tuple[str, object]]) -> dict[str, object]:
+    fields = {}
+    for key, value in pairs:
+        if key in fields:
+            raise ValueError(f"duplicate allowlist JSON key: {key!r}")
+        fields[key] = value
+    return fields
+
+
+def _load_allowlist(path: Path) -> set[tuple[str, str, str, str, str, int]]:
+    data = json.loads(path.read_text(encoding="utf-8"), object_pairs_hook=_unique_fields)
+    if (not isinstance(data, dict) or set(data) != {"schema", "issue", "entries"}
+        or type(data["schema"]) is not int or data["schema"] != 2 or data["issue"] != ISSUE):
         raise ValueError(f"invalid allowlist header: {path}")
-    entries = data.get("entries")
+    entries = data["entries"]
     if not isinstance(entries, list):
         raise ValueError(f"allowlist entries must be a list: {path}")
     required = {
@@ -364,11 +433,13 @@ def _load_allowlist(path: Path) -> list[dict[str, object]]:
         "kind",
         "name",
         "declaration_sha256",
+        "file_sha256",
+        "byte_offset",
         "rationale",
         "review",
         "controls",
     }
-    identities: set[tuple[str, str, str, str]] = set()
+    identities = set()
     for entry in entries:
         if not isinstance(entry, dict) or set(entry) != required:
             raise ValueError(f"invalid allowlist entry shape: {entry!r}")
@@ -380,16 +451,11 @@ def _load_allowlist(path: Path) -> list[dict[str, object]]:
             raise ValueError(f"allowlist controls must be nonempty: {entry!r}")
         if not all(isinstance(item, str) and item.strip() for item in entry["controls"]):
             raise ValueError(f"allowlist controls contain an empty value: {entry!r}")
-        identity = (
-            str(entry["path"]),
-            str(entry["kind"]),
-            str(entry["name"]),
-            str(entry["declaration_sha256"]),
-        )
+        identity = _entry_identity(entry)
         if identity in identities:
             raise ValueError(f"duplicate allowlist entry: {identity!r}")
         identities.add(identity)
-    return entries
+    return identities
 
 
 def check(
@@ -397,34 +463,74 @@ def check(
     paths: Iterable[Path],
     allowlist_path: Path,
 ) -> tuple[list[Finding], list[str]]:
-    findings: list[Finding] = []
+    allowed = _load_allowlist(allowlist_path)
+    root = root.resolve()
+    files = []
     for path in paths:
-        relative = path.resolve().relative_to(root.resolve()).as_posix()
-        findings.extend(find_bound_aggregates(path.read_text(encoding="utf-8"), relative))
+        # Use the Git spelling for coverage and refuse symlink aliases.
+        file = path.absolute()
+        file.relative_to(root)
+        if file.resolve(strict=True) != file or not file.is_file():
+            raise ValueError(f"Rust source is not a regular, unaliased file: {file}")
+        files.append(file)
+    selected = set(files)
+    imported = set()
+    spliced = set()
+    path_sources = {}
+    findings = []
+    errors = []
+    for file in files:
+        relative = file.relative_to(root).as_posix()
+        source = file.read_bytes().decode("utf-8")
+        try:
+            tokens = tokenize(source)
+            groups = _groups(tokens)
+            findings.extend(_find_bound_aggregates(source, relative, tokens, groups))
+            for line, name, mode in _source_inputs(tokens, groups):
+                target = _resolve_source_input(root, file.parent, name)
+                target_relative = target.relative_to(root).as_posix()
+                if (target not in selected or target.suffix != ".rs"
+                    or target_relative.startswith(EXCLUDED_PREFIXES)):
+                    errors.append(
+                        f"{relative}:{line}: Rust source input {name!r} is outside "
+                        "the scanned nonexcluded .rs paths"
+                    )
+                else:
+                    imported.add(target_relative)
+                if mode == "include":
+                    spliced.add(target_relative)
+                else:
+                    path_sources.setdefault(relative, []).append(line)
+        except (OSError, UnicodeError, ValueError) as error:
+            errors.append(f"{relative}: Rust source needs review: {error}")
 
-    entries = _load_allowlist(allowlist_path)
-    allowed = {
-        (
-            str(entry["path"]),
-            str(entry["kind"]),
-            str(entry["name"]),
-            str(entry["declaration_sha256"]),
-        ): entry
-        for entry in entries
-    }
-    errors: list[str] = []
-    actual = {finding.identity(): finding for finding in findings}
+    for file in sorted(spliced & path_sources.keys()):
+        for line in path_sources[file]:
+            errors.append(f"{file}:{line}: unresolved #[path] base in code-spliced file")
+
+    actual = Counter(finding.identity() for finding in findings)
     for finding in findings:
-        if finding.identity() not in allowed:
+        identity = finding.identity()
+        diagnostic = f"{finding.path}:{finding.line}:"
+        if actual[identity] != 1:
+            errors.append(f"{diagnostic} duplicate actual declaration identity: {identity!r}")
+        elif finding.in_macro or finding.path in imported:
+            # A written declaration can expand in multiple lexical contexts.
             errors.append(
-                f"{finding.path}:{finding.line}: unreviewed {finding.kind} "
-                f"{finding.name} has {finding.reason}; declaration sha256 "
-                f"{finding.declaration_sha256}"
+                f"{diagnostic} {finding.kind} {finding.name} in a macro template or "
+                "code-spliced file requires source repair, not an exception"
             )
-    for identity in sorted(set(allowed) - set(actual)):
+        elif identity not in allowed:
+            errors.append(
+                f"{diagnostic} unreviewed {finding.kind} {finding.name} has {finding.reason}; "
+                f"declaration sha256 {finding.declaration_sha256}, "
+                f"file sha256 {finding.file_sha256}, byte offset {finding.byte_offset}"
+            )
+    for identity in sorted(allowed - actual.keys()):
+        path, kind, name, digest, file_digest, offset = identity
         errors.append(
-            "stale rustc-164250 allowlist entry: " + "/".join(identity[:3])
-            + f" sha256={identity[3]}"
+            f"stale rustc-164250 allowlist entry: {path}/{kind}/{name} "
+            f"sha256={digest} file_sha256={file_digest} byte_offset={offset}"
         )
     return findings, errors
 
@@ -437,8 +543,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parser.parse_args(argv)
     root = args.root.resolve()
     allowlist = args.allowlist or (root / DEFAULT_ALLOWLIST)
-    paths = [path.resolve() for path in args.paths] or _tracked_rust_paths(root)
     try:
+        if args.paths:
+            paths, excluded = args.paths, 0
+        else:
+            paths, excluded = _tracked_rust_paths(root)
         findings, errors = check(root, paths, allowlist.resolve())
     except (OSError, UnicodeError, ValueError, subprocess.CalledProcessError) as error:
         print(f"rustc-164250 guard failed closed: {error}", file=sys.stderr)
@@ -451,7 +560,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 1
     print(
         "Rust #164250 source guard OK: "
-        f"{len(paths)} tracked Rust files, {len(findings)} reviewed bounded aggregates"
+        f"{len(paths)} scanned Rust files; {excluded} excluded fixtures/probes; "
+        f"{len(findings)} reviewed bounded aggregates"
     )
     return 0
 

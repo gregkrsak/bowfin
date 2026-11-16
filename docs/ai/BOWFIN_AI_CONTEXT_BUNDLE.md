@@ -4162,19 +4162,33 @@ future contributor has to recognize every exploitable expression shape.
 
 ### Mechanical enforcement
 
-`scripts/verify-rustc-164250.py` independently tokenizes tracked Rust source and
-rejects every unreviewed bound-bearing aggregate declaration. Its exact allowlist
-is `tools/rustc-164250/allowlist.json`. Each entry is bound to the declaration's
-path, kind, name, normalized-token SHA-256, rationale, review URL, and focused
-controls. A changed declaration or stale entry fails closed.
+`scripts/verify-rustc-164250.py` independently tokenizes tracked Rust source.
+It inspects declaration tokens inside macro bodies and nested items, and fails
+closed for unresolved declaration syntax that could carry a bound. Rust code
+splicing must resolve to a tracked Rust input already covered by the default
+scan. The isolated scanner fixtures and probe crates are outside that coverage
+and must never be spliced into scanned code. String and byte includes are data.
 
-`scripts/probe-rustc-164250.py` compiles but never executes the upstream-shaped
-reproducer. Under the current pin it must observe the affected behavior, while an
-explicit-type mitigation control must be rejected. The probe records toolchain
-status; it does not make affected source safe. The source guard is the protection.
+The allowlist at `tools/rustc-164250/allowlist.json` is empty. A future entry
+must identify exactly one declaration, including its path, kind, name,
+keyword byte offset, normalized-token SHA-256, and containing source-file
+SHA-256. Opaque literal tokens preserve their spelling, including ABI strings.
+The file digest also binds same-file attributes, scopes, and use sites. Macro
+templates and spliced source declarations cannot use entries under this
+mechanism. Cross-file call sites and toolchain identities remain part of
+focused review. Duplicate actual matches, duplicate entries, and stale entries
+fail closed.
 
-Both checks and the guard's adversarial unit fixtures run on every push and pull
-request. The full evidence and maintenance procedure are recorded in
+`scripts/probe-rustc-164250.py` checks the selected compiler's identity and
+verifies that it can compile a known-good input to metadata. Under the current
+pin the affected-shape control must produce metadata, and the explicit-type
+control must produce the intended lifetime diagnostic at the relevant source
+site. Fixed mode requires a classified rejection of both controls. The driver
+reports diagnostic evidence and fails closed on unrelated errors. These probes
+record compiler behavior. The source guard is the preventive gate.
+
+The guard, probe driver controls, and compile-only probe run on every push and
+pull request. The full evidence and maintenance procedure are recorded in
 `docs/engineering/RUST-164250.md`.
 
 ### Change and retirement rule

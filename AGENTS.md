@@ -9,9 +9,17 @@ Before making language-design, compiler-architecture, verification, or major too
 5. `docs/ai/TOOLCHAIN_CONSTRAINTS.md`
 6. `docs/ai/OPEN_QUESTIONS.md`
 
-`docs/ai/LANGUAGE_DECISIONS.md` is authoritative for settled decisions.
 `docs/ai/TOOLCHAIN_CONSTRAINTS.md` is authoritative for active host-toolchain
 engineering restrictions and their mandatory gates.
+
+`docs/ai/LANGUAGE_DECISIONS.md` is authoritative for settled decisions.
+
+## Planning context
+
+Before drafting or revising public comparisons with other languages, read
+`docs/planning/language-comparisons.md`. It is noncanonical planning guidance: it
+does not override accepted decisions, implementation evidence, or current maturity
+claims.
 
 ## Rules for agents
 
