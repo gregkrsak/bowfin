@@ -158,7 +158,7 @@ def tokenize(source: str) -> list[Token]:
             literal = False
             end = _identifier_end(source, i)
             if end == i:
-                end = i + (2 if source[i:i + 2] in {"::", "->", "=>"} else 1)
+                end = i + (2 if source[i:i + 2] in {"::", "->", "=>", "!="} else 1)
 
         # Literal spelling is opaque to the scanner, but is part of the hash.
         tokens.append(Token(source[i:end], line, i, literal))
