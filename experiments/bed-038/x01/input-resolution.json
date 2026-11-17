@@ -1,0 +1,115 @@
+{
+  "schema": "B38-X01-input-resolution-v1",
+  "status": "INCOMPLETE_NOT_A_BUILD_LAUNCH_MANIFEST",
+  "resolved_on": "2026-11-03",
+  "baseline": "fb67a7608ab75d9b6721e91b58dbf61e8edaace1",
+  "baseline_tree": "c9e5047eaec9430698cd7a82c1d05205d729994f",
+  "authorization": "https://github.com/gregkrsak/bowfin/issues/117#issuecomment-6609874959",
+  "method": "Read-only upstream metadata and streaming archive hashes; no extraction, build, compiler or executable probe. No signature verification or archive-to-Git-tree equivalence is claimed.",
+  "ubuntu_base": {
+    "reference": "docker.io/library/ubuntu@sha256:78d4744ead1f5b19b04d0df558ab182a5300903900755e515b2ca4d10eb2044d",
+    "platform": "linux/amd64",
+    "release": "24.04",
+    "index_digest": "sha256:fe81560990fae86dc4743202b2cb4d3df98d0bcf949173cecef15ce1127ef852",
+    "manifest_digest": "sha256:78d4744ead1f5b19b04d0df558ab182a5300903900755e515b2ca4d10eb2044d",
+    "config_digest": "sha256:d9b8c34d61a9b9a3c44cab883d7d2f2619d674966ab520186f799cf32e3e0377",
+    "layer_digest": "sha256:7a48b8f0e5c73d0cc2a85b008978396aa19d253dc1b96fdb0b769ee6dcbeca4a",
+    "layer_compressed_bytes": 29767612,
+    "registry_url": "https://registry-1.docker.io/v2/library/ubuntu/manifests/24.04",
+    "verified": "Both index and amd64 manifest bodies were hashed; computed digests equal Docker-Content-Digest and selected descriptor. Config/layer bodies not downloaded or verified; no image pull or run.",
+    "bootstrap_compiler": null,
+    "installed_package_and_support_library_closure": null
+  },
+  "sources": [
+    {
+      "name": "LLVM",
+      "version": "18.1.8",
+      "tag_object": "76caf4176cd7877ad5952737d56da6f515ee4602",
+      "commit": "3b5b5c1ec4a3095ab096dd780e84d7ab81f3d7ff",
+      "tag_api": "https://api.github.com/repos/llvm/llvm-project/git/tags/76caf4176cd7877ad5952737d56da6f515ee4602",
+      "archive": "https://github.com/llvm/llvm-project/releases/download/llvmorg-18.1.8/llvm-project-18.1.8.src.tar.xz",
+      "archive_bytes": 132067260,
+      "archive_sha256_computed": "0b58557a6d32ceee97c8d533a59b9212d87e0fc4d2833924eb6c611247db2f2a",
+      "qualification": "Primary release archive streamed and hashed; release API asset digest was null. This is a retrieved content identity, not independent signature verification."
+    },
+    {
+      "name": "GCC",
+      "version": "14.4.0",
+      "tag_object": "2c31f611cef5a871194630d0393f55e50ab130cb",
+      "commit": "98859340e0916f004ac78d5fe20549fb100d41aa",
+      "tag_api": "https://api.github.com/repos/gcc-mirror/gcc/git/tags/2c31f611cef5a871194630d0393f55e50ab130cb",
+      "archive": "https://gcc.gnu.org/pub/gcc/releases/gcc-14.4.0/gcc-14.4.0.tar.xz",
+      "checksum_source": "https://gcc.gnu.org/pub/gcc/releases/gcc-14.4.0/sha512.sum",
+      "archive_sha512_published": "725ed8bdd43ef1726ffe8b5e8615a13e247fac9575b7626ae013a2975d000ea213212dc414b2f2631ac4785c1c8beca85555222faf9904d3b2fa6a3807a83a15",
+      "checksum_document_sha256": "f9e95615af427e44fb717ba5d95e23bfc2f4d125d7fe796b55af406d9a0c9abf",
+      "qualification": "Published checksum retrieved; archive body not downloaded."
+    },
+    {
+      "name": "GNU binutils",
+      "version": "2.43.1",
+      "archive": "https://sourceware.org/pub/binutils/releases/binutils-2.43.1.tar.xz",
+      "checksum_source": "https://sourceware.org/pub/binutils/releases/sha512.sum",
+      "archive_sha512_published": "20977ad17729141a2c26d358628f44a0944b84dcfefdec2ba029c2d02f40dfc41cc91c0631044560d2bd6f9a51e1f15846b4b311befbe14f1239f14ff7d57824",
+      "checksum_document_sha256": "bc35760ac7af673a464d27b6fb4d9bec6b3e24c20c7dce1871bd55773ba09866",
+      "qualification": "Published checksum retrieved; archive body not downloaded."
+    },
+    {
+      "name": "glibc",
+      "version": "2.39",
+      "tag_object": "9609a435f3f9a07c1cf607ad5821b12f735abd69",
+      "commit": "ef321e23c20eebc6d6fb4044425c00e6df27b05f",
+      "tag_api": "https://api.github.com/repos/bminor/glibc/git/tags/9609a435f3f9a07c1cf607ad5821b12f735abd69",
+      "archive": "https://ftp.gnu.org/gnu/glibc/glibc-2.39.tar.xz",
+      "archive_bytes": 18520988,
+      "archive_sha256_computed": "f77bd47cf8170c57365ae7bf86696c118adb3b120d3259c64c502d3dc1e2d926",
+      "qualification": "Primary archive streamed and hashed. Ubuntu patched libc identity remains unestablished; upstream tag is not its installed-package identity."
+    }
+  ],
+  "rust_distribution": {
+    "version": "1.80.0",
+    "date": "2024-07-25",
+    "target": "x86_64-unknown-linux-gnu",
+    "manifest": "https://static.rust-lang.org/dist/channel-rust-1.80.0.toml",
+    "manifest_sha256_computed": "e9e37f18ace35528c48463bd16158e6e4445684d497febaa3127509dbf25701e",
+    "rustc_archive_sha256_published": "ef1692e3d67236868d32ef26f96f47792b1c3a3f9747bbe05c63742464307c4f",
+    "rust_std_archive_sha256_published": "c722cba93c9627e04a6a5ecc749cde9dda39f15e4d02fb6ae8d0b27e02e6488a",
+    "cargo_archive_sha256_published": "5602ba863f5276cfaa7ed3a8dd94d187fbd0319a1b4bbb9284e77fb6b7168a41",
+    "qualification": "Manifest metadata only; no distribution installed, extracted or executed. Actual tool/prebuilt library hashes must be measured in Actions."
+  },
+  "cargo_candidates": [
+    {
+      "name": "object",
+      "version": "0.36.7",
+      "features": ["read_core", "elf", "unaligned"],
+      "default_features": false,
+      "source_commit": "5b66b69298f6198f9d5b5bb2a0b284b4d920a92c",
+      "registry_metadata": "https://crates.io/api/v1/crates/object/0.36.7",
+      "archive_checksum_published": "62948e14d923ea95ea2c7c86c71013138b66525b86bdc08d2dcc262bdb497b87",
+      "declared_msrv": "1.65"
+    },
+    {
+      "name": "memchr",
+      "version": "2.7.4",
+      "source_commit": "8ad339524d857a2dd9e7231b497ed92aa0f5c334",
+      "registry_metadata": "https://crates.io/api/v1/crates/memchr/2.7.4",
+      "archive_checksum_published": "78ca9ab1a0babb1e7d5695e3530886289c18cf2f87ec19a575a0abdce112e3a3",
+      "declared_msrv": "1.61"
+    }
+  ],
+  "missing_launch_prerequisites": [
+    "Digest-verified installed bootstrap compiler, assembler/linker, build tools and complete support-library/package closure; no mutable apt install is authorized by this resolution file.",
+    "Complete reviewed configure/CMake options, exact producer/build argv and sanitized permitted environment. No complete recipe is claimed.",
+    "Applicable actual-default hardening and GNU property/import implications; LLVM return-CET mechanism and full Rust callback boundary remain unverified.",
+    "Finite committed ABI/arithmetic/layout/negative-control probe sources and independent expectations; standalone Cargo lock with exactly the allowed closure.",
+    "Observed Actions image/CPU/RAM/disk/kernel and adequate headroom; verified two-CPU, memory, no-swap and all-writable-path disk enforcement.",
+    "Actual launch commit/tree/workflow/action identities, all-attempt budget reservation and artifact retention/index policy."
+  ],
+  "cost_and_retention": {
+    "image_build_attempts": 0,
+    "compiler_or_executable_probe_attempts": 0,
+    "local_archive_bytes_streamed_without_retention": 150588248,
+    "upstream_metadata_reads": "Read-only preparation; separate from CI/image attempts.",
+    "artifact": "No image, compiler binary, native object, Actions artifact or archive file retained by this resolution step. Future downloads must verify these pinned identities again.",
+    "human_effort": "No human engineer-time measurement supplied; AI wall time is separate."
+  }
+}
