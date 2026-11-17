@@ -956,3 +956,54 @@ delivery prevents the prohibited operation; partial and emergency output never
 authorize execution. Existing result/audit accounts and run/verify distinctions
 remain unchanged. Independent implementation review and Greg's separate
 acceptance remain required; this candidate does not authorize a merge.
+
+## BED-038 — Owner-selected LLVM and C/GCC direction
+
+Greg selected two first-class backends consuming the same approved MIR: direct
+LLVM and a C emitter compiled with GCC, with baseline x86-64 Linux System V AMD64
+as the first target. The C route explicitly encodes approved behavior; it does not
+translate surface syntax, bypass semantic checks, or delegate decisive execution
+to the interpreter. Clang is excluded from this C route; Cranelift is outside the
+selected work.
+
+Greg subsequently accepted [modular target architecture](https://github.com/gregkrsak/bowfin/issues/117#issuecomment-6614337703)
+as decided direction: built-in target modules with explicit contracts, separate
+backend and target selections, shared approved-MIR semantic authority, and
+distinct target generation and platform/runtime adapters. Begin with the selected
+x86-64 Linux target; qualify supported backend/target/profile combinations using
+generated code plus required runtime support. Exact interfaces remain open, with
+no public plugin API promise. No assembly backend or additional target is selected.
+The existing frontend, MIR and execution contract provide foundations; a modular
+native-target implementation does not yet exist. This direction does not resume
+stopped investigations or change their independent authorization gates.
+
+[BED-038 Draft 2](https://github.com/gregkrsak/bowfin/issues/117) continues the
+specification/review track and supersedes closed KED-036 / Issue #87. Greg also
+directed that target coverage, small footprint, and performance must not weaken
+Bowfin's accepted safety, reliability, verification, or evidence requirements.
+Assess generated code and all required target-runtime support together. A target
+that cannot satisfy the applicable contract is unsupported; host-side tooling may
+be separated from target execution without dropping any assurance obligation.
+Public claims remain limited by DP-009 and BD-017.
+
+Sarah's Draft 1 review permitted implementation-pressure review and raised B38-O01
+about the native evidence interface. Arnold's pressure review returned NOT READY
+TO FREEZE. Draft 2 proposes an actual-state borrowed evidence view, retained state
+and private ABI, external LLVM/C-GCC production, restricted sealed loading, exact
+candidate fixtures, and four bounded pre-freeze investigations. B38-O01 and
+B38-P01 through B38-P06 remain unresolved pending their required evidence/review.
+The proposed toolchains, ABI, mechanisms, schedules, and caps are not frozen.
+
+Sentinel 0 remains the custody foundation. BED-035 semantics, independent
+expectations, retained custody, accounting geometry, and optimized/unoptimized
+evidence apply to both routes. GCC diversifies downstream compilation without
+eliminating shared frontend, lowering, runtime, or host-toolchain failure points.
+The investigation plan has early stop points and does not adopt Arnold's proposed
+80-engineer-day/28,000-line full-stage ceilings. No target may gain support by
+reducing required evidence to fit a resource cap.
+
+Draft 2 publication authorizes neither prototype investigations nor backend
+implementation. Independent review, explicit experiment assignments, result
+reconciliation, strategic assessment, freeze and full implementation remain
+separate gates. No native feasibility or additional platform support is claimed.
+Historical BED-035 statements that it selected no backend remain true of Stage I.
