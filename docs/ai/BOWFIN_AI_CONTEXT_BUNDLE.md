@@ -80,6 +80,22 @@ Bowfin-owned public examples prefer implemented explicit aliases such as
 `function`, `mutable`, and `Error`. Compact spellings remain equal language
 aliases under BD-014. See [the documentation policy](../DOCUMENTATION_POLICY.md).
 
+## Compiler-host portability direction
+
+Bowfin maintains one authoritative Rust compiler source tree across every
+supported compiler host. Linux, Windows, macOS, and any later host must not use
+separate compiler forks or duplicated semantic pipelines. Irreducible filesystem,
+process, executable-custody, tool-invocation, loader, and host-evidence behavior
+belongs behind narrow private adapters that satisfy common Bowfin-owned contracts
+and fail closed.
+
+Compiler host, generated-code target, backend, native mode, and qualification
+profile remain distinct dimensions. One source tree does not promise that every
+combination is supported. The current Linux implementation establishes no
+Windows or macOS support; exact adapters and supported combinations require
+separate implementation and evidence. See DP-020 and the portable compiler-host
+boundary in `ARCHITECTURE.md`.
+
 ## Current implementation status
 
 An executable compiler prototype, written in Rust, supports ordinary
@@ -1179,6 +1195,30 @@ The compiler, standard library, examples, and documentation should make the
 correct path the most legible one. A developer should not need to mentally
 simulate hidden inference, variance, destruction order, or remote constraints to
 understand the validity and consequences of a local source operation.
+
+## DP-020 — One compiler source, explicit host seams
+
+Bowfin maintains one authoritative compiler source tree and one semantic
+implementation across every supported compiler host. Linux, Windows, macOS, and
+any later host must not acquire separate compiler forks, duplicated semantic
+pipelines, or platform-specific interpretations of Bowfin source, approved MIR,
+obligations, evidence, diagnostics, or compatibility.
+
+Irreducible host differences belong behind narrow private adapters. Filesystem
+and process operations, executable identity and custody, tool discovery and
+invocation, loader integration, and host-specific evidence may use different
+mechanisms, but each adapter must satisfy the same explicit Bowfin-owned contract
+and fail closed when it cannot. Platform conditionals must not spread through the
+shared frontend, semantic analyses, approved-MIR authority, native planning, or
+backend-independent validation.
+
+Compiler-host portability, generated-code targets, cross-compilation, backend
+selection, runtime support, and qualification profiles are distinct dimensions.
+One source tree does not imply that every host supports every target or that
+matching source produces an accepted product without tuple-specific evidence.
+Supported combinations must be explicit, reproducible, and independently
+qualified. Exact adapter interfaces and the supported-host matrix require focused
+engineering decisions; this principle forbids solving them through compiler forks.
 
 <!-- END DESIGN_PRINCIPLES.md -->
 
@@ -3064,6 +3104,37 @@ for one executable or a monolithic compiler.
 Exact packaging, process boundaries, component protocols and evidence schemas
 remain subject to their focused decisions. Whatever forms they take, they must
 preserve this singular toolchain boundary.
+
+### Portable compiler-host boundary
+
+DP-020 requires one authoritative Rust compiler source tree across supported
+compiler hosts. Host portability may select different private implementations;
+it may not duplicate or reinterpret the compiler's semantic pipeline. Parsing,
+resolution, typing, ownership, effects, approved HIR/MIR, native-plan semantics,
+backend-independent validation, diagnostics and Bowfin-owned evidence meanings
+remain shared.
+
+Irreducible operating-system behavior enters through narrow internal host
+adapters. These adapters may own filesystem and process primitives, executable
+identity and custody, tool discovery and invocation, loader integration, and
+host-specific observation. Each adapter must implement the same versioned
+Bowfin-owned requirements, expose material assumptions and identities, and fail
+closed when the host cannot establish a required property. Conditional
+compilation belongs at this private boundary and its wiring, not throughout the
+shared compiler core.
+
+The compiler host is independent of the generated-code target. Target modules
+own ISA, data-layout, ABI, object-format and target-runtime facts; host adapters
+own how the compiler safely operates on the machine where it runs. Toolchain and
+product records must bind the applicable host, target, backend, mode and profile
+facts without implying that every cross-product is supported.
+
+The current Linux implementation and BED-038 N1 evidence do not establish
+Windows or macOS host support, cross-compilation, or another native target. Exact
+adapter interfaces, supported hosts, toolchain provisioning, target matrix and
+qualification evidence remain subject to focused design and implementation.
+Whatever those decisions select, they must preserve one source of compiler truth
+and may not create platform-specific Bowfin compilers.
 
 ## 15. Proposed repository structure
 
