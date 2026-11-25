@@ -201,3 +201,27 @@ The compiler, standard library, examples, and documentation should make the
 correct path the most legible one. A developer should not need to mentally
 simulate hidden inference, variance, destruction order, or remote constraints to
 understand the validity and consequences of a local source operation.
+
+## DP-020 — One compiler source, explicit host seams
+
+Bowfin maintains one authoritative compiler source tree and one semantic
+implementation across every supported compiler host. Linux, Windows, macOS, and
+any later host must not acquire separate compiler forks, duplicated semantic
+pipelines, or platform-specific interpretations of Bowfin source, approved MIR,
+obligations, evidence, diagnostics, or compatibility.
+
+Irreducible host differences belong behind narrow private adapters. Filesystem
+and process operations, executable identity and custody, tool discovery and
+invocation, loader integration, and host-specific evidence may use different
+mechanisms, but each adapter must satisfy the same explicit Bowfin-owned contract
+and fail closed when it cannot. Platform conditionals must not spread through the
+shared frontend, semantic analyses, approved-MIR authority, native planning, or
+backend-independent validation.
+
+Compiler-host portability, generated-code targets, cross-compilation, backend
+selection, runtime support, and qualification profiles are distinct dimensions.
+One source tree does not imply that every host supports every target or that
+matching source produces an accepted product without tuple-specific evidence.
+Supported combinations must be explicit, reproducible, and independently
+qualified. Exact adapter interfaces and the supported-host matrix require focused
+engineering decisions; this principle forbids solving them through compiler forks.

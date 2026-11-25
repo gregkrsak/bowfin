@@ -67,6 +67,22 @@ Bowfin-owned public examples prefer implemented explicit aliases such as
 `function`, `mutable`, and `Error`. Compact spellings remain equal language
 aliases under BD-014. See [the documentation policy](../DOCUMENTATION_POLICY.md).
 
+## Compiler-host portability direction
+
+Bowfin maintains one authoritative Rust compiler source tree across every
+supported compiler host. Linux, Windows, macOS, and any later host must not use
+separate compiler forks or duplicated semantic pipelines. Irreducible filesystem,
+process, executable-custody, tool-invocation, loader, and host-evidence behavior
+belongs behind narrow private adapters that satisfy common Bowfin-owned contracts
+and fail closed.
+
+Compiler host, generated-code target, backend, native mode, and qualification
+profile remain distinct dimensions. One source tree does not promise that every
+combination is supported. The current Linux implementation establishes no
+Windows or macOS support; exact adapters and supported combinations require
+separate implementation and evidence. See DP-020 and the portable compiler-host
+boundary in `ARCHITECTURE.md`.
+
 ## Current implementation status
 
 An executable compiler prototype, written in Rust, supports ordinary

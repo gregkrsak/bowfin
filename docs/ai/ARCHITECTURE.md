@@ -232,6 +232,37 @@ Exact packaging, process boundaries, component protocols and evidence schemas
 remain subject to their focused decisions. Whatever forms they take, they must
 preserve this singular toolchain boundary.
 
+### Portable compiler-host boundary
+
+DP-020 requires one authoritative Rust compiler source tree across supported
+compiler hosts. Host portability may select different private implementations;
+it may not duplicate or reinterpret the compiler's semantic pipeline. Parsing,
+resolution, typing, ownership, effects, approved HIR/MIR, native-plan semantics,
+backend-independent validation, diagnostics and Bowfin-owned evidence meanings
+remain shared.
+
+Irreducible operating-system behavior enters through narrow internal host
+adapters. These adapters may own filesystem and process primitives, executable
+identity and custody, tool discovery and invocation, loader integration, and
+host-specific observation. Each adapter must implement the same versioned
+Bowfin-owned requirements, expose material assumptions and identities, and fail
+closed when the host cannot establish a required property. Conditional
+compilation belongs at this private boundary and its wiring, not throughout the
+shared compiler core.
+
+The compiler host is independent of the generated-code target. Target modules
+own ISA, data-layout, ABI, object-format and target-runtime facts; host adapters
+own how the compiler safely operates on the machine where it runs. Toolchain and
+product records must bind the applicable host, target, backend, mode and profile
+facts without implying that every cross-product is supported.
+
+The current Linux implementation and BED-038 N1 evidence do not establish
+Windows or macOS host support, cross-compilation, or another native target. Exact
+adapter interfaces, supported hosts, toolchain provisioning, target matrix and
+qualification evidence remain subject to focused design and implementation.
+Whatever those decisions select, they must preserve one source of compiler truth
+and may not create platform-specific Bowfin compilers.
+
 ## 15. Proposed repository structure
 
 ```text
