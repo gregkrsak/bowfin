@@ -14,14 +14,15 @@ Select the applicable statement:
 
 - [ ] I am Gregory M. Krsak, the current Bowfin rights-holder; or
 - [ ] The applicable Bowfin Contributor Assignment Agreement has been executed
-      and confirmed on file for every external author represented in this pull
-      request.
+      and confirmed on file for each external author whose original material is
+      submitted for assignment in this pull request.
 
 The checkbox is a review gate, not the contributor agreement itself.
 
 - [ ] I have authority to submit all material in this pull request.
-- [ ] I identified all third-party material and obtained written approval before
-      including it, or this pull request contains none.
+- [ ] I separately identified all pre-existing third-party material and obtained
+      the written license-and-provenance approval required by project policy, or
+      this pull request contains none.
 - [ ] I disclosed material generative-AI or code-generation assistance and the
       affected portions, or none was used.
 - [ ] This pull request contains no credentials, private keys, confidential data,

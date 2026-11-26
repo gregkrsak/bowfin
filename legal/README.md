@@ -1,7 +1,9 @@
 # Bowfin Contributor Agreements
 
-The Bowfin Project requires a signed contributor assignment agreement before it
-merges externally authored copyrightable material.
+The Bowfin Project requires a signed contributor assignment agreement before
+original externally authored copyrightable material is intentionally submitted
+for incorporation or merged. Pre-existing third-party material may instead be
+accepted under its approved upstream license and provenance as described below.
 
 ## Current rights-holder
 
@@ -24,6 +26,13 @@ has authority to assign it. Use the Entity agreement when an employer or other
 legal entity owns or controls the contribution. An authorized representative must
 sign for an entity.
 
+The agreement is required for covered contributions to Bowfin, not merely for
+using Bowfin, modifying a private copy, or exercising redistribution rights under
+`LICENSE`. Section 2.3 permits additional licensing of an included Contribution
+while preserving its submission-date license commitment. It does not promise
+that every future Bowfin work will use the same license or provide a hosting,
+support, or governance entitlement.
+
 ## Private execution process
 
 Open a repository issue requesting private agreement-submission instructions.
@@ -41,10 +50,13 @@ entity, the contributing accounts it authorizes.
 
 ## Non-owner and third-party material
 
-Do not submit material owned by another person or entity unless the rights-holder
-has executed the appropriate agreement or the project owner has approved a
-compatible upstream license and the exact provenance in writing. Identify such
-material before submitting any patch.
+Original material owned by another person or entity requires the appropriate
+agreement from that rights-holder. Pre-existing third-party material may instead
+be accepted under its applicable upstream license after the project owner
+approves the exact material, license, and provenance in writing. That approval
+does not assign the upstream copyright or change the upstream license. Identify
+third-party portions separately from material covered by an assignment before
+submitting any patch.
 
 Material created with generative-AI or code-generation tools must be disclosed as
 required by `CONTRIBUTING.md`. Do not submit it when you cannot grant the rights or
@@ -57,5 +69,6 @@ Version 1.0**, licensed under the
 [Creative Commons Attribution 3.0 Unported License](https://creativecommons.org/licenses/by/3.0/).
 
 The Bowfin adaptations select the assignment form and outbound-license Option
-Five, identify the current receiving party, and select Washington law. The
-adaptations are not presented as unmodified Harmony forms.
+Five, identify the current receiving party, select Washington law, and narrow
+project, submission-intent, effective-date, and individual employer-authorization
+scope. The adaptations are not presented as unmodified Harmony forms.

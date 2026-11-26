@@ -31,18 +31,27 @@ grant permission to present a fork, modified distribution, or independent
 implementation as an official Bowfin product; `TRADEMARKS.md` records the
 project's trademark-use policy.
 
-Externally authored copyrightable material requires an executed Harmony-based
-Contributor Assignment Agreement before merge. Bowfin selects the assignment
-form and outbound-license Option Five: the rights-holder may license an accepted
-contribution under additional terms while continuing to make it available under
-the license or licenses applied to the relevant Bowfin material on its submission
-date. A pull-request checkbox, commit sign-off, or DCO is not a substitute.
+Original externally authored copyrightable material requires an executed
+Harmony-based Contributor Assignment Agreement before intentional submission
+for incorporation or merge. Approved pre-existing third-party material remains
+under its applicable upstream license and provenance and is not assigned by the
+submitter. Bowfin selects the assignment form and outbound-license Option Five:
+the rights-holder may license an accepted contribution under additional terms
+while continuing to make it available under the license or licenses applied to
+the relevant Bowfin material on its submission date. A pull-request checkbox,
+commit sign-off, or DCO is not a substitute. Assignment is chosen to keep project
+ownership coherent, avoid relicensing deadlock, support enforcement and
+additional commercial arrangements, and permit orderly transfer to a dedicated
+Bowfin entity; the resulting concentration of licensing authority is an explicit
+project tradeoff.
 
 The current receiving party and individual rights-holder is **Gregory M. Krsak**.
 That role is intended to transfer to a dedicated Bowfin entity when established;
 the agreements require an assignee to accept their continuing obligations in
-writing. Until an applicable agreement is confirmed on file, external authored
-material may not merge. Human-only merge authority remains unchanged.
+writing. General discussion and diagnostic material are not assigned merely
+because they appear in an issue; covered material must be intentionally submitted
+for incorporation after the agreement takes effect. Human-only merge authority
+remains unchanged.
 
 ## Why Bowfin exists
 

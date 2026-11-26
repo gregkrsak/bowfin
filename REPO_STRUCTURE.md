@@ -116,9 +116,11 @@ That implementation choice does not settle the future Bowfin package manifest.
 
 The repository uses `Apache-2.0 WITH LLVM-exception`. `NOTICE`,
 `TRADEMARKS.md`, and `THIRD_PARTY_NOTICES.md` record attribution, mark usage,
-and third-party material. `CONTRIBUTING.md` and `legal/` define the external
-contribution gate and the individual/entity Harmony-based contributor assignment
-agreements selected with outbound-license Option Five.
+and third-party material. `CONTRIBUTING.md` and `legal/` distinguish original
+material covered by the external contribution-assignment gate from approved
+pre-existing material retained under its upstream license, and define the
+individual/entity Harmony-based agreements selected with outbound-license Option
+Five.
 
 Gregory M. Krsak is the current individual rights-holder. Transfer to a future
 Bowfin entity requires a documented project decision and written acceptance of

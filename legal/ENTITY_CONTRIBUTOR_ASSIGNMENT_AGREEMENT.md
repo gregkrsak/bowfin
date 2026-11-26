@@ -7,8 +7,11 @@ This contributor agreement ("Agreement") documents the rights granted by
 contributors to Us. To make this document effective, please have an authorized
 representative sign it and submit it privately according to
 [`legal/README.md`](README.md). This is a legally binding document, so please
-read it carefully before agreeing to it. The Agreement may cover more than one
-software project managed by Us.
+read it carefully before agreeing to it. The Agreement covers Contributions to
+the Bowfin Project only, including its official successor repositories. It does
+not cover contributions to any other
+project managed by Us unless You and We expressly identify that project in a
+signed amendment.
 
 ## 1. Definitions
 
@@ -25,20 +28,22 @@ direction or management of such Legal Entity, whether by contract or otherwise,
 securities which vote to elect the management or other persons who direct such
 Legal Entity or (iii) beneficial ownership of such entity.
 
-**"Contribution"** means any work of authorship that is Submitted by You to Us
-in which You own or assert ownership of the Copyright. If You do not own the
-Copyright in the entire work of authorship, follow the non-owner instructions in
-[`legal/README.md`](README.md) before submitting it.
+**"Contribution"** means a work of authorship in which You own or assert
+ownership of the Copyright and which You intentionally Submit for incorporation
+into the Material. General discussion, questions, ideas, factual reports, and
+reproduction material supplied only to diagnose a problem are not Contributions
+unless You expressly designate a specified work for incorporation. If You do not
+own the Copyright in the entire work of authorship, follow the non-owner
+instructions in [`legal/README.md`](README.md) before submitting it.
 
 **"Copyright"** means all rights protecting works of authorship owned or
 controlled by You or Your Affiliates, including copyright, moral and neighboring
 rights, as appropriate, for the full term of their existence including any
 extensions by You.
 
-**"Material"** means the work of authorship which is made available by Us to
-third parties. When this Agreement covers more than one software project, the
-Material means the work of authorship to which the Contribution was Submitted.
-After You Submit the Contribution, it may be included in the Material.
+**"Material"** means the Bowfin work of authorship which is made available by Us
+to third parties, including through an official successor repository. After You
+Submit the Contribution, it may be included in the Material.
 
 **"Submit"** means any form of electronic, verbal, or written communication sent
 to Us or our representatives, including but not limited to electronic mailing
@@ -49,8 +54,15 @@ in writing by You as "Not a Contribution."
 
 **"Submission Date"** means the date on which You Submit a Contribution to Us.
 
-**"Effective Date"** means the date You execute this Agreement or the date You
-first Submit a Contribution to Us, whichever is earlier.
+**"Effective Date"** means the date on which both You and We have signed this
+Agreement.
+
+This Agreement covers qualifying Contributions Submitted on or after the
+Effective Date. An earlier work is covered only if You and We identify it in a
+signed addendum. The addendum must identify the work, its actual Submission
+Date, the effective date of the transfer, and the license or licenses applicable
+under Section 2.3. Earlier discussion or other material is not covered merely
+because You later sign this Agreement.
 
 ## 2. Grant of Rights
 
@@ -225,5 +237,6 @@ This agreement is adapted from the **Harmony Contributor Agreement Template,
 Version 1.0**, licensed under the
 [Creative Commons Attribution 3.0 Unported License](https://creativecommons.org/licenses/by/3.0/).
 The Bowfin adaptation selects the contributor-assignment form, Entity variant,
-outbound-license Option Five, and Washington law; it identifies Gregory M. Krsak
-as the current receiving party.
+outbound-license Option Five, and Washington law; identifies Gregory M. Krsak as
+the current receiving party; and narrows project, submission-intent, and effective-
+date scope as stated above.

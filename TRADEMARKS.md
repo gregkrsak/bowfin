@@ -35,7 +35,7 @@ You may modify, fork, and redistribute the software under the repository's
 license. Unless separately authorized in writing, however, a modified
 distribution or independent implementation must:
 
-- use a distinct product and executable identity;
+- use a distinct public-facing product, package, and release identity;
 - avoid using **Bowfin** or the Bowfin logo as its primary product name, logo,
   package identity, domain identity, or release identity;
 - state clearly that it is unofficial and independently maintained whenever it
@@ -45,6 +45,13 @@ distribution or independent implementation must:
 
 The factual phrase **"compatible with Bowfin"** is acceptable when accurate and
 not presented as an official certification.
+
+Private or internal modified builds may retain Bowfin-compatible identifiers.
+Public distributions may also provide compatibility command names or paths such
+as `bowfin` when necessary for existing tooling, provided their public-facing
+product identity is distinct and their unofficial status is clear. A compatibility
+alias does not authorize the Bowfin name or logo as the distribution's primary
+brand.
 
 ## Official status
 

@@ -557,10 +557,12 @@ Your Markdown extension can render the README while all local assets remain avai
 
 Bowfin is young enough that **careful thinking matters more than churn**.
 
-Externally authored code, tests, documentation, examples, artwork, and
+Original externally authored code, tests, documentation, examples, artwork, and
 specification material require an executed contributor assignment agreement
-before they may be merged. Start with [CONTRIBUTING.md](CONTRIBUTING.md); do not
-post signed agreements or personal information publicly.
+before intentional submission for incorporation or merge. Approved pre-existing
+third-party material remains under its upstream license and provenance. Start
+with [CONTRIBUTING.md](CONTRIBUTING.md); do not post signed agreements or personal
+information publicly.
 
 When contributing, favor:
 

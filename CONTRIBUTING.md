@@ -7,9 +7,15 @@ more than churn.
 ## Before contributing authored material
 
 The Bowfin Project requires a signed **Contributor Assignment Agreement** before
-it may merge any externally authored code, tests, documentation, examples,
-artwork, specifications, or other copyrightable material. There is no small-patch
-exception.
+original externally authored code, tests, documentation, examples, artwork,
+specifications, or other copyrightable material may be intentionally submitted
+for incorporation or merged. There is no small-patch exception for such
+original material.
+
+Pre-existing third-party material is different. It may be accepted under its
+applicable upstream license only after the project owner approves the exact
+material, license, and provenance in writing. That approval does not assign the
+upstream copyright or change the upstream license.
 
 The current project rights-holder is **Gregory M. Krsak**, individually. Bowfin
 uses assignment agreements based on the Harmony Contributor Assignment Agreement,
@@ -23,10 +29,23 @@ any additional license, including commercial or proprietary terms, while also
 making that contribution available under the license or licenses applied to the
 Bowfin material on the contribution's submission date.
 
+### Why assignment?
+
+Bowfin uses assignment to keep project ownership coherent, prevent a future
+relicensing deadlock, support enforcement, permit additional commercial
+arrangements, and allow an orderly transfer to a dedicated Bowfin entity. This
+concentrates licensing authority in the current rights-holder. Some contributors
+will reasonably prefer not to participate under that bargain; Bowfin states it
+directly rather than presenting assignment as routine provenance paperwork.
+
 Until an executed agreement is on file, you may open issues containing ideas,
 questions, reproduction steps, and factual bug reports, but do not submit patches,
 implementation text, documentation prose, artwork, or other authored material
-intended for inclusion in the repository.
+intended for inclusion in the repository. Discussion and diagnostic material are
+not assigned merely because they appear in an issue. Material becomes a covered
+Contribution only when it is intentionally submitted for incorporation after the
+agreement takes effect. Mark a communication **Not a Contribution** when you
+want to exclude it expressly from contribution treatment.
 
 ## Agreement process
 
@@ -39,18 +58,22 @@ intended for inclusion in the repository.
    on file.
 4. Only then open a pull request containing authored material.
 
-An individual contributor whose employer may own relevant work must obtain the
-necessary employer authorization or use the Entity agreement. The person signing
-an Entity agreement must have authority to bind that entity.
+An individual contributor must obtain all necessary authorization when an
+employer, client, or other entity may own or control relevant rights, or when the
+contributor's obligations to that entity may restrict the contribution. In those
+cases the entity may instead execute the Entity agreement. The person signing an
+Entity agreement must have authority to bind that entity.
 
 A pull-request checkbox, commit sign-off, or Developer Certificate of Origin is
 not a substitute for the executed assignment agreement.
 
 ## Ownership and provenance
 
-Submit only material that you have the legal authority to assign. Identify any
-third-party material before submission and do not include it unless the project
-owner has approved its license and provenance in writing.
+Submit only original material that you have the legal authority to assign.
+Identify pre-existing third-party material separately before submission and do
+not include it unless the project owner has approved the exact material, its
+license, and its provenance in writing. Approved third-party material remains
+under its upstream license and is not covered by your assignment.
 
 Disclose material use of generative-AI or code-generation tools in the pull
 request. The disclosure must identify the tool and the affected portions. Do not
