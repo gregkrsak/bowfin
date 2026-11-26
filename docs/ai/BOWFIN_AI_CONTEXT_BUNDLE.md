@@ -36,6 +36,27 @@ Canonical public summary:
 
 > **Bowfin is a systems programming language that treats memory safety as the foundation, then lets programmers express and verify more of the rules that make their software correct.**
 
+## Licensing and contribution ownership
+
+Bowfin is distributed under `Apache-2.0 WITH LLVM-exception`, except where
+specific material identifies different terms. The software license does not
+grant permission to present a fork, modified distribution, or independent
+implementation as an official Bowfin product; `TRADEMARKS.md` records the
+project's trademark-use policy.
+
+Externally authored copyrightable material requires an executed Harmony-based
+Contributor Assignment Agreement before merge. Bowfin selects the assignment
+form and outbound-license Option Five: the rights-holder may license an accepted
+contribution under additional terms while continuing to make it available under
+the license or licenses applied to the relevant Bowfin material on its submission
+date. A pull-request checkbox, commit sign-off, or DCO is not a substitute.
+
+The current receiving party and individual rights-holder is **Gregory M. Krsak**.
+That role is intended to transfer to a dedicated Bowfin entity when established;
+the agreements require an assignee to accept their continuing obligations in
+writing. Until an applicable agreement is confirmed on file, external authored
+material may not merge. Human-only merge authority remains unchanged.
+
 ## Why Bowfin exists
 
 Bowfin begins from the premise that **memory safety is the beginning of the argument, not the end**.

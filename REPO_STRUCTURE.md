@@ -6,18 +6,24 @@ compiler prototype. Current operational GitHub home: `gregkrsak/bowfin`. The ado
 transfer requires a separate owner decision.
 
 ```text
-klyxr/
+bowfin/
 ├── AGENTS.md
 ├── CLAUDE.md
+├── CONTRIBUTING.md
 ├── GEMINI.md
+├── LICENSE
+├── NOTICE
 ├── README.md
 ├── REPO_STRUCTURE.md
+├── THIRD_PARTY_NOTICES.md
+├── TRADEMARKS.md
 ├── Cargo.toml
 ├── Cargo.lock
 ├── rust-toolchain.toml
 ├── .gitignore
 ├── .github/
 │   ├── copilot-instructions.md
+│   ├── PULL_REQUEST_TEMPLATE.md
 │   └── workflows/
 │       ├── build.yml
 │       ├── docs.yml
@@ -32,6 +38,10 @@ klyxr/
 │   │   └── knowledge-boundaries-mobile.svg
 │   ├── readme-banner.png
 │   └── readme-banner-mobile.png
+├── legal/
+│   ├── ENTITY_CONTRIBUTOR_ASSIGNMENT_AGREEMENT.md
+│   ├── INDIVIDUAL_CONTRIBUTOR_ASSIGNMENT_AGREEMENT.md
+│   └── README.md
 ├── compiler/
 │   ├── Cargo.toml
 │   ├── README.md
@@ -94,7 +104,6 @@ the desktop artwork as the fallback.
 
 The scaffold does **not** choose these yet because the project has not locked them down:
 
-- a software license;
 - a final package/manifest format;
 - a stable ABI policy.
 
@@ -102,3 +111,15 @@ Those should be added through explicit project decisions rather than guessed int
 
 The prototype compiler uses a Cargo workspace with a pinned Rust toolchain.
 That implementation choice does not settle the future Bowfin package manifest.
+
+## Licensing and contribution ownership
+
+The repository uses `Apache-2.0 WITH LLVM-exception`. `NOTICE`,
+`TRADEMARKS.md`, and `THIRD_PARTY_NOTICES.md` record attribution, mark usage,
+and third-party material. `CONTRIBUTING.md` and `legal/` define the external
+contribution gate and the individual/entity Harmony-based contributor assignment
+agreements selected with outbound-license Option Five.
+
+Gregory M. Krsak is the current individual rights-holder. Transfer to a future
+Bowfin entity requires a documented project decision and written acceptance of
+the contributor agreements' continuing obligations by the assignee.
