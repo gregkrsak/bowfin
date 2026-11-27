@@ -112,6 +112,22 @@ fix: preserve ownership across conditional value joins
 
 Only a human performs the final merge.
 
+### Human-readable project identifiers
+
+Under [DP-017](docs/ai/DESIGN_PRINCIPLES.md#dp-017--write-for-the-next-person),
+future findings, observations, checkpoints, evidence labels, and similar
+project-working identifiers must not rely on readers distinguishing the letter
+`O` from the digit `0`, especially when they appear together or adjacently.
+Do not assume that contributors, reviewers, terminals, editors, accessibility
+settings, or generated artifacts all use a font that distinguishes those glyphs.
+
+Use a descriptive category word—or an abbreviation already defined in the
+surrounding record—with a visible separator and ordinary sequence number. For
+example: `FINDING-1`, `CHECKPOINT-2`, or `EVIDENCE-3`. These are illustrations,
+not a required naming scheme. Avoid compact forms patterned like `O01`. Existing
+identifiers remain unchanged when continuity and
+stable links require it.
+
 ## Review expectations
 
 Contributions should favor:
