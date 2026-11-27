@@ -49,9 +49,10 @@ The current receiving party and individual rights-holder is **Gregory M. Krsak**
 That role is intended to transfer to a dedicated Bowfin entity when established;
 the agreements require an assignee to accept their continuing obligations in
 writing. General discussion and diagnostic material are not assigned merely
-because they appear in an issue; covered material must be intentionally submitted
-for incorporation after the agreement takes effect. Human-only merge authority
-remains unchanged.
+because they appear in an issue. Coverage ordinarily requires intentional
+submission for incorporation on or after the agreement's Effective Date; earlier
+works require the expressly signed addendum specified in Section 1 of the
+applicable agreement. Human-only merge authority remains unchanged.
 
 ## Why Bowfin exists
 

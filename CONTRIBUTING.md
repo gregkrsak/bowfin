@@ -42,10 +42,14 @@ Until an executed agreement is on file, you may open issues containing ideas,
 questions, reproduction steps, and factual bug reports, but do not submit patches,
 implementation text, documentation prose, artwork, or other authored material
 intended for inclusion in the repository. Discussion and diagnostic material are
-not assigned merely because they appear in an issue. Material becomes a covered
-Contribution only when it is intentionally submitted for incorporation after the
-agreement takes effect. Mark a communication **Not a Contribution** when you
-want to exclude it expressly from contribution treatment.
+not assigned merely because they appear in an issue. Qualifying material
+intentionally submitted for incorporation on or after the Effective Date is
+covered by the agreement. An earlier work is covered only through an addendum
+signed by both parties identifying the work, its actual Submission Date, the
+effective date of the transfer, and the license or licenses applicable under
+Section 2.3. Earlier discussion or other material is not covered merely because
+an agreement is signed later. Mark a communication **Not a Contribution** when
+you want to exclude it expressly from contribution treatment.
 
 ## Agreement process
 
