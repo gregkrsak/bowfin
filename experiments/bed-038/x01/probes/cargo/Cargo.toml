@@ -1,0 +1,8 @@
+[package]
+name = "b38-x01-probe"
+version = "0.0.0"
+edition = "2021"
+[workspace]
+[dependencies]
+memchr = { version = "=2.7.4", default-features = false }
+object = { version = "=0.36.7", default-features = false, features = ["read_core", "elf", "unaligned"] }
