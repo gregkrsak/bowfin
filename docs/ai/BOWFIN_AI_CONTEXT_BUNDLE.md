@@ -1178,7 +1178,9 @@ compression, or cleverness alone is not a benefit.
 For future Bowfin project-working identifiers—findings, observations, checkpoints,
 evidence labels, and similar human-facing engineering references—avoid identifiers
 that require readers to distinguish the letter `O` from the digit `0`, especially
-when they appear together or adjacently.
+when they appear together or adjacently. Do not presume that every contributor,
+reviewer, tool, or generated artifact uses a font that makes those glyphs visibly
+distinct; shared identifiers must remain unambiguous across typefaces and renderers.
 
 Prefer unmistakable forms such as `OBS-1`, `OBSERVATION-1`, or another category
 word plus an unambiguous number. Avoid new forms patterned like `O01`.
