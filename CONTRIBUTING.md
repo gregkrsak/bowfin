@@ -121,8 +121,11 @@ project-working identifiers must not rely on readers distinguishing the letter
 Do not assume that contributors, reviewers, terminals, editors, accessibility
 settings, or generated artifacts all use a font that distinguishes those glyphs.
 
-Prefer unmistakable forms such as `OBS-1` or `OBSERVATION-1`; avoid new forms
-patterned like `O01`. Existing identifiers remain unchanged when continuity and
+Use a descriptive category word—or an abbreviation already defined in the
+surrounding record—with a visible separator and ordinary sequence number. For
+example: `FINDING-1`, `CHECKPOINT-2`, or `EVIDENCE-3`. These are illustrations,
+not a required naming scheme. Avoid compact forms patterned like `O01`. Existing
+identifiers remain unchanged when continuity and
 stable links require it.
 
 ## Review expectations
