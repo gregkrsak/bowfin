@@ -148,6 +148,21 @@ When two designs are otherwise sound, prefer the one that helps an unfamiliar
 maintainer form the correct mental model with less hidden knowledge. Novelty,
 compression, or cleverness alone is not a benefit.
 
+### Human-readable project identifiers
+
+For future Bowfin project-working identifiers—findings, observations, checkpoints,
+evidence labels, and similar human-facing engineering references—avoid identifiers
+that require readers to distinguish the letter `O` from the digit `0`, especially
+when they appear together or adjacently.
+
+Prefer unmistakable forms such as `OBS-1`, `OBSERVATION-1`, or another category
+word plus an unambiguous number. Avoid new forms patterned like `O01`.
+
+Existing identifiers such as `RP-O01` remain unchanged for historical continuity
+and link stability. This is a project documentation and engineering-communication
+rule for human readability; it does not change Bowfin source-language lexical
+semantics or retroactively rename established authority.
+
 ## DP-018 — One toolchain, one assurance story
 
 Bowfin presents one coherent language and toolchain. Internal compilers,
