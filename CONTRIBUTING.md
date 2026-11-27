@@ -112,6 +112,17 @@ fix: preserve ownership across conditional value joins
 
 Only a human performs the final merge.
 
+### Human-readable project identifiers
+
+Under [DP-017](docs/ai/DESIGN_PRINCIPLES.md#dp-017--write-for-the-next-person),
+future findings, observations, checkpoints, evidence labels, and similar
+project-working identifiers must not rely on readers distinguishing the letter
+`O` from the digit `0`, especially when they appear together or adjacently.
+
+Prefer unmistakable forms such as `OBS-1` or `OBSERVATION-1`; avoid new forms
+patterned like `O01`. Existing identifiers remain unchanged when continuity and
+stable links require it.
+
 ## Review expectations
 
 Contributions should favor:
