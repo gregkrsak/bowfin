@@ -1198,6 +1198,8 @@ requirements or be treated as an explicit architecture or language change.
 
 ## DP-019 — Complexity must earn its place
 
+> **Simple intent must have simple syntax; dangerous intent must be visibly deliberate.**
+
 Bowfin source should expose domain meaning before implementation mechanism.
 Every syntactic burden, annotation, abstraction, and state transition must earn
 its cognitive cost by expressing a distinction that the programmer genuinely
