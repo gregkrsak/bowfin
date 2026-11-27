@@ -118,6 +118,8 @@ Under [DP-017](docs/ai/DESIGN_PRINCIPLES.md#dp-017--write-for-the-next-person),
 future findings, observations, checkpoints, evidence labels, and similar
 project-working identifiers must not rely on readers distinguishing the letter
 `O` from the digit `0`, especially when they appear together or adjacently.
+Do not assume that contributors, reviewers, terminals, editors, accessibility
+settings, or generated artifacts all use a font that distinguishes those glyphs.
 
 Prefer unmistakable forms such as `OBS-1` or `OBSERVATION-1`; avoid new forms
 patterned like `O01`. Existing identifiers remain unchanged when continuity and
