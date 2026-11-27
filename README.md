@@ -23,7 +23,9 @@
   <a href="#safe--checked--verified">Assurance model</a> ·
   <a href="#how-is-bowfin-different-from-rust">vs. Rust</a> ·
   <a href="#how-is-bowfin-different-from-adaspark">vs. Ada/SPARK</a> ·
-  <a href="#status">Status</a>
+  <a href="#status">Status</a> ·
+  <a href="#contributing">Contributing</a> ·
+  <a href="#license">License</a>
 </p>
 
 ---
@@ -508,6 +510,12 @@ application-success convention and audit limitations.
 │       ├── verify.yml
 │       └── docs.yml
 ├── assets/
+├── legal/
+├── CONTRIBUTING.md
+├── LICENSE
+├── NOTICE
+├── TRADEMARKS.md
+├── THIRD_PARTY_NOTICES.md
 ├── Cargo.toml
 ├── Cargo.lock
 ├── rust-toolchain.toml
@@ -549,6 +557,13 @@ Your Markdown extension can render the README while all local assets remain avai
 
 Bowfin is young enough that **careful thinking matters more than churn**.
 
+Original externally authored code, tests, documentation, examples, artwork, and
+specification material require an executed contributor assignment agreement
+before intentional submission for incorporation or merge. Approved pre-existing
+third-party material remains under its upstream license and provenance. Start
+with [CONTRIBUTING.md](CONTRIBUTING.md); do not post signed agreements or personal
+information publicly.
+
 When contributing, favor:
 
 - precision over hype,
@@ -569,6 +584,21 @@ Areas where thoughtful contributors will eventually be valuable include:
 - documentation,
 - tooling,
 - and examples.
+
+---
+
+## License
+
+Bowfin is distributed under the
+[`Apache-2.0 WITH LLVM-exception`](LICENSE) license. The exception keeps
+Bowfin-generated object code practical to redistribute: when compilation embeds
+portions of Bowfin software, those embedded portions may be redistributed
+without complying with Apache 2.0 Sections 4(a), 4(b), and 4(d).
+
+The software license does not grant rights to use the Bowfin name or canonical
+logo as the identity of a modified or independent product. See [NOTICE](NOTICE),
+[TRADEMARKS.md](TRADEMARKS.md), and
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 ---
 
