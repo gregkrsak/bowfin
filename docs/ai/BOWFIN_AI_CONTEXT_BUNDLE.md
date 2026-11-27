@@ -1182,8 +1182,12 @@ when they appear together or adjacently. Do not presume that every contributor,
 reviewer, tool, or generated artifact uses a font that makes those glyphs visibly
 distinct; shared identifiers must remain unambiguous across typefaces and renderers.
 
-Prefer unmistakable forms such as `OBS-1`, `OBSERVATION-1`, or another category
-word plus an unambiguous number. Avoid new forms patterned like `O01`.
+Choose a descriptive category word—or an abbreviation already defined in the
+surrounding record—and separate it visibly from an ordinary decimal sequence
+number. Examples include `FINDING-1`, `CHECKPOINT-2`, and `EVIDENCE-3`. These are
+illustrations, not a required naming scheme; a project record may use another clear
+form appropriate to its purpose. Avoid compact forms patterned like `O01`, or any
+form whose meaning or legibility depends on distinguishing ambiguous glyphs.
 
 Existing identifiers such as `RP-O01` remain unchanged for historical continuity
 and link stability. This is a project documentation and engineering-communication
